@@ -1,17 +1,9 @@
 # module main
 # percentages are represented as a fractional number between 0 and 1, 0 being 0%, 0.5 being 50% and 1 being 100%
 
+from constants import *
+
 import os
-
-FIXED = 'FIXED'                             # banks spend a fixed amount into the economy
-PROFIT_PERCENTAGE = 'PROFIT PERCENTAGE'     # banks spend a percentage of their profit into the economy
-CAPITAL_PERCENTAGE = 'CAPITAL PERCENTAGE'   # banks spend a percentage of their capital into the economy
-
-QE_NONE = 'QE_NONE'         # no QE
-QE_FIXED = 'QE_FIXED'       # fixed amount QE, adjusted for inflation
-QE_RELATIVE = 'QE_RELATIVE' # QE amount relative to outstanding debt
-
-SPENDING_MODES = [FIXED, PROFIT_PERCENTAGE, CAPITAL_PERCENTAGE]
 
 growth_rate = 0.030      # growth rate of available money (IM2). This is money that circulates in the real economy
 inflation_rate = 0.019   # inflation
