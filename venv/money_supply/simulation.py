@@ -1,7 +1,7 @@
 # module main
 # percentages are represented as a fractional number between 0 and 1, 0 being 0%, 0.5 being 50% and 1 being 100%
 
-from constants import *
+from money_supply.constants import *
 
 import os
 
@@ -78,10 +78,10 @@ class MS_Simulation:
 
     def run_simulation(self, iterations):
         # write parameters
-        if os.path.exists('./generated data/parameters.txt'):
-            os.remove('./generated data/parameters.txt')
+        if os.path.exists('./money_supply/generated data/parameters.txt'):
+            os.remove('./money_supply/generated data/parameters.txt')
 
-        f = open('./generated data/parameters.txt', 'w')
+        f = open('./money_supply/generated data/parameters.txt', 'w')
         f.write(f'Initial IM2 = {self.initial_im2:.2f}\n')
         f.write('\n')
         f.write(f'IM2 growth rate = {self.growth_rate * 100} %\n')
@@ -120,10 +120,10 @@ class MS_Simulation:
         f.close()
 
         # initialize data output file
-        if os.path.exists(f'./generated data/{self.spending_mode}.csv'):
-            os.remove(f'./generated data/{self.spending_mode}.csv')
+        if os.path.exists(f'./money_supply/generated data/{self.spending_mode}.csv'):
+            os.remove(f'./money_supply/generated data/{self.spending_mode}.csv')
 
-        f = open(f'./generated data/{self.spending_mode}.csv', 'w')
+        f = open(f'./money_supply/generated data/{self.spending_mode}.csv', 'w')
         f.write('OM 1,OM 2,OM total,OM growth,')
         f.write('QE,QE trickle,')
         f.write('Bank spending,Bank profit,Bank debt,Bank payoff,Bank interest,')

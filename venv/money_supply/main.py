@@ -1,13 +1,13 @@
 from flask import Flask, render_template, request, flash, redirect
-from forms import LoginForm, ParameterForm, DataSelectionForm
+from money_supply.forms import LoginForm, ParameterForm, DataSelectionForm
 from flask_wtf.csrf import CsrfProtect
 
 import pygal
 
 # from flask_pymongo import PyMongo
 
-from config import Config
-from simulation import MS_Simulation
+from money_supply.config import Config
+from money_supply.simulation import MS_Simulation
 
 app = Flask(__name__)
 app.config.from_object(Config)
