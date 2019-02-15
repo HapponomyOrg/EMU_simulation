@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <form action="" method="post">
+        {{ parameter_form.csrf_token }}
+        <table class="metatable"><tr>
+            <td class="metatable">
+            <table>
+                <caption>Simulation parameters</caption>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.num_iterations.label }}</td>
+                    <td>{{ parameter_form.num_iterations }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.initial_im2.label }}</td>
+                    <td>{{ parameter_form.initial_im2 }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.growth_rate.label }}</td>
+                    <td>{{ parameter_form.growth_rate }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.inflation_rate.label }}</td>
+                    <td>{{ parameter_form.inflation_rate }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.minimum_reserve.label }}</td>
+                    <td>{{ parameter_form.minimum_reserve }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.bank_payback_rate.label }}</td>
+                    <td>{{ parameter_form.bank_payback_rate }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.private_payback_rate.label }}</td>
+                    <td>{{ parameter_form.private_payback_rate }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.ecb_interest.label }}</td>
+                    <td>{{ parameter_form.ecb_interest }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.bank_interest.label }}</td>
+                    <td>{{ parameter_form.bank_interest }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.savings_interest.label }}</td>
+                    <td>{{ parameter_form.savings_interest }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.savings_rate.label }}</td>
+                    <td>{{ parameter_form.savings_rate }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.min_new_money.label }}</td>
+                    <td>{{ parameter_form.min_new_money }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.min_desired_reserve.label }}</td>
+                    <td>{{ parameter_form.min_desired_reserve }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.no_loss.label }}</td>
+                    <td>{{ parameter_form.no_loss }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.min_profit.label }}</td>
+                    <td>{{ parameter_form.min_profit }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.spending_mode.label }}</td>
+                    <td>{{ parameter_form.spending_mode }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.fixed_spending.label }}</td>
+                    <td>{{ parameter_form.fixed_spending }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.profit_spending.label }}</td>
+                    <td>{{ parameter_form.profit_spending }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.capital_spending.label }}</td>
+                    <td>{{ parameter_form.capital_spending }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.qe_mode.label }}</td>
+                    <td>{{ parameter_form.qe_mode }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.qe_trickle_rate.label }}</td>
+                    <td>{{ parameter_form.qe_trickle_rate }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.qe_fixed.label }}</td>
+                    <td>{{ parameter_form.qe_fixed }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.qe_relative.label }}</td>
+                    <td>{{ parameter_form.qe_relative }}</td>
+                    <td>%</td>
+                </tr>
+            </table>
+            </td>
+            <td class="metatable">
+            <table>
+                <caption>Output</caption>
+                <tr>
+                    <th>Output</th>
+                    <th>Selected</th>
+                    <th>Deflated</th>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.om.label }}</td>
+                    <td>{{ data_selection_form.om }}</td>
+                    <td>{{ data_selection_form.om_deflate }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.im.label }}</td>
+                    <td>{{ data_selection_form.im }}</td>
+                    <td>{{ data_selection_form.im_deflate }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.bank.label }}</td>
+                    <td>{{ data_selection_form.bank }}</td>
+                    <td>{{ data_selection_form.bank_deflate }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.private.label }}</td>
+                    <td>{{ data_selection_form.private }}</td>
+                    <td>{{ data_selection_form.private_deflate }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.qe.label }}</td>
+                    <td>{{ data_selection_form.qe }}</td>
+                    <td>{{ data_selection_form.qe_deflate }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.im_distribution.label }}</td>
+                    <td>{{ data_selection_form.im_distribution }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.debt_percentage.label }}</td>
+                    <td>{{ data_selection_form.debt_percentage }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.lending_percentage.label }}</td>
+                    <td>{{ data_selection_form.lending_percentage }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.created_percentage.label }}</td>
+                    <td>{{ data_selection_form.created_percentage }}</td>
+                </tr>
+            </table>
+            </td>
+        </tr></table>
+        <hr>
+        <div class="input submit">
+            <input type="submit" value="Run">
+        </div>
+        {% if render_graphs %}
+            {% for graphs in graph_data %}
+                {% for graph in graphs %}
+                      <div class="container" align="left">
+                            <embed type="image/svg+xml" src={{graph|safe}} style='max-width:600px'/>
+                      </div>
+                {% endfor %}
+            {% endfor %}
+        {% endif %}
+    </form>
+
+{% endblock %}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="no-cache, no-store, must-revalidate" />
+    <meta content="no-cache" />
+    <meta content="0" />
+    <link rel="stylesheet" type="text/css" href="../static/style.css">
+    <title>EMU Money Supply Simulation</title>
+</head>
+    <body>
+        <div>EMU Money Supply Simulation:
+            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('ms_simulation') }}">Simulation</a>
+        </div>
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul>
+                {% for message in messages %}
+                    <li>{{ message[1] }}</li>
+                {% endfor %}</ul>
+                <hr>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </body>
+</html>
