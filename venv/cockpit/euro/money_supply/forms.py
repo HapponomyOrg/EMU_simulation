@@ -1,7 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, SelectField, FloatField, IntegerField, StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired
-from money_supply.constants import *
 
 
 class LoginForm(FlaskForm):
