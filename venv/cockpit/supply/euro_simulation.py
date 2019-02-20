@@ -1,9 +1,11 @@
-# module main
+# module euro_simulation
 # percentages are represented as a fractional number between 0 and 1, 0 being 0%, 0.5 being 50% and 1 being 100%
 
 import os
+from cockpit.supply.constants import *
+from cockpit.utilities import deflate, get_growth
 
-class MS_Simulation:
+class Euro_MS_Simulation:
 
     def __init__(self):
         self.growth_rate = 0.030  # growth rate of available money (IM2). This is money that circulates in the real economy
@@ -74,12 +76,71 @@ class MS_Simulation:
         self.created_percentage_im_total = []
 
 
+    def initialize(self):
+        self.im1.clear()
+        self.im2.clear()
+        self.lending.clear()
+        self.debt.clear()
+        self.payoff.clear()
+        self.interest.clear()
+        self.new_im.clear()
+
+        self.om1.clear()
+        self.om2.clear()
+        self.bank_profit.clear()
+        self.bank_spending.clear()
+        self.bank_fixed.clear()
+        self.bank_debt.clear()
+        self.bank_payoff.clear()
+        self.bank_interest.clear()
+
+        self.qe.clear()
+        self.qe_trickle.clear()
+        self.savings_interest.clear()
+
+        self.lending_percentage_im2.clear()
+        self.lending_percentage_im_total.clear()
+        self.im1_percentage_im_total.clear()
+        self.im2_percentage_im_total.clear()
+        self.savings_interest_percentage_im2.clear()
+        self.savings_interest_percentage_im_total.clear()
+        self.debt_percentage_im2.clear()
+        self.debt_percentage_im_total.clear()
+        self.created_percentage_im2.clear()
+        self.created_percentage_im_total.clear()
+
+        self.im1.append(0.0)
+        self.im2.append(self.initial_im2)
+        self.lending.append(self.initial_im2)
+        self.debt.append(self.initial_im2)
+        self.payoff.append(0.0)
+        self.interest.append(0.0)
+        self.new_im.append(self.initial_im2)
+
+        reserve = self.initial_im2 * self.mr
+        self.om1.append(0.0 - reserve)  # reflects om money creation
+        self.om2.append(reserve)
+        self.bank_profit.append(0.0)
+        self.bank_spending.append(0.0)
+        self.bank_fixed.append(self.initial_fixed_spending)
+        self.bank_debt.append(reserve)
+        self.bank_payoff.append(0.0)
+        self.bank_interest.append(0.0)
+
+        self.qe.append(0.0)
+        self.qe_trickle.append(0.0)
+
+        self.savings_interest.append(0.0)
+
+        self.calculate_percentages(0)
+
+
     def run_simulation(self, iterations):
         # write parameters
-        if os.path.exists('./money_supply/generated data/parameters.txt'):
-            os.remove('./money_supply/generated data/parameters.txt')
+        if os.path.exists('./cockpit/supply/generated data/parameters.txt'):
+            os.remove('./cockpit/supply/generated data/parameters.txt')
 
-        f = open('./money_supply/generated data/parameters.txt', 'w')
+        f = open('./cockpit/supply/generated data/parameters.txt', 'w')
         f.write(f'Initial IM2 = {self.initial_im2:.2f}\n')
         f.write('\n')
         f.write(f'IM2 growth rate = {self.growth_rate * 100} %\n')
@@ -118,10 +179,10 @@ class MS_Simulation:
         f.close()
 
         # initialize data output file
-        if os.path.exists(f'./money_supply/generated data/{self.spending_mode}.csv'):
-            os.remove(f'./money_supply/generated data/{self.spending_mode}.csv')
+        if os.path.exists(f'./cockpit/supply/generated data/{self.spending_mode}.csv'):
+            os.remove(f'./cockpit/supply/generated data/{self.spending_mode}.csv')
 
-        f = open(f'./money_supply/generated data/{self.spending_mode}.csv', 'w')
+        f = open(f'./cockpit/supply/generated data/{self.spending_mode}.csv', 'w')
         f.write('OM 1,OM 2,OM total,OM growth,')
         f.write('QE,QE trickle,')
         f.write('Bank spending,Bank profit,Bank debt,Bank payoff,Bank interest,')
@@ -284,26 +345,26 @@ class MS_Simulation:
 
                 self.calculate_percentages(i)
 
-                f.write(f'{self.deflate(self.om1[i], i):.2f},\
-                    {self.deflate(self.om2[i], i):.2f},\
-                    {self.deflate(self.om1[i] + self.om2[i], i):.2f},\
-                    {self.deflate(self.om1[1] + self.om2[i], i) - self.deflate(self.om1[i - 1] + self.om2[i - 1], i - 1):.2f},\
-                    {self.deflate(self.qe[i], i):.2f},\
-                    {self.deflate(self.qe_trickle_rate * self.qe[i], i):.2f},\
-                    {self.deflate(self.bank_spending[i], i):.2f},\
-                    {self.deflate(self.bank_profit[i], i):.2f},{self.bank_debt[i]:.2f},\
+                f.write(f'{deflate(self.inflation_rate, self.om1[i], i):.2f},\
+                    {deflate(self.inflation_rate, self.om2[i], i):.2f},\
+                    {deflate(self.inflation_rate, self.om1[i] + self.om2[i], i):.2f},\
+                    {deflate(self.inflation_rate, self.om1[1] + self.om2[i], i) - deflate(self.inflation_rate, self.om1[i - 1] + self.om2[i - 1], i - 1):.2f},\
+                    {deflate(self.inflation_rate, self.qe[i], i):.2f},\
+                    {deflate(self.inflation_rate, self.qe_trickle_rate * self.qe[i], i):.2f},\
+                    {deflate(self.inflation_rate, self.bank_spending[i], i):.2f},\
+                    {deflate(self.inflation_rate, self.bank_profit[i], i):.2f},{self.bank_debt[i]:.2f},\
                     {self.bank_payoff[i]:.2f},\
                     {self.bank_interest[i]:.2f},\
-                    {self.deflate(self.im1[i], i):.2f},\
-                    {self.deflate(self.im2[i], i):.2f},\
-                    {self.deflate(self.savings_interest[i], i):.2f},\
-                    {self.deflate(self.new_im[i], i)},\
-                    {self.deflate(self.debt[i], i):.2f},\
-                    {self.deflate(self.payoff[i], i):.2f},\
-                    {self.deflate(self.interest[i], i):.2f},\
-                    {self.deflate(self.im2[i], i) - self.deflate(self.im2[i - 1], i - 1):.2f},\
-                    {self.deflate(self.lending[i], i):.2f},\
-                    {self.deflate(self.im1[i] + self.im2[i], i):.2f},\
+                    {deflate(self.inflation_rate, self.im1[i], i):.2f},\
+                    {deflate(self.inflation_rate, self.im2[i], i):.2f},\
+                    {deflate(self.inflation_rate, self.savings_interest[i], i):.2f},\
+                    {deflate(self.inflation_rate, self.new_im[i], i)},\
+                    {deflate(self.inflation_rate, self.debt[i], i):.2f},\
+                    {deflate(self.inflation_rate, self.payoff[i], i):.2f},\
+                    {deflate(self.inflation_rate, self.interest[i], i):.2f},\
+                    {deflate(self.inflation_rate, self.im2[i], i) - deflate(self.inflation_rate, self.im2[i - 1], i - 1):.2f},\
+                    {deflate(self.inflation_rate, self.lending[i], i):.2f},\
+                    {deflate(self.inflation_rate, self.im1[i] + self.im2[i], i):.2f},\
                     {self.lending_percentage_im2[i]:.2f},\
                     {self.lending_percentage_im_total[i]:.2f},\
                     {self.im1_percentage_im_total[i]:.2f},\
@@ -315,13 +376,6 @@ class MS_Simulation:
                     {self.created_percentage_im2[i]:.2f},\
                     {self.created_percentage_im_total[i]:.2f}\n')
 
-                # check whether economy has 'stabilized'
-                # if i > 0 \
-                #        and (round(lending_percentage_im2[i], 2) == round(lending_percentage_im2[i - 1], 2)\
-                #        and round(lending_percentage_im_total[i], 2) == round(lending_percentage_im_total[i - 1], 2)):
-                #    break
-
-        print()
         f.close()
 
 
@@ -343,96 +397,12 @@ class MS_Simulation:
         self.created_percentage_im_total.append(self.new_im[i] * 100 / im_total)
 
 
-
-    def initialize(self):
-        self.im1.clear()
-        self.im2.clear()
-        self.lending.clear()
-        self.debt.clear()
-        self.payoff.clear()
-        self.interest.clear()
-        self.new_im.clear()
-
-        self.om1.clear()
-        self.om2.clear()
-        self.bank_profit.clear()
-        self.bank_spending.clear()
-        self.bank_fixed.clear()
-        self.bank_debt.clear()
-        self.bank_payoff.clear()
-        self.bank_interest.clear()
-
-        self.qe.clear()
-        self.qe_trickle.clear()
-        self.savings_interest.clear()
-
-        self.lending_percentage_im2.clear()
-        self.lending_percentage_im_total.clear()
-        self.im1_percentage_im_total.clear()
-        self.im2_percentage_im_total.clear()
-        self.savings_interest_percentage_im2.clear()
-        self.savings_interest_percentage_im_total.clear()
-        self.debt_percentage_im2.clear()
-        self.debt_percentage_im_total.clear()
-        self.created_percentage_im2.clear()
-        self.created_percentage_im_total.clear()
-
-        self.im1.append(0.0)
-        self.im2.append(self.initial_im2)
-        self.lending.append(self.initial_im2)
-        self.debt.append(self.initial_im2)
-        self.payoff.append(0.0)
-        self.interest.append(0.0)
-        self.new_im.append(self.initial_im2)
-
-        reserve = self.initial_im2 * self.mr
-        self.om1.append(0.0 - reserve)  # reflects om money creation
-        self.om2.append(reserve)
-        self.bank_profit.append(0.0)
-        self.bank_spending.append(0.0)
-        self.bank_fixed.append(self.initial_fixed_spending)
-        self.bank_debt.append(reserve)
-        self.bank_payoff.append(0.0)
-        self.bank_interest.append(0.0)
-
-        self.qe.append(0.0)
-        self.qe_trickle.append(0.0)
-
-        self.savings_interest.append(0.0)
-
-        self.calculate_percentages(0)
-
-
-    # only call after deflation has been applied in a cycle
-    def deflate(self, num, cycle):
-        for i in range(cycle):
-            num /= 1 + self.inflation_rate
-
-        return num
-
-
-    def get_data(self, data, deflate):
-        processed_data = []
-        cycle = 0
-
-        for data_point in data:
-            if cycle != 0:  # remove setup step
-                if deflate:
-                    processed_data.append(round(self.deflate(data_point, cycle), 2))
-                else:
-                    processed_data.append(round(data_point, 2))
-
-            cycle += 1
-
-        return processed_data
-
-
     def get_im1_growth(self, do_deflate):
-        return self._get_growth(self.im1, do_deflate)
+        return get_growth(self.im1, do_deflate, self.inflation_rate)
 
 
     def get_im2_growth(self, do_deflate):
-        return self._get_growth(self.im2, do_deflate)
+        return get_growth(self.im2, do_deflate, self.inflation_rate)
 
 
     def get_im_growth(self, do_deflate):
@@ -441,15 +411,15 @@ class MS_Simulation:
         for cycle in range(len(self.im1)):
             im.append(self.im1[cycle] + self.im2[cycle])
 
-        return self._get_growth(im, do_deflate)
+        return get_growth(im, do_deflate, self.inflation_rate)
 
 
     def get_om1_growth(self, do_deflate):
-        return self._get_growth(self.om1, do_deflate)
+        return get_growth(self.om1, do_deflate, self.inflation_rate)
 
 
     def get_om2_growth(self, do_deflate):
-        return self._get_growth(self.om2, do_deflate)
+        return get_growth(self.om2, do_deflate, self.inflation_rate)
 
 
     def get_om_growth(self, do_deflate):
@@ -458,22 +428,4 @@ class MS_Simulation:
         for cycle in range(len(self.om1)):
             om.append(self.om1[cycle] + self.om2[cycle])
 
-        return self._get_growth(om, do_deflate)
-
-
-    def _get_growth(self, raw_data, do_deflate):
-        growth = []
-
-        for cycle in range(len(raw_data)):
-            if cycle != 0:
-                if do_deflate:
-                    growth.append(round(self.deflate(raw_data[cycle], cycle)
-                                        - self.deflate(raw_data[cycle - 1], cycle - 1), 2))
-                else:
-                    growth.append(round(raw_data[cycle] - raw_data[cycle - 1], 2))
-
-        return growth
-
-
-
-MS_Simulation().run_simulation(500)
+        return get_growth(om, do_deflate, self.inflation_rate)

@@ -1,47 +1,29 @@
-from flask import Flask, render_template, request, flash, redirect
-from cockpit.euro.money_supply.forms import LoginForm, ParameterForm, DataSelectionForm
-from flask_wtf.csrf import CsrfProtect
+from flask import Blueprint, render_template, request
+from cockpit.supply.forms.euro_forms import ParameterForm, DataSelectionForm
 
-import pygal
+from cockpit.utilities import create_chart, get_data
 
-# from flask_pymongo import PyMongo
+from cockpit.supply.euro_simulation import Euro_MS_Simulation
 
-from cockpit.euro.money_supply import Config
-from cockpit.euro.money_supply import MS_Simulation
-
-app = Flask(__name__)
-app.config.from_object(Config)
-CsrfProtect(app)
-# mongo = PyMongo(app)
-# client = mongo.cx
+euro_supply = Blueprint('euro_supply', __name__,
+                        template_folder='../templates',
+                        static_folder='../static')
 
 
-@app.route('/')
+@euro_supply.route('/')
 def home():
     return render_template('base.html')
 
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    form = LoginForm()
-
-    if form.validate_on_submit():
-        flash('Login requested for user {}, remember_me={}'.format(
-            form.username.data, form.remember_me.data))
-        return redirect('/ms_simulation')
-
-    return render_template('login.html', title='Sign In', form=form)
-
-
-@app.route('/ms_simulation', methods=['GET', 'POST'])
-def ms_simulation():
+@euro_supply.route('/euro_supply_simulation', methods=['GET', 'POST'])
+def euro_supply_simulation():
     parameter_form = ParameterForm(request.form)
     data_selection_form = DataSelectionForm(request.form)
     render_graphs = False
     graph_data = []
 
     if parameter_form.validate_on_submit():
-        simulation = MS_Simulation()
+        simulation = Euro_MS_Simulation()
         simulation.growth_rate = parameter_form.growth_rate.data / 100
         simulation.inflation_rate = parameter_form.inflation_rate.data / 100
         simulation.initial_fixed_spending = parameter_form.fixed_spending.data
@@ -75,8 +57,8 @@ def ms_simulation():
             chart_om_growth = create_chart('OM growth')
             deflate = data_selection_form.om_deflate.data
 
-            chart_om.add('OM 1', simulation.get_data(simulation.om1, deflate))
-            chart_om.add('OM 2', simulation.get_data(simulation.om2, deflate))
+            chart_om.add('OM 1', get_data(simulation.om1, deflate, simulation.inflation_rate))
+            chart_om.add('OM 2', get_data(simulation.om2, deflate, simulation.inflation_rate))
             chart_om_growth.add('OM 1', simulation.get_om1_growth(deflate))
             chart_om_growth.add('OM 2', simulation.get_om2_growth(deflate))
             chart_om_growth.add('OM total', simulation.get_om_growth(deflate))
@@ -91,8 +73,8 @@ def ms_simulation():
             chart_im_growth = create_chart("IM growth")
             deflate = data_selection_form.im_deflate.data
 
-            chart_im.add('IM 1', simulation.get_data(simulation.im1, deflate))
-            chart_im.add('IM 2', simulation.get_data(simulation.im2, deflate))
+            chart_im.add('IM 1', get_data(simulation.im1, deflate, simulation.inflation_rate))
+            chart_im.add('IM 2', get_data(simulation.im2, deflate, simulation.inflation_rate))
             chart_im_growth.add('IM 1', simulation.get_im1_growth(deflate))
             chart_im_growth.add('IM 2', simulation.get_im2_growth(deflate))
             chart_im_growth.add('IM total', simulation.get_im_growth(deflate))
@@ -108,12 +90,12 @@ def ms_simulation():
             chart_spending = create_chart("Benk spending")
             deflate = data_selection_form.bank_deflate.data
 
-            chart_profit.add("Profit", simulation.get_data(simulation.bank_profit, deflate))
-            chart_profit.add("Created IM", simulation.get_data(simulation.new_im, deflate))
-            chart_debt.add("Debt", simulation.get_data(simulation.bank_debt, deflate))
-            chart_debt.add("Payoff", simulation.get_data(simulation.bank_payoff, deflate))
-            chart_debt.add("Interest", simulation.get_data(simulation.bank_interest, deflate))
-            chart_spending.add("Bank spending", simulation.get_data(simulation.bank_spending, deflate))
+            chart_profit.add("Profit", get_data(simulation.bank_profit, deflate, simulation.inflation_rate))
+            chart_profit.add("Created IM", get_data(simulation.new_im, deflate, simulation.inflation_rate))
+            chart_debt.add("Debt", get_data(simulation.bank_debt, deflate, simulation.inflation_rate))
+            chart_debt.add("Payoff", get_data(simulation.bank_payoff, deflate, simulation.inflation_rate))
+            chart_debt.add("Interest", get_data(simulation.bank_interest, deflate, simulation.inflation_rate))
+            chart_spending.add("Bank spending", get_data(simulation.bank_spending, deflate, simulation.inflation_rate))
 
             bank_charts.append(chart_profit.render_data_uri())
             bank_charts.append(chart_debt.render_data_uri())
@@ -127,11 +109,12 @@ def ms_simulation():
             chart_interest = create_chart('Earned interest')
             deflate = data_selection_form.private_deflate
 
-            chart_debt.add('Debt', simulation.get_data(simulation.debt, deflate))
-            chart_debt.add('Payoff', simulation.get_data(simulation.payoff, deflate))
-            chart_debt.add('Interest', simulation.get_data(simulation.interest, deflate))
-            chart_lending.add('Lending', simulation.get_data(simulation.lending, deflate))
-            chart_interest.add('Earned interest', simulation.get_data(simulation.savings_interest, deflate))
+            chart_debt.add('Debt', get_data(simulation.debt, deflate, simulation.inflation_rate))
+            chart_debt.add('Payoff', get_data(simulation.payoff, deflate, simulation.inflation_rate))
+            chart_debt.add('Interest', get_data(simulation.interest, deflate, simulation.inflation_rate))
+            chart_lending.add('Lending', get_data(simulation.lending, deflate, simulation.inflation_rate))
+            chart_interest.add('Earned interest',
+                               get_data(simulation.savings_interest, deflate, simulation.inflation_rate))
 
             private_charts.append(chart_debt.render_data_uri())
             private_charts.append(chart_lending.render_data_uri())
@@ -143,8 +126,8 @@ def ms_simulation():
             chart_qe = create_chart('QE')
             deflate = data_selection_form.qe_deflate.data
 
-            chart_qe.add('QE', simulation.get_data(simulation.qe, deflate))
-            chart_qe.add('QE trickle', simulation.get_data(simulation.qe_trickle, deflate))
+            chart_qe.add('QE', get_data(simulation.qe, deflate, simulation.inflation_rate))
+            chart_qe.add('QE trickle', get_data(simulation.qe_trickle, deflate, simulation.inflation_rate))
 
             qe_charts.append(chart_qe.render_data_uri())
             graph_data.append(qe_charts)
@@ -152,8 +135,8 @@ def ms_simulation():
         if data_selection_form.im_distribution.data:
             im_charts = []
             chart_im1_im2 = create_chart('IM distribution (% of IM total)')
-            chart_im1_im2.add('IM 1', simulation.get_data(simulation.im1_percentage_im_total, False))
-            chart_im1_im2.add('IM 2', simulation.get_data(simulation.im2_percentage_im_total, False))
+            chart_im1_im2.add('IM 1', get_data(simulation.im1_percentage_im_total))
+            chart_im1_im2.add('IM 2', get_data(simulation.im2_percentage_im_total))
 
             im_charts.append(chart_im1_im2.render_data_uri())
             graph_data.append(im_charts)
@@ -161,8 +144,8 @@ def ms_simulation():
         if data_selection_form.debt_percentage.data:
             debt_charts = []
             chart_debt = create_chart('Debt (% of IM)')
-            chart_debt.add('% of IM 2', simulation.get_data(simulation.debt_percentage_im2, False))
-            chart_debt.add('% of IM total', simulation.get_data(simulation.debt_percentage_im_total, False))
+            chart_debt.add('% of IM 2', get_data(simulation.debt_percentage_im2))
+            chart_debt.add('% of IM total', get_data(simulation.debt_percentage_im_total))
 
             debt_charts.append(chart_debt.render_data_uri())
             graph_data.append(debt_charts)
@@ -170,8 +153,8 @@ def ms_simulation():
         if data_selection_form.lending_percentage.data:
             lending_charts = []
             chart_lending = create_chart('Lending % of IM')
-            chart_lending.add('% of IM2', simulation.get_data(simulation.lending_percentage_im2, False))
-            chart_lending.add('% of IM total', simulation.get_data(simulation.lending_percentage_im_total, False))
+            chart_lending.add('% of IM2', get_data(simulation.lending_percentage_im2))
+            chart_lending.add('% of IM total', get_data(simulation.lending_percentage_im_total))
 
             lending_charts.append(chart_lending.render_data_uri())
             graph_data.append(lending_charts)
@@ -179,27 +162,16 @@ def ms_simulation():
         if data_selection_form.created_percentage.data:
             created_charts = []
             chart_created = create_chart('Created IM')
-            chart_created.add('% of IM 2', simulation.get_data(simulation.created_percentage_im2, False))
-            chart_created.add('% of IM total', simulation.get_data(simulation.created_percentage_im_total, False))
+            chart_created.add('% of IM 2', get_data(simulation.created_percentage_im2))
+            chart_created.add('% of IM total', get_data(simulation.created_percentage_im_total))
 
             created_charts.append(chart_created.render_data_uri())
             graph_data.append(created_charts)
 
         render_graphs = True
-    else:
-        flash('Error')
 
-    return render_template('ms_simulation.html',
+    return render_template('euro_simulation.html',
                            parameter_form=parameter_form,
                            data_selection_form=data_selection_form,
                            render_graphs=render_graphs,
                            graph_data=graph_data)
-
-def create_chart(title):
-    chart = pygal.Line()
-    chart.title = title
-    return chart
-
-
-if __name__ == '__main__':
-    app.run(debug=False)
