@@ -63,6 +63,17 @@ def sumsy_supply_simulation():
             money_charts.append(money_chart.render_data_uri())
             graph_data.append(money_charts)
 
+        if data_selection_form.per_capita_money_mass.data:
+            per_capita_money_charts = []
+            per_capita_money_chart = create_chart('Money mass per capita')
+            per_capita_money_chart.add('Money mass per capita',
+                                       get_data(simulation.per_capita_money_mass,
+                                                data_selection_form.per_capita_money_mass_deflate.data,
+                                                simulation.inflation))
+
+            per_capita_money_charts.append(per_capita_money_chart.render_data_uri())
+            graph_data.append(per_capita_money_charts)
+
         if data_selection_form.demurrage.data:
             demurrage_charts = []
             demurrage_chart = create_chart('Demurrage')
@@ -73,14 +84,16 @@ def sumsy_supply_simulation():
             demurrage_charts.append(demurrage_chart.render_data_uri())
             graph_data.append(demurrage_charts)
 
-        if data_selection_form.common_good.data:
-            common_good_charts = []
-            common_good_chart = create_chart('Common good spending')
-            common_good_chart.add('Spending', get_data(simulation.common_good_money,
-                                                       data_selection_form.common_good_deflate.data,
-                                                       simulation.inflation))
-            common_good_charts.append(common_good_chart.render_data_uri())
-            graph_data.append(common_good_charts)
+        if data_selection_form.per_capita_demurrage.data:
+            per_capita_demurrage_charts = []
+            per_capita_demurrage_chart = create_chart('Demurrage per capita')
+            per_capita_demurrage_chart.add('Demurrage per capita',
+                                           get_data(simulation.per_capita_demurrage,
+                                                    data_selection_form.per_capita_demurrage_deflate.data,
+                                                    simulation.inflation))
+
+            per_capita_demurrage_charts.append(per_capita_demurrage_chart.render_data_uri())
+            graph_data.append(per_capita_demurrage_charts)
 
         if data_selection_form.new_money.data:
             new_money_charts = []
@@ -91,6 +104,26 @@ def sumsy_supply_simulation():
 
             new_money_charts.append(new_money_chart.render_data_uri())
             graph_data.append(new_money_charts)
+
+        if data_selection_form.per_capita_new_money.data:
+            per_capita_new_money_charts = []
+            per_capita_new_money_chart = create_chart('New money per capita')
+            per_capita_new_money_chart.add('New money per capita',
+                                           get_data(simulation.per_capita_new_money,
+                                                    data_selection_form.per_capita_new_money_deflate.data,
+                                                    simulation.inflation))
+
+            per_capita_new_money_charts.append(per_capita_new_money_chart.render_data_uri())
+            graph_data.append(per_capita_new_money_charts)
+
+        if data_selection_form.common_good.data:
+            common_good_charts = []
+            common_good_chart = create_chart('Common good spending')
+            common_good_chart.add('Spending', get_data(simulation.common_good_money,
+                                                       data_selection_form.common_good_deflate.data,
+                                                       simulation.inflation))
+            common_good_charts.append(common_good_chart.render_data_uri())
+            graph_data.append(common_good_charts)
 
         if data_selection_form.percentages.data:
             percentage_charts = []

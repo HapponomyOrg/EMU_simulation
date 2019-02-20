@@ -26,10 +26,13 @@ class SumSy_MS_Simulation:
 
         self.population = []            # total population
         self.income = []                # income adjusted for inflation
-        self.money_mass = []            # total monetary mas
+        self.money_mass = []            # total monetary mass
+        self.per_capita_money_mass = [] # monetary mass per capita
         self.demurrage = []             # amount of demurrage paid
-        self.dem_tiers = []             # demurrage tiers
+        self.per_capita_demurrage = []  # amount of demurrage paid per capita
         self.new_money = []             # money added to the total monetary mass
+        self.per_capita_new_money = []  # money added to the total monetary mass per capita
+        self.dem_tiers = []             # demurrage tiers
         self.common_good_budget = []    # money needed for the common good project
         self.common_good_money = []     # money available for the common good project
 
@@ -43,9 +46,12 @@ class SumSy_MS_Simulation:
         self.population.clear()
         self.income.clear()
         self.money_mass.clear()
+        self.per_capita_money_mass.clear()
         self.demurrage.clear()
-        self.dem_tiers.clear()
+        self.per_capita_demurrage.clear()
         self.new_money.clear()
+        self.per_capita_new_money.clear()
+        self.dem_tiers.clear()
         self.common_good_budget.clear()
         self.common_good_money.clear()
 
@@ -57,9 +63,12 @@ class SumSy_MS_Simulation:
         self.population.append(self.initial_population)
         self.income.append(self.initial_income)
         self.money_mass.append(self.initial_money_mass)
+        self.per_capita_money_mass.append(self.initial_money_mass / self.initial_population)
         self.demurrage.append(0.0)
-        self.dem_tiers.append(self.initial_dem_tiers)
+        self.per_capita_demurrage.append(0.0)
         self.new_money.append(self.initial_money_mass)
+        self.per_capita_new_money.append(self.initial_money_mass / self.initial_population)
+        self.dem_tiers.append(self.initial_dem_tiers)
         self.common_good_budget.append(self.initial_common_good_budget)
         self.common_good_money.append(0.0)
 
@@ -95,7 +104,7 @@ class SumSy_MS_Simulation:
                 self.common_good_money.append(total_demurrage)
 
                 # grow population
-                self.population.append(self.population[i - 1] + self.population[i - 1] * self.population_growth)
+                self.population.append(self.population[i - 1] + round(self.population[i - 1] * self.population_growth))
 
                 # distribute income
                 self.new_money.append(self.income[i] * self.population[i])
@@ -124,6 +133,11 @@ class SumSy_MS_Simulation:
                 self.demurrage_percentage.append(self.demurrage[i] * 100 / self.money_mass[i])
                 self.common_good_percentage.append(self.common_good_money[i] * 100 / self.money_mass[i])
                 self.new_money_percentage.append(self.new_money[i] * 100 / self.money_mass[i])
+
+                # calculate per capita numbers
+                self.per_capita_money_mass.append(self.money_mass[i] / self.population[i])
+                self.per_capita_demurrage.append(self.demurrage[i] / self.population[i])
+                self.per_capita_new_money.append((self.new_money[i] / self.population[i]))
 
 
     def calculate_demurrage(self, cycle, amount):
