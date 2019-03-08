@@ -12,21 +12,21 @@ class Euro_MS_Simulation:
         self.inflation_rate = 0.019  # inflation
 
         self.initial_fixed_spending = 1000.0  # initial spending if bank spending mode is FIXED
-        self.pp = 0.02  # percentage of profit that banks spend into the real economy
-        self.cp = 0.02  # percentage of capital that banks spend into the real economy
+        self.profit_spending = 0.02  # percentage of profit that banks spend into the real economy
+        self.capital_spending = 0.02  # percentage of capital that banks spend into the real economy
 
-        self.mr = 0.04  # minimum reserve
+        self.minimum_reserve = 0.04  # minimum reserve
 
-        self.pbdr = 0.1  # bank payback rate
-        self.nbdr = 0.05  # non bank payback rate
+        self.bank_payback_rate = 0.1  # bank payback rate
+        self.private_payback_rate = 0.05  # private payback rate
 
-        self.ecbi = 0.01  # ECB interest rate
-        self.pbi = 0.025  # commercial bank interest rate
-        self.savei = 0.005  # interest on savings
+        self.ecb_interest_rate = 0.01  # ECB interest rate
+        self.bank_interest_rate = 0.025  # commercial bank interest rate
+        self.savings_interest_rate = 0.005  # interest on savings
         self.saving_rate = 0.2  # % of IM2 which is saved.
 
-        self.nmr = 1.00  # minimum % of money of a loan that is newly created. The rest is taken from im1 if possible.
-        self.min_bank_reserve = 0.00  # minimum % reserve a bank wants to hold in im1. This influences how much money will be created.
+        self.minimum_new_money = 1.00                 # minimum % of money of a loan that is newly created. The rest is taken from im1 if possible.
+        self.max_bank_reserve = self.minimum_reserve  # maximum % reserve a bank wants to hold in im1. This influences how much money will be created.
 
         self.no_loss = True  # whether or not banks are ok running a loss
         self.min_profit = 0.20  # minimum % in income (from interest) that is retained as profit (only if no loss is true).
@@ -117,7 +117,7 @@ class Euro_MS_Simulation:
         self.interest.append(0.0)
         self.new_im.append(self.initial_im2)
 
-        reserve = self.initial_im2 * self.mr
+        reserve = self.initial_im2 * self.minimum_reserve
         self.om1.append(0.0 - reserve)  # reflects om money creation
         self.om2.append(reserve)
         self.bank_profit.append(0.0)
@@ -146,27 +146,27 @@ class Euro_MS_Simulation:
         f.write(f'IM2 growth rate = {self.growth_rate * 100} %\n')
         f.write(f'Inflation = {self.inflation_rate * 100} %\n')
         f.write('\n')
-        f.write(f'Commercial payback rate (% of debt) = {self.nbdr * 100} %\n')
-        f.write(f'Commercial interest rate (% of debt) = {self.pbi * 100} %\n')
+        f.write(f'Commercial payback rate (% of debt) = {self.private_payback_rate * 100} %\n')
+        f.write(f'Commercial interest rate (% of debt) = {self.bank_interest_rate * 100} %\n')
         f.write('\n')
         f.write(f'Saving rate (% of IM2) = {self.saving_rate * 100}\n')
-        f.write(f'Savings interest rate = {self.savei * 100} %\n')
+        f.write(f'Savings interest rate = {self.savings_interest_rate * 100} %\n')
         f.write('\n')
-        f.write(f'Minimal required reserve = {self.mr * 100} %\n')
-        f.write(f'Minimal desired reserve (IM) = {self.min_bank_reserve * 100} %\n')
+        f.write(f'Minimal required reserve = {self.minimum_reserve * 100} %\n')
+        f.write(f'Maximum desired reserve (IM) = {self.max_bank_reserve * 100} %\n')
         f.write('\n')
-        f.write(f'Bank payback rate (% of debt) = {self.pbdr * 100} %\n')
-        f.write(f'Bank interest rate (% of debt) = {self.ecbi * 100} %\n')
+        f.write(f'Bank payback rate (% of debt) = {self.bank_payback_rate * 100} %\n')
+        f.write(f'Bank interest rate (% of debt) = {self.ecb_interest_rate * 100} %\n')
         f.write('\n')
-        f.write(f'Minimal \'new IM %\' on loans = {self.nmr * 100} %\n')
+        f.write(f'Minimal \'new IM %\' on loans = {self.minimum_new_money * 100} %\n')
         f.write('\n')
         f.write(f'No loss = {self.no_loss}\n')
         if self.no_loss:
             f.write(f'Minimal profit from interest = {self.min_profit * 100} %\n')
         f.write('\n')
         f.write(f'Initial fixed spending = {self.initial_fixed_spending:.2f}\n')
-        f.write(f'% profit spending = {self.pp * 100} %\n')
-        f.write(f'% capital spending = {self.cp * 100} %\n')
+        f.write(f'% profit spending = {self.profit_spending * 100} %\n')
+        f.write(f'% capital spending = {self.capital_spending * 100} %\n')
         f.write('\n')
         f.write(f'QE spending mode: {self.qe_spending}\n')
         if self.qe_spending == QE_FIXED:
@@ -224,7 +224,7 @@ class Euro_MS_Simulation:
                 self.qe_trickle.append(0.0)
 
                 # calculate interest on savings from previous cycle and add to im2
-                self.savings_interest.append(self.im2[i - 1] * self.saving_rate * self.savei)
+                self.savings_interest.append(self.im2[i - 1] * self.saving_rate * self.savings_interest_rate)
 
                 # determine growth
                 growth = self.im2[i] * self.growth_rate +\
@@ -238,11 +238,11 @@ class Euro_MS_Simulation:
                 self.bank_profit[i] -= self.savings_interest[i]
 
                 # calculate debt payoff and interest due
-                self.payoff[i] = self.debt[i] * self.nbdr
-                self.interest[i] = self.debt[i] * self.pbi
+                self.payoff[i] = self.debt[i] * self.private_payback_rate
+                self.interest[i] = self.debt[i] * self.bank_interest_rate
 
-                self.bank_payoff[i] = self.bank_debt[i] * self.pbdr
-                self.bank_interest[i] = self.bank_debt[i] * self.ecbi
+                self.bank_payoff[i] = self.bank_debt[i] * self.bank_payback_rate
+                self.bank_interest[i] = self.bank_debt[i] * self.ecb_interest_rate
 
                 # pay non bank debts and interests. First clear newly created money
                 if self.new_im[i] > self.payoff[i]:
@@ -295,11 +295,11 @@ class Euro_MS_Simulation:
                         self.bank_spending[i] = self.im1[i]
                 elif self.spending_mode == PROFIT_PERCENTAGE:
                     if self.bank_profit[i] >= 0.0:
-                        self.bank_spending[i] = self.pp * self.bank_profit[i]
+                        self.bank_spending[i] = self.profit_spending * self.bank_profit[i]
                     else:  # profit can be negative
                         self.bank_spending[i] = 0, 0
                 else:  # spending mode == CAPITAL_PERCENTAGE
-                    self.bank_spending[i] = self.cp * self.im1[i]
+                    self.bank_spending[i] = self.capital_spending * self.im1[i]
 
                 if self.no_loss:
                     self.bank_spending[i] = min(self.bank_spending[i], (1 - self.min_profit) * self.bank_profit[i])
@@ -317,31 +317,25 @@ class Euro_MS_Simulation:
                 if self.lending[i] > 0.0:
                     self.im2[i] += self.lending[i]
                     self.debt[i] += self.lending[i]
-                    create_im = self.lending[i] * self.nmr
-                    min_desired_reserve = self.min_bank_reserve * self.debt[i]
+                    create_im = self.lending[i] * self.minimum_new_money
+                    max_desired_reserve = self.max_bank_reserve * self.debt[i]
 
                     # check im1 reserve
-                    if self.im1[i] - self.lending[i] + create_im < min_desired_reserve:
-                        if self.im1[i] >= min_desired_reserve:
-                            create_im += self.lending[i] - create_im - self.im1[i] + min_desired_reserve
-                        else:
-                            create_im = self.lending[i]
+                    if self.im1[i] - self.lending[i] + create_im > max_desired_reserve:
+                        create_im = max(0.0, self.lending[i] + max_desired_reserve - self.im1[i])
 
                     self.im1[i] -= self.lending[i] - create_im
                     self.new_im[i] += create_im
 
-                # update om in accordance to mr
-                min_reserve = self.mr * self.debt[i]
+                # update om in accordance to minimum_reserve
+                min_reserve = self.minimum_reserve * self.debt[i]
 
                 if self.om2[i] + self.im1[i] < min_reserve:
                     reserve_need = min_reserve - self.om2[i] - self.im1[i]
-                    om_growth = max(0.0, reserve_need)
 
                     self.om1[i] -= reserve_need
                     self.om2[i] += reserve_need
                     self.bank_debt[i] += reserve_need
-                else:
-                    om_growth = 0.0
 
                 self.calculate_percentages(i)
 

@@ -13,18 +13,18 @@ class ParameterForm(FlaskForm):
 
     minimum_reserve = FloatField('Minimum reserve', default=4.0)
 
-    bank_payback_rate = FloatField('Bank payback rate', default=10.0)
+    bank_payback_rate = FloatField('Bank payback rate', default=100.0)
     private_payback_rate = FloatField('Private payback rate', default=5.0)
 
-    ecb_interest = FloatField('ECB interest', default=1.0)
-    bank_interest = FloatField('Commercial bank interest', default=2.5)
-    savings_interest = FloatField('Savings interest', default=0.5)
+    ecb_interest_rate = FloatField('ECB interest', default=1.0)
+    bank_interest_rate = FloatField('Commercial bank interest', default=2.5)
+    savings_interest_rate = FloatField('Savings interest', default=0.5)
 
     savings_rate = FloatField('Savings rate', default=20.0)
 
     min_new_money = FloatField('Minimum new money', default=100.0)
 
-    min_desired_reserve = FloatField('Minimum desired bank reserve', default=0.0)
+    max_desired_reserve = FloatField('Maximum desired bank reserve', default=4.0)
 
     no_loss = BooleanField('No loss')
     min_profit = FloatField('Minimum profit', default=20.0)
