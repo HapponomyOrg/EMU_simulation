@@ -17,8 +17,8 @@
                     <td>{{ parameter_form.num_iterations }}</td>
                 </tr>
                 <tr>
-                    <td>{{ parameter_form.initial_im2.label }}</td>
-                    <td>{{ parameter_form.initial_im2 }}</td>
+                    <td>{{ parameter_form.initial_im.label }}</td>
+                    <td>{{ parameter_form.initial_im }}</td>
                 </tr>
                 <tr>
                     <td>{{ parameter_form.growth_rate.label }}</td>
@@ -31,38 +31,28 @@
                     <td>%</td>
                 </tr>
                 <tr>
-                    <td>{{ parameter_form.minimum_reserve.label }}</td>
-                    <td>{{ parameter_form.minimum_reserve }}</td>
-                    <td>%</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_form.bank_payback_rate.label }}</td>
-                    <td>{{ parameter_form.bank_payback_rate }}</td>
-                    <td>%</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_form.private_payback_rate.label }}</td>
-                    <td>{{ parameter_form.private_payback_rate }}</td>
-                    <td>%</td>
-                </tr>
-                <tr>
                     <td>{{ parameter_form.ecb_interest_rate.label }}</td>
                     <td>{{ parameter_form.ecb_interest_rate }}</td>
                     <td>%</td>
                 </tr>
                 <tr>
-                    <td>{{ parameter_form.bank_interest_rate.label }}</td>
-                    <td>{{ parameter_form.bank_interest_rate }}</td>
+                    <td>{{ parameter_form.ecb_savings_rate_mr.label }}</td>
+                    <td>{{ parameter_form.ecb_savings_rate_mr }}</td>
                     <td>%</td>
                 </tr>
                 <tr>
-                    <td>{{ parameter_form.savings_interest_rate.label }}</td>
-                    <td>{{ parameter_form.savings_interest_rate }}</td>
+                    <td>{{ parameter_form.ecb_savings_rate_excess.label }}</td>
+                    <td>{{ parameter_form.ecb_savings_rate_excess }}</td>
                     <td>%</td>
                 </tr>
                 <tr>
-                    <td>{{ parameter_form.savings_rate.label }}</td>
-                    <td>{{ parameter_form.savings_rate }}</td>
+                    <td>{{ parameter_form.minimum_reserve.label }}</td>
+                    <td>{{ parameter_form.minimum_reserve }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.maximum_reserve.label }}</td>
+                    <td>{{ parameter_form.maximum_reserve }}</td>
                     <td>%</td>
                 </tr>
                 <tr>
@@ -71,8 +61,18 @@
                     <td>%</td>
                 </tr>
                 <tr>
-                    <td>{{ parameter_form.max_desired_reserve.label }}</td>
-                    <td>{{ parameter_form.max_desired_reserve }}</td>
+                    <td>{{ parameter_form.max_new_money.label }}</td>
+                    <td>{{ parameter_form.max_new_money }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.bank_interest_rate.label }}</td>
+                    <td>{{ parameter_form.bank_interest_rate }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.bank_payback_rate.label }}</td>
+                    <td>{{ parameter_form.bank_payback_rate }}</td>
                     <td>%</td>
                 </tr>
                 <tr>
@@ -103,6 +103,15 @@
                     <td>%</td>
                 </tr>
                 <tr>
+                    <td>{{ parameter_form.asset_trickle_mode.label }}</td>
+                    <td>{{ parameter_form.asset_trickle_mode }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.asset_trickle.label }}</td>
+                    <td>{{ parameter_form.asset_trickle }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
                     <td>{{ parameter_form.qe_mode.label }}</td>
                     <td>{{ parameter_form.qe_mode }}</td>
                 </tr>
@@ -118,6 +127,25 @@
                 <tr>
                     <td>{{ parameter_form.qe_relative.label }}</td>
                     <td>{{ parameter_form.qe_relative }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.qe_profit.label }}</td>
+                    <td>{{ parameter_form.qe_profit }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.savings_rate.label }}</td>
+                    <td>{{ parameter_form.savings_rate }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.savings_interest_rate.label }}</td>
+                    <td>{{ parameter_form.savings_interest_rate }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.private_payback_rate.label }}</td>
+                    <td>{{ parameter_form.private_payback_rate }}</td>
                     <td>%</td>
                 </tr>
             </table>
