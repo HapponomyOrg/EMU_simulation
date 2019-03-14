@@ -64,6 +64,9 @@ class Euro_MS_Simulation(Simulation):
 
         self.savings_interest = []  # interest earned from savings
 
+        self.total_inflow = []      # total inflow in im
+        self.total_outflow = []     # total outflow from im
+
         self.created_bank_reserve = []    # bank reserve money created by the ECB
         self.bank_reserve = []  # Bank reserves
         self.bank_income = []   # Bank income
@@ -94,6 +97,15 @@ class Euro_MS_Simulation(Simulation):
         self.savings_interest_percentage_total_money = []
         self.ecb_interest_percentage_im = []
         self.ecb_interest_percentage_total_money = []
+        self.asset_trickle_percentage_im = []
+        self.qe_trickle_percentage_im = []
+
+        self.total_inflow_percentage_im = []
+
+        self.payoff_percentage_im = []
+        self.interest_percentage_im = []
+
+        self.total_outflow_percentage_im = []
 
         self.debt_percentage_im = []
         self.debt_percentage_total_money = []
@@ -137,7 +149,11 @@ class Euro_MS_Simulation(Simulation):
 
         self.qe.clear()
         self.qe_trickle.clear()
+
         self.savings_interest.clear()
+
+        self.total_inflow.clear()
+        self.total_outflow.clear()
 
         self.asset_trickle.clear()
         self.asset_investment.clear()
@@ -157,9 +173,18 @@ class Euro_MS_Simulation(Simulation):
         self.savings_interest_percentage_total_money.clear()
         self.ecb_interest_percentage_im.clear()
         self.ecb_interest_percentage_total_money.clear()
+        self.asset_trickle_percentage_im.clear()
+        self.qe_trickle_percentage_im.clear()
+
+        self.total_inflow_percentage_im.clear()
 
         self.debt_percentage_im.clear()
         self.debt_percentage_total_money.clear()
+
+        self.payoff_percentage_im.clear()
+        self.interest_percentage_im.clear()
+
+        self.total_outflow_percentage_im.clear()
 
         self.bank_profit_percentage_bank_income.clear()
         self.bank_profit_percentage_im.clear()
@@ -201,6 +226,10 @@ class Euro_MS_Simulation(Simulation):
         self.qe_trickle.append(0.0)
 
         self.savings_interest.append(0.0)
+
+        self.total_inflow.append(0.0)
+        self.total_outflow.append(0.0)
+
         self.asset_trickle.append(0.0)
         self.asset_investment.append(0.0)
 
@@ -231,6 +260,9 @@ class Euro_MS_Simulation(Simulation):
                 self.bank_debt.append(self.bank_debt[i - 1])
                 self.bank_payoff.append(0.0)
                 self.bank_interest.append(0.0)
+
+                self.total_inflow.append(0.0)
+                self.total_outflow.append(0.0)
 
                 if self.qe_spending_mode == QE_FIXED:
                     self.qe.append(self.qe[i - 1] + self.qe[i - 1] * self.inflation_rate)
@@ -421,6 +453,10 @@ class Euro_MS_Simulation(Simulation):
                     self.bank_reserve[i] += ecb_lending
                     self.bank_debt[i] += ecb_lending
 
+                # calculate totals
+                self.total_inflow[i] = self.bank_interest[i] + self.savings_interest[i] + self.asset_trickle[i] + self.qe_trickle[i] + self.bank_spending[i]
+                self.total_outflow[i] = self.payoff[i] + self.interest[i]
+
                 self.calculate_percentages(i)
 
         #self.write_parameters()
@@ -428,7 +464,6 @@ class Euro_MS_Simulation(Simulation):
 
 
     def calculate_percentages(self, i):
-
         total_money = self.bank_assets[i] + self.bank_reserve[i] + self.im[i]
 
         self.lending_percentage_im.append(self.lending[i] * 100 / self.im[i])
@@ -461,6 +496,16 @@ class Euro_MS_Simulation(Simulation):
 
         self.ecb_interest_percentage_im.append(self.bank_interest[i] * 100 / self.im[i])
         self.ecb_interest_percentage_total_money.append(self.bank_interest[i] * 100 / total_money)
+
+        self.asset_trickle_percentage_im.append(self.asset_trickle[i] * 100 / self.im[i])
+        self.qe_trickle_percentage_im.append(self.qe_trickle[i] * 100 / self.im[i])
+
+        self.total_inflow_percentage_im.append(self.total_inflow[i] * 100 / self.im[i])
+
+        self.payoff_percentage_im.append(self.payoff[i] * 100 / self.im[i])
+        self.interest_percentage_im.append(self.interest[i] * 100 / self.im[i])
+
+        self.total_outflow_percentage_im.append(self.total_outflow[i] * 100 / self.im[i])
 
         self.debt_percentage_im.append(self.debt[i] * 100 / self.im[i])
         self.debt_percentage_total_money.append(self.debt[i] * 100 / total_money)

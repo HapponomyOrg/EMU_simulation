@@ -60,6 +60,7 @@ class DataSelectionForm(FlaskForm):
     private = BooleanField('Private sector data')
     qe = BooleanField('QE data')
 
+    income_expenses_percentage = BooleanField('Inflow & outflow')
     im_distribution = BooleanField('IM distribution')
     debt_percentage = BooleanField('Debt %')
     lending_percentage = BooleanField('Lending %')

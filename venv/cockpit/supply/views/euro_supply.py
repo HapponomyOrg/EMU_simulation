@@ -156,6 +156,22 @@ def euro_supply_simulation():
             qe_charts.append(chart_qe.render_data_uri())
             graph_data.append(qe_charts)
 
+        if data_selection_form.income_expenses_percentage.data:
+            inflow_outflow_charts = []
+            chart_inflow_outflow = create_chart('% inflow & outflow in the real economy')
+            chart_inflow_outflow.add('Savings interest', simulation.get_data(simulation.savings_interest_percentage_im))
+            chart_inflow_outflow.add('ECB interest', simulation.get_data(simulation.ecb_interest_percentage_im))
+            chart_inflow_outflow.add('Asset trickle', simulation.get_data(simulation.asset_trickle_percentage_im))
+            chart_inflow_outflow.add('QE trickle', simulation.get_data(simulation.qe_trickle_percentage_im))
+            chart_inflow_outflow.add('Bank spending', simulation.get_data(simulation.bank_spending_percentage_im))
+            chart_inflow_outflow.add('Total inflow', simulation.get_data(simulation.total_inflow_percentage_im))
+            chart_inflow_outflow.add('Payoff due', simulation.get_data(simulation.payoff_percentage_im))
+            chart_inflow_outflow.add('Interest due', simulation.get_data(simulation.interest_percentage_im))
+            chart_inflow_outflow.add('Total outflow', simulation.get_data(simulation.total_outflow_percentage_im))
+
+            inflow_outflow_charts.append(chart_inflow_outflow.render_data_uri())
+            graph_data.append(inflow_outflow_charts)
+
         if data_selection_form.im_distribution.data:
             im_charts = []
             chart_distribution = create_chart('Money distribution (% of total money)')
