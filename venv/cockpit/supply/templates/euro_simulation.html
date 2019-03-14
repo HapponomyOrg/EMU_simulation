@@ -89,6 +89,11 @@
                     <td>{{ parameter_form.spending_mode }}</td>
                 </tr>
                 <tr>
+                    <td>{{ parameter_form.max_spending.label }}</td>
+                    <td>{{ parameter_form.max_spending }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
                     <td>{{ parameter_form.fixed_spending.label }}</td>
                     <td>{{ parameter_form.fixed_spending }}</td>
                 </tr>
@@ -156,32 +161,30 @@
                 <tr>
                     <th>Output</th>
                     <th>Selected</th>
-                    <th>Deflated</th>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.deflate.label }}</td>
+                    <td>{{ data_selection_form.deflate }}</td>
                 </tr>
                 <tr>
                     <td>{{ data_selection_form.om.label }}</td>
                     <td>{{ data_selection_form.om }}</td>
-                    <td>{{ data_selection_form.om_deflate }}</td>
                 </tr>
                 <tr>
                     <td>{{ data_selection_form.im.label }}</td>
                     <td>{{ data_selection_form.im }}</td>
-                    <td>{{ data_selection_form.im_deflate }}</td>
                 </tr>
                 <tr>
                     <td>{{ data_selection_form.bank.label }}</td>
                     <td>{{ data_selection_form.bank }}</td>
-                    <td>{{ data_selection_form.bank_deflate }}</td>
                 </tr>
                 <tr>
                     <td>{{ data_selection_form.private.label }}</td>
                     <td>{{ data_selection_form.private }}</td>
-                    <td>{{ data_selection_form.private_deflate }}</td>
                 </tr>
                 <tr>
                     <td>{{ data_selection_form.qe.label }}</td>
                     <td>{{ data_selection_form.qe }}</td>
-                    <td>{{ data_selection_form.qe_deflate }}</td>
                 </tr>
                 <tr>
                     <td>{{ data_selection_form.im_distribution.label }}</td>
@@ -198,6 +201,10 @@
                 <tr>
                     <td>{{ data_selection_form.created_percentage.label }}</td>
                     <td>{{ data_selection_form.created_percentage }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.bank_profit_spending_percentage.label }}</td>
+                    <td>{{ data_selection_form.bank_profit_spending_percentage }}</td>
                 </tr>
             </table>
             </td>

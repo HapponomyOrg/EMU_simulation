@@ -27,8 +27,9 @@ class ParameterForm(FlaskForm):
                                 choices=[(FIXED, 'Fixed'),
                                          (PROFIT_PERCENTAGE, '% of profit'),
                                          (CAPITAL_PERCENTAGE, '% of capital')])
+    max_spending = FloatField('Spending max % of IM', default=20.0)
     fixed_spending = FloatField('Fixed spending', default=1000.0)
-    profit_spending = FloatField('Profit spending', default=2.0)
+    profit_spending = FloatField('Profit spending', default=80.0)
     capital_spending = FloatField('Capital spending', default=2.0)
 
     asset_trickle_mode = SelectField('Asset trickle mode',
@@ -51,22 +52,16 @@ class ParameterForm(FlaskForm):
 
 
 class DataSelectionForm(FlaskForm):
+    deflate = BooleanField('Deflate')
+
     om = BooleanField('OM data')
-    om_deflate = BooleanField('Deflate')
-
     im = BooleanField('IM data')
-    im_deflate = BooleanField('Deflate')
-
     bank = BooleanField('Bank data')
-    bank_deflate = BooleanField('Deflate')
-
     private = BooleanField('Private sector data')
-    private_deflate = BooleanField('Deflate')
-
     qe = BooleanField('QE data')
-    qe_deflate = BooleanField('Deflate')
 
     im_distribution = BooleanField('IM distribution')
     debt_percentage = BooleanField('Debt %')
     lending_percentage = BooleanField('Lending %')
     created_percentage = BooleanField('Created IM %')
+    bank_profit_spending_percentage = BooleanField('Bank profit % spending')

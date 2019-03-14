@@ -39,6 +39,7 @@ class Euro_MS_Simulation(Simulation):
         self.min_profit = 0.20  # minimum % in income (from interest) that is retained as profit (only if no loss is true).
 
         self.spending_mode = FIXED  # bank spending mode
+        self.max_spending = 0.2     # max bank spending % of im
 
         self.qe_spending_mode = QE_RELATIVE  # QE spending mode
         self.qe_trickle_rate = 1.00  # percentage of QE that immediately flows through to IM2. Can be interpreted as a form of helicopter money.
@@ -65,6 +66,7 @@ class Euro_MS_Simulation(Simulation):
 
         self.created_bank_reserve = []    # bank reserve money created by the ECB
         self.bank_reserve = []  # Bank reserves
+        self.bank_income = []   # Bank income
         self.bank_profit = []   # bank profit: income from interest - payoff of loans and interests to ECB
         self.bank_assets = []   # Amount of money banks have invested in financial assets
         self.bank_spending = [] # money banks spend into the real economy
@@ -99,6 +101,12 @@ class Euro_MS_Simulation(Simulation):
         self.bank_debt_percentage_bank_reserve = []
         self.bank_debt_percentage_total_money = []
 
+        self.bank_profit_percentage_bank_income = []
+        self.bank_profit_percentage_im = []
+
+        self.bank_spending_percentage_profit = []
+        self.bank_spending_percentage_im = []
+
         self.created_im_percentage_im = []
         self.created_im_percentage_total_money = []
 
@@ -117,6 +125,7 @@ class Euro_MS_Simulation(Simulation):
 
         self.created_bank_reserve.clear()
         self.bank_reserve.clear()
+        self.bank_income.clear()
         self.bank_profit.clear()
         self.bank_assets.clear()
         self.bank_spending.clear()
@@ -135,22 +144,35 @@ class Euro_MS_Simulation(Simulation):
 
         self.lending_percentage_im.clear()
         self.lending_percentage_total_money.clear()
+
         self.bank_reserve_percentage_debt.clear()
         self.bank_lending_percentage_bank_reserve.clear()
         self.bank_lending_percentage_total_money.clear()
+
         self.im_percentage_total_money.clear()
         self.bank_reserve_percentage_total_money.clear()
         self.asset_percentage_total_money.clear()
+
         self.savings_interest_percentage_im.clear()
         self.savings_interest_percentage_total_money.clear()
         self.ecb_interest_percentage_im.clear()
         self.ecb_interest_percentage_total_money.clear()
+
         self.debt_percentage_im.clear()
         self.debt_percentage_total_money.clear()
+
+        self.bank_profit_percentage_bank_income.clear()
+        self.bank_profit_percentage_im.clear()
+
+        self.bank_spending_percentage_profit.clear()
+        self.bank_spending_percentage_im.clear()
+
         self.bank_debt_percentage_bank_reserve.clear()
         self.bank_debt_percentage_total_money.clear()
+
         self.created_im_percentage_im.clear()
         self.created_im_percentage_total_money.clear()
+
         self.created_bank_reserve_percentage_bank_reserve.clear()
         self.created_bank_reserve_percentage_total_money.clear()
         self.created_money_percentage_total_money.clear()
@@ -165,6 +187,7 @@ class Euro_MS_Simulation(Simulation):
         reserve = self.initial_im * self.minimum_reserve
         self.created_bank_reserve.append(reserve)  # reflects bank_reserve money creation
         self.bank_reserve.append(reserve)
+        self.bank_income.append(0.0)
         self.bank_profit.append(0.0)
         self.bank_assets.append(0.0)
         self.bank_spending.append(0.0)
@@ -199,6 +222,7 @@ class Euro_MS_Simulation(Simulation):
 
                 self.created_bank_reserve.append(self.created_bank_reserve[i - 1])
                 self.bank_reserve.append(self.bank_reserve[i - 1])
+                self.bank_income.append(0.0)
                 self.bank_profit.append(0.0)
                 self.bank_assets.append(self.bank_assets[i - 1])
                 self.bank_spending.append(0.0)
@@ -246,10 +270,12 @@ class Euro_MS_Simulation(Simulation):
                     self.created_im[i] = 0
 
                 self.im[i] -= self.payoff[i] + self.interest[i]
-                self.bank_reserve[i] += self.interest[i]
-                self.bank_profit[i] += self.interest[i]
                 self.debt[i] -= self.payoff[i]
                 self.debt[i] = max(0.0, self.debt[i])  # avoid debt going negative due to rounding
+
+                self.bank_income[i] += self.interest[i]
+                self.bank_reserve[i] += self.interest[i]
+                self.bank_profit[i] += self.interest[i]
 
                 # generate interest from ECB
                 min_reserve = self.debt[i - 1] * self.minimum_reserve
@@ -257,14 +283,17 @@ class Euro_MS_Simulation(Simulation):
                 if self.bank_reserve[i - 1] <= min_reserve:
                     create_interest = self.bank_reserve[i - 1] * self.ecb_savings_ir_mr
                     self.bank_reserve[i] += create_interest
+                    self.bank_income[i] += create_interest
                     self.created_bank_reserve[i] += create_interest
                 else:
                     create_interest = min_reserve * self.ecb_savings_ir_mr  # interest on minimum reserve
                     create_interest += (self.bank_reserve[i - 1] - min_reserve) * self.ecb_savings_ir_reserve # interest on surplus
                     self.bank_reserve[i] += create_interest
+                    self.bank_profit[i] += create_interest
 
                     if create_interest > 0:
                         self.created_bank_reserve[i] += create_interest
+                        self.bank_income[i] += create_interest
                     else:
                         self.im[i] -= create_interest # interest paid by banks goes to real economy
 
@@ -309,20 +338,20 @@ class Euro_MS_Simulation(Simulation):
 
                 # bank spending
                 if self.spending_mode == FIXED:
-                    # spend the fixed amount if possible, otherwise spend all of im1
+                    # spend the fixed amount if possible, otherwise spend all of bank reserve
                     if self.bank_reserve[i] >= self.bank_fixed[i]:
-                        self.bank_spending[i] = self.bank_fixed[i]
+                        self.bank_spending[i] = min(self.bank_fixed[i], self.max_spending * target_im)
                     else:
-                        self.bank_spending[i] = self.bank_reserve[i]
+                        self.bank_spending[i] = min(self.bank_reserve[i], self.max_spending * target_im)
                 elif self.spending_mode == PROFIT_PERCENTAGE:
                     if self.bank_profit[i] >= 0.0:
-                        self.bank_spending[i] = self.profit_spending * self.bank_profit[i]
+                        self.bank_spending[i] = min(self.profit_spending * self.bank_profit[i], self.max_spending * target_im)
                     else:  # profit can be negative
                         self.bank_spending[i] = 0.0
                 elif self.spending_mode == RESERVE_PERCENTAGE:
-                    self.bank_spending[i] = self.bank_reserve[i] * self.reserve_spending
+                    self.bank_spending[i] = min(self.bank_reserve[i] * self.reserve_spending, self.max_spending * target_im)
                 else:  # spending mode == CAPITAL_PERCENTAGE
-                    self.bank_spending[i] = (self.bank_reserve[i] + self.bank_assets[i]) * self.capital_spending
+                    self.bank_spending[i] = min((self.bank_reserve[i] + self.bank_assets[i]) * self.capital_spending, self.max_spending * target_im)
 
                 if self.no_loss:
                     self.bank_spending[i] = min(self.bank_spending[i], (1 - self.min_profit) * self.bank_profit[i])
@@ -412,6 +441,20 @@ class Euro_MS_Simulation(Simulation):
         self.im_percentage_total_money.append(self.im[i] * 100 / total_money)
         self.bank_reserve_percentage_total_money.append(self.bank_reserve[i] * 100 / total_money)
         self.asset_percentage_total_money.append(self.bank_assets[i] * 100 / total_money)
+
+        if self.bank_income[i] != 0:
+            self.bank_profit_percentage_bank_income.append(self.bank_profit[i] * 100 / self.bank_income[i])
+        else:
+            self.bank_profit_percentage_bank_income.append(100.0)
+
+        if self.bank_profit[i] != 0:
+            self.bank_spending_percentage_profit.append(self.bank_spending[i] * 100 / self.bank_profit[i])
+        else:
+            self.bank_spending_percentage_profit.append(100.0)
+
+        self.bank_spending_percentage_im.append(self.bank_spending[i] * 100 / self.im[i])
+
+        self.bank_profit_percentage_im.append(self.bank_profit[i] * 100 / self.im[i])
 
         self.savings_interest_percentage_im.append(self.savings_interest[i] * 100 / self.im[i])
         self.savings_interest_percentage_total_money.append(self.savings_interest[i] * 100 / total_money)

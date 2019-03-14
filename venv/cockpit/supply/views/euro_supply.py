@@ -29,9 +29,12 @@ def euro_supply_simulation():
         simulation.growth_rate = parameter_form.growth_rate.data / 100
         simulation.inflation_rate = parameter_form.inflation_rate.data / 100
 
+        simulation.spending_mode = parameter_form.spending_mode.data
+
         simulation.initial_fixed_spending = parameter_form.fixed_spending.data
         simulation.profit_spending = parameter_form.profit_spending.data / 100
         simulation.capital_spending = parameter_form.capital_spending.data / 100
+        simulation.max_spending = parameter_form.max_spending.data / 100
 
         simulation.minimum_reserve = parameter_form.minimum_reserve.data / 100
         simulation.maximum_reserve = parameter_form.maximum_reserve.data / 100
@@ -69,68 +72,60 @@ def euro_supply_simulation():
         simulation.run_simulation(iterations)
         graph_data.clear()
 
+        deflate = data_selection_form.deflate.data
+
         if data_selection_form.om.data:
             bank_reserve_charts = []
             chart_bank_reserve = create_chart('Bank reserve')
-            chart_bank_reserve_growth = create_chart('Bank reserve growth')
-            deflate = data_selection_form.om_deflate.data
 
+            chart_bank_reserve.add('Bank reserve', simulation.get_data(simulation.bank_reserve, deflate))
             chart_bank_reserve.add('Created bank reserve',
                                    simulation.get_data(simulation.created_bank_reserve, deflate))
-            chart_bank_reserve.add('Bank reserve', simulation.get_data(simulation.bank_reserve, deflate))
-            chart_bank_reserve_growth.add('Growth', simulation.get_growth(simulation.bank_reserve, deflate))
+            chart_bank_reserve.add('Growth', simulation.get_growth(simulation.bank_reserve, deflate))
 
             bank_reserve_charts.append(chart_bank_reserve.render_data_uri())
-            bank_reserve_charts.append(chart_bank_reserve_growth.render_data_uri())
             graph_data.append(bank_reserve_charts)
 
         if data_selection_form.im.data:
             im_charts = []
             chart_im = create_chart('IM')
-            chart_im_growth = create_chart('IM growth')
-            deflate = data_selection_form.im_deflate.data
 
             chart_im.add('IM', simulation.get_data(simulation.im, deflate))
-            chart_im.add('Financial assets', simulation.get_data(simulation.bank_assets, deflate))
-            chart_im_growth.add('IM growth', simulation.get_growth(simulation.im, deflate))
-            chart_im_growth.add('Asset growth', simulation.get_growth(simulation.bank_assets, deflate))
+            chart_im.add('IM growth', simulation.get_growth(simulation.im, deflate))
+            chart_im.add('Created IM', simulation.get_data(simulation.created_im, deflate))
 
             im_charts.append(chart_im.render_data_uri())
-            im_charts.append(chart_im_growth.render_data_uri())
             graph_data.append(im_charts)
 
         if data_selection_form.bank.data:
             bank_charts = []
-            chart_profit = create_chart('Bank profit')
+            chart_profit_spending = create_chart('Bank profit & spending')
             chart_assets = create_chart('Financial assets')
             chart_debt = create_chart('Bank debt to ECB')
-            chart_spending = create_chart('Bank spending')
             chart_lending = create_chart('Bank lending from ECB')
-            deflate = data_selection_form.bank_deflate.data
 
-            chart_profit.add('Profit', simulation.get_data(simulation.bank_profit, deflate))
-            chart_profit.add('Created IM', simulation.get_data(simulation.created_im, deflate))
+            chart_profit_spending.add('Bank income', simulation.get_data(simulation.bank_income, deflate))
+            chart_profit_spending.add('Bank spending', simulation.get_data(simulation.bank_spending, deflate))
+            chart_profit_spending.add('Profit', simulation.get_data(simulation.bank_profit, deflate))
             chart_assets.add('Bank assets', simulation.get_data(simulation.bank_assets, deflate))
+            chart_assets.add('Bank asset growth', simulation.get_growth(simulation.bank_assets, deflate))
             chart_assets.add('Asset investments', simulation.get_data(simulation.asset_investment, deflate))
             chart_debt.add('Debt', simulation.get_data(simulation.bank_debt, deflate))
             chart_debt.add('Payoff', simulation.get_data(simulation.bank_payoff, deflate))
             chart_debt.add('Interest', simulation.get_data(simulation.bank_interest, deflate))
-            chart_spending.add('Bank spending', simulation.get_data(simulation.bank_spending, deflate))
             chart_lending.add('Lending', simulation.get_data(simulation.bank_lending, deflate))
 
-            bank_charts.append(chart_profit.render_data_uri())
+            bank_charts.append(chart_profit_spending.render_data_uri())
             bank_charts.append(chart_assets.render_data_uri())
             bank_charts.append(chart_debt.render_data_uri())
-            bank_charts.append(chart_spending.render_data_uri())
             bank_charts.append(chart_lending.render_data_uri())
             graph_data.append(bank_charts)
 
         if data_selection_form.private.data:
             private_charts = []
             chart_debt = create_chart('Debt')
-            chart_lending = create_chart('Lending')
+            chart_lending = create_chart('Required lending')
             chart_inflow = create_chart('Inflow')
-            deflate = data_selection_form.private_deflate
 
             chart_debt.add('Debt', simulation.get_data(simulation.debt, deflate))
             chart_debt.add('Payoff', simulation.get_data(simulation.payoff, deflate))
@@ -155,7 +150,6 @@ def euro_supply_simulation():
         if data_selection_form.qe.data and simulation.qe_spending_mode != QE_NONE:
             qe_charts = []
             chart_qe = create_chart('QE')
-            deflate = data_selection_form.qe_deflate.data
 
             chart_qe.add('QE', simulation.get_data(simulation.qe, deflate))
 
@@ -177,9 +171,10 @@ def euro_supply_simulation():
             chart_debt = create_chart('Debt')
             chart_debt.add('% of real economy', simulation.get_data(simulation.debt_percentage_im))
             chart_debt.add('% of total money', simulation.get_data(simulation.debt_percentage_total_money))
+            chart_debt.add('Bank reserve % of debt', simulation.get_data(simulation.bank_reserve_percentage_debt))
 
             chart_bank_debt = create_chart('Bank debt')
-            chart_bank_debt.add('% of ban reserve', simulation.get_data(simulation.bank_debt_percentage_bank_reserve))
+            chart_bank_debt.add('% of bank reserve', simulation.get_data(simulation.bank_debt_percentage_bank_reserve))
             chart_bank_debt.add('% of total money', simulation.get_data(simulation.bank_debt_percentage_total_money))
 
             debt_charts.append(chart_debt.render_data_uri())
@@ -188,7 +183,7 @@ def euro_supply_simulation():
 
         if data_selection_form.lending_percentage.data:
             lending_charts = []
-            chart_lending = create_chart('Lending')
+            chart_lending = create_chart('Required lending')
             chart_lending.add('% of real economy', simulation.get_data(simulation.lending_percentage_im))
             chart_lending.add('% of total money', simulation.get_data(simulation.lending_percentage_total_money))
 
@@ -216,6 +211,17 @@ def euro_supply_simulation():
 
             created_charts.append(chart_created.render_data_uri())
             graph_data.append(created_charts)
+
+        if data_selection_form.bank_profit_spending_percentage.data:
+            profit_spending_charts = []
+            chart_bank_profit_spending = create_chart('Bank profit & spending')
+            chart_bank_profit_spending.add('Profit % income', simulation.get_data(simulation.bank_profit_percentage_bank_income))
+            chart_bank_profit_spending.add('Profit % of IM', simulation.get_data(simulation.bank_profit_percentage_im))
+            chart_bank_profit_spending.add('Spending % profit', simulation.get_data(simulation.bank_spending_percentage_profit))
+            chart_bank_profit_spending.add('Spending % IM', simulation.get_data(simulation.bank_spending_percentage_im))
+
+            profit_spending_charts.append(chart_bank_profit_spending.render_data_uri())
+            graph_data.append(profit_spending_charts)
 
         render_graphs = True
 
