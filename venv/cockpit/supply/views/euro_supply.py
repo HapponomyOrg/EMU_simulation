@@ -131,6 +131,7 @@ def euro_supply_simulation():
             chart_debt.add('Payoff', simulation.get_data(simulation.payoff, deflate))
             chart_debt.add('Interest', simulation.get_data(simulation.interest, deflate))
             chart_lending.add('Lending', simulation.get_data(simulation.lending, deflate))
+            chart_inflow.add('Bank spending', simulation.get_data(simulation.bank_spending, deflate))
             chart_inflow.add('Savings interest', simulation.get_data(simulation.savings_interest, deflate))
             chart_inflow.add('ECB interest', simulation.get_data(simulation.bank_interest, deflate))
 
