@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="no-cache, no-store, must-revalidate" />
+    <meta content="0" />
+    <link rel="stylesheet" type="text/css" href="../static/style.css">
+    <title>EMU Money Supply Simulation</title>
+</head>
+    <body>
+        <div>EMU Money Supply Simulation:
+            <a href="{{ url_for('euro_supply.euro_supply_simulation') }}">Euro Supply Simulation</a>
+            <a href="{{ url_for('sumsy_supply.sumsy_supply_simulation') }}">SuMSy Supply Simulation</a>
+        </div>
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul>
+                {% for message in messages %}
+                    <li>{{ message[1] }}</li>
+                {% endfor %}</ul>
+                <hr>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </body>
+</html>

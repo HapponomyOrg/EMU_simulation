@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <form action="" method="post">
+        {{ parameter_form.csrf_token }}
+        <table class="outertable"><tr>
+            <td class="tabledata">
+            <table>
+                <caption>Simulation parameters</caption>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.num_iterations.label }}</td>
+                    <td>{{ parameter_form.num_iterations }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.inflation.label }}</td>
+                    <td>{{ parameter_form.inflation }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.population.label }}</td>
+                    <td>{{ parameter_form.population }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.population_growth.label }}</td>
+                    <td>{{ parameter_form.population_growth }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.money_mass.label }}</td>
+                    <td>{{ parameter_form.money_mass }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.income.label }}</td>
+                    <td>{{ parameter_form.income }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.num_dem_tiers.label }}</td>
+                    <td>{{ parameter_form.num_dem_tiers }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.dem_tier_1.label }}</td>
+                    <td>{{ parameter_form.dem_tier_1 }}</td>
+                    <td>{{ parameter_form.dem_rate_1 }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.dem_tier_2.label }}</td>
+                    <td>{{ parameter_form.dem_tier_2 }}</td>
+                    <td>{{ parameter_form.dem_rate_2 }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.dem_tier_3.label }}</td>
+                    <td>{{ parameter_form.dem_tier_3 }}</td>
+                    <td>{{ parameter_form.dem_rate_3 }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.dem_tier_4.label }}</td>
+                    <td>{{ parameter_form.dem_tier_4 }}</td>
+                    <td>{{ parameter_form.dem_rate_4 }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.dem_tier_5.label }}</td>
+                    <td>{{ parameter_form.dem_tier_5 }}</td>
+                    <td>{{ parameter_form.dem_rate_5 }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.common_good_spending.label }}</td>
+                    <td>{{ parameter_form.common_good_spending }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.common_good_budget.label }}</td>
+                    <td>{{ parameter_form.common_good_budget }}</td>
+                </tr>
+            </table>
+            </td>
+            <td class="tabledata">
+            <table>
+                <caption>Output</caption>
+                <tr>
+                    <th>Output</th>
+                    <th>Selected</th>
+                    <th>Deflated</th>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.population.label }}</td>
+                    <td>{{ data_selection_form.population }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.money_mass.label }}</td>
+                    <td>{{ data_selection_form.money_mass }}</td>
+                    <td>{{ data_selection_form.money_mass_deflate }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.per_capita_money_mass.label }}</td>
+                    <td>{{ data_selection_form.per_capita_money_mass }}</td>
+                    <td>{{ data_selection_form.per_capita_money_mass_deflate }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.demurrage.label }}</td>
+                    <td>{{ data_selection_form.demurrage }}</td>
+                    <td>{{ data_selection_form.demurrage_deflate }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.per_capita_demurrage.label }}</td>
+                    <td>{{ data_selection_form.per_capita_demurrage }}</td>
+                    <td>{{ data_selection_form.per_capita_demurrage_deflate }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.new_money.label }}</td>
+                    <td>{{ data_selection_form.new_money }}</td>
+                    <td>{{ data_selection_form.new_money_deflate }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.per_capita_new_money.label }}</td>
+                    <td>{{ data_selection_form.per_capita_new_money }}</td>
+                    <td>{{ data_selection_form.per_capita_new_money_deflate }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.common_good.label }}</td>
+                    <td>{{ data_selection_form.common_good }}</td>
+                    <td>{{ data_selection_form.common_good_deflate }}</td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.percentages.label }}</td>
+                    <td>{{ data_selection_form.percentages }}</td>
+                </tr>
+            </table>
+            </td>
+        </tr></table>
+        <hr>
+        <div class="input submit">
+            <input class="button" type="submit" value="Run">
+        </div>
+        {% if render_graphs %}
+            {% for graphs in graph_data %}
+                {% for graph in graphs %}
+                      <div class="container" align="left">
+                            <embed type="image/svg+xml" src={{graph|safe}} style='max-width:600px'/>
+                      </div>
+                {% endfor %}
+            {% endfor %}
+        {% endif %}
+    </form>
+
+{% endblock %}
