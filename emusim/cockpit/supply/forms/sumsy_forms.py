@@ -40,25 +40,13 @@ class ParameterForm(FlaskForm):
 class DataSelectionForm(FlaskForm):
     population = BooleanField('Population')
 
+    deflate = BooleanField('Deflate')
     demurrage = BooleanField('Demurrage')
-    demurrage_deflate = BooleanField('Deflate')
-
     per_capita_demurrage = BooleanField('Demurrage per capita')
-    per_capita_demurrage_deflate = BooleanField('Deflate')
-
     new_money = BooleanField('New money')
-    new_money_deflate = BooleanField('Deflate')
-
     per_capita_new_money = BooleanField('New money per capita')
-    per_capita_new_money_deflate = BooleanField('Deflate')
-
     money_mass = BooleanField('Money mass')
-    money_mass_deflate = BooleanField('Deflate')
-
     per_capita_money_mass = BooleanField('Money mass per capita')
-    per_capita_money_mass_deflate = BooleanField('Deflate')
-
     common_good = BooleanField('Common good spending')
-    common_good_deflate = BooleanField('Deflate')
 
     percentages = BooleanField('Percentages of total money mass')

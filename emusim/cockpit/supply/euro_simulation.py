@@ -11,6 +11,9 @@ class Euro_MS_Simulation(Simulation):
         super().__init__()
 
         # initial parameters
+        self.minimum_reserve = 0.04  # minimum reserve
+        self.maximum_reserve = self.minimum_reserve  # maximum % reserve a bank wants to hold in OM. This influences how much money will be used to buy financial assets.
+
         self.initial_im = 100000.0  # initial amount of IM. Needs to be > 0.
         self.initial_debt = self.initial_im
         self.initial_created_im = self.initial_im
@@ -30,9 +33,6 @@ class Euro_MS_Simulation(Simulation):
         self.profit_spending = 0.02  # percentage of profit that banks spend into the real economy
         self.reserve_spending = 0.02  #percentage of bank reserves that are spent in the real economy
         self.capital_spending = 0.02  # percentage of capital (reserves + financial assets) that banks spend into the real economy
-
-        self.minimum_reserve = 0.04  # minimum reserve
-        self.maximum_reserve = self.minimum_reserve  # maximum % reserve a bank wants to hold in OM. This influences how much money will be used to buy financial assets.
 
         self.bank_payback_rate = 0.1  # bank payback rate
         self.private_payback_rate = 0.05  # private payback rate

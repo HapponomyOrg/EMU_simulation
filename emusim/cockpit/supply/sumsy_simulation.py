@@ -86,14 +86,14 @@ class SumSy_MS_Simulation(Simulation):
                 self.initialize()
             else:
                 # apply inflation_rate
-                self.income.append(self.income[i - 1] + self.income[i - 1] * self.inflation_rate)
-                self.common_good_budget.append(self.common_good_budget[i - 1]
-                                               + self.common_good_budget[i - 1] * self.inflation_rate)
+                self.income.append(max(0.0, self.income[i - 1] + self.income[i - 1] * self.inflation_rate))
+                self.common_good_budget.append(max(0.0, self.common_good_budget[i - 1]
+                                               + self.common_good_budget[i - 1] * self.inflation_rate))
                 cur_dem_tiers = {}
 
                 for tier in range(self.num_dem_tiers - 1):
                     prev_value = self.dem_tiers[i - 1][tier]
-                    cur_dem_tiers[tier] =  prev_value + prev_value * self.inflation_rate
+                    cur_dem_tiers[tier] =  max(0.0, prev_value + prev_value * self.inflation_rate)
 
                 self.dem_tiers.append(cur_dem_tiers)
 
@@ -106,7 +106,7 @@ class SumSy_MS_Simulation(Simulation):
                 self.common_good_money.append(total_demurrage)
 
                 # grow population
-                self.population.append(self.population[i - 1] + round(self.population[i - 1] * self.population_growth))
+                self.population.append(max(0.0, self.population[i - 1] + round(self.population[i - 1] * self.population_growth)))
 
                 # distribute income
                 self.new_money.append(self.income[i] * self.population[i])
@@ -120,10 +120,10 @@ class SumSy_MS_Simulation(Simulation):
                 elif self.common_good_spending == PER_CAPITA:
                     common_good_expense = self.population[i] * self.common_good_budget[i]
 
-                if self.common_good_money[i] > common_good_expense:
-                    self.new_money[i] -= self.common_good_money[i] - common_good_expense
-                else:
-                    self.new_money[i] += common_good_expense - self.common_good_money[i]
+                self.new_money[i] -= self.common_good_money[i] - common_good_expense
+
+                if self.new_money[i] <= 0:
+                    self.new_money[i] = 0
 
                 self.common_good_money[i] = common_good_expense
 
