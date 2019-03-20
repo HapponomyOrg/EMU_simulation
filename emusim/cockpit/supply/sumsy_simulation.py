@@ -1,7 +1,7 @@
 # module sumsy_simulation
 
-from cockpit.supply.constants import *
-from cockpit.supply.simulation import Simulation
+from emusim.cockpit.supply.constants import *
+from emusim.cockpit.supply.simulation import Simulation
 
 class SumSy_MS_Simulation(Simulation):
 

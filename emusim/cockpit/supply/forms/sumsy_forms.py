@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, SelectField, FloatField, IntegerField
 
-from cockpit.supply.constants import *
+from emusim.cockpit.supply.constants import *
 
 
 class ParameterForm(FlaskForm):

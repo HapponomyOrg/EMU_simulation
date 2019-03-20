@@ -9,9 +9,9 @@ import sys
 # module started with -m: update sys.path to include current path
 sys.path.append( str( Path( __file__ ).parent ) )
 
-from cockpit.supply.views.euro_supply import euro_supply
-from cockpit.supply.views.sumsy_supply import sumsy_supply
-from config import Config
+from emusim.cockpit.supply.views.euro_supply import euro_supply
+from emusim.cockpit.supply.views.sumsy_supply import sumsy_supply
+from emusim.config import Config
 
 app = Flask(__name__)
 app.config.from_object(Config)

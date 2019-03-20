@@ -1,10 +1,10 @@
 from flask import Blueprint, render_template, request
-from cockpit.supply.forms.euro_forms import ParameterForm, DataSelectionForm
-from cockpit.supply.constants import *
+from emusim.cockpit.supply.forms.euro_forms import ParameterForm, DataSelectionForm
+from emusim.cockpit.supply.constants import *
 
-from cockpit.utilities import create_chart
+from emusim.cockpit.utilities import create_chart
 
-from cockpit.supply.euro_simulation import Euro_MS_Simulation
+from emusim.cockpit.supply.euro_simulation import Euro_MS_Simulation
 
 euro_supply = Blueprint('euro_supply', __name__,
                         template_folder='../templates',
@@ -25,6 +25,15 @@ def euro_supply_simulation():
 
     if parameter_form.validate_on_submit():
         simulation = Euro_MS_Simulation()
+
+        simulation.initial_im = parameter_form.initial_im.data
+        simulation.initial_debt = parameter_form.initial_debt.data
+        simulation.initial_created_im = parameter_form.initial_created_im.data
+        simulation.initial_bank_reserve = parameter_form.initial_bank_reserve.data
+        simulation.initial_bank_debt = parameter_form.initial_bank_debt.data
+        simulation.initial_created_reserve = parameter_form.initial_created_reserves.data
+        simulation.initial_private_assets = parameter_form.initial_private_assets.data
+        simulation.initial_bank_assets = parameter_form.initial_bank_assets.data
 
         simulation.growth_rate = parameter_form.growth_rate.data / 100
         simulation.inflation_rate = parameter_form.inflation_rate.data / 100
@@ -65,8 +74,6 @@ def euro_supply_simulation():
         simulation.qe_fixed_initial = parameter_form.qe_fixed.data
         simulation.qe_relative = parameter_form.qe_relative.data / 100
 
-        simulation.initial_im = parameter_form.initial_im.data
-
         iterations = parameter_form.num_iterations.data
 
         simulation.run_simulation(iterations)
@@ -100,23 +107,18 @@ def euro_supply_simulation():
         if data_selection_form.bank.data:
             bank_charts = []
             chart_profit_spending = create_chart('Bank profit & spending')
-            chart_assets = create_chart('Financial assets')
             chart_debt = create_chart('Bank debt to ECB')
             chart_lending = create_chart('Bank lending from ECB')
 
             chart_profit_spending.add('Bank income', simulation.get_data(simulation.bank_income, deflate))
             chart_profit_spending.add('Bank spending', simulation.get_data(simulation.bank_spending, deflate))
             chart_profit_spending.add('Profit', simulation.get_data(simulation.bank_profit, deflate))
-            chart_assets.add('Bank assets', simulation.get_data(simulation.bank_assets, deflate))
-            chart_assets.add('Bank asset growth', simulation.get_growth(simulation.bank_assets, deflate))
-            chart_assets.add('Asset investments', simulation.get_data(simulation.asset_investment, deflate))
             chart_debt.add('Debt', simulation.get_data(simulation.bank_debt, deflate))
             chart_debt.add('Payoff', simulation.get_data(simulation.bank_payoff, deflate))
             chart_debt.add('Interest', simulation.get_data(simulation.bank_interest, deflate))
             chart_lending.add('Lending', simulation.get_data(simulation.bank_lending, deflate))
 
             bank_charts.append(chart_profit_spending.render_data_uri())
-            bank_charts.append(chart_assets.render_data_uri())
             bank_charts.append(chart_debt.render_data_uri())
             bank_charts.append(chart_lending.render_data_uri())
             graph_data.append(bank_charts)
@@ -148,6 +150,17 @@ def euro_supply_simulation():
             private_charts.append(chart_inflow.render_data_uri())
             graph_data.append(private_charts)
 
+        if data_selection_form.assets.data:
+            asset_charts = []
+            chart_assets = create_chart('Assets')
+            chart_assets.add('Bank investments', simulation.get_data(simulation.bank_asset_investments, deflate))
+            chart_assets.add('Private investments', simulation.get_data(simulation.private_asset_investments, deflate))
+            chart_assets.add('Total investments', simulation.get_data(simulation.total_asset_investments, deflate))
+            chart_assets.add('Available', simulation.get_data(simulation.financial_assets, deflate))
+
+            asset_charts.append(chart_assets.render_data_uri())
+            graph_data.append(asset_charts)
+
         if data_selection_form.qe.data and simulation.qe_spending_mode != QE_NONE:
             qe_charts = []
             chart_qe = create_chart('QE')
@@ -178,7 +191,7 @@ def euro_supply_simulation():
             chart_distribution = create_chart('Money distribution (% of total money)')
             chart_distribution.add('Real economy', simulation.get_data(simulation.im_percentage_total_money))
             chart_distribution.add('Bank reserve', simulation.get_data(simulation.bank_reserve_percentage_total_money))
-            chart_distribution.add('Financial assets', simulation.get_data(simulation.asset_percentage_total_money))
+            chart_distribution.add('Total financial assets', simulation.get_data(simulation.asset_percentage_total_money))
 
             im_charts.append(chart_distribution.render_data_uri())
             graph_data.append(im_charts)

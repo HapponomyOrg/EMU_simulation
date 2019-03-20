@@ -1,12 +1,23 @@
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, SelectField, FloatField, IntegerField
 
-from cockpit.supply.constants import *
+from emusim.cockpit.supply.constants import *
+from emusim.cockpit.supply.euro_simulation import Euro_MS_Simulation
 
 
 class ParameterForm(FlaskForm):
     num_iterations = IntegerField('Iterations', default=500)
     initial_im = FloatField('Initial IM', default=100000)
+    initial_debt = FloatField('Initial debt', default=100000)
+    initial_created_im = FloatField('Initial created IM', default=100000)
+
+    initial_bank_reserve = FloatField('Initial bank reserve', default=4000)
+    initial_bank_debt = FloatField('Initial bank debt', default=4000)
+    initial_created_reserves = FloatField('Initial created reserves', default=4000)
+
+    initial_private_assets = FloatField('Initial private assets', default=0)
+    initial_bank_assets = FloatField('Initial bank assets', default=0)
+
 
     growth_rate = FloatField('Growth rate', default=0.0)
     inflation_rate = FloatField('Inflation rate', default=1.9)
@@ -58,6 +69,7 @@ class DataSelectionForm(FlaskForm):
     im = BooleanField('IM data')
     bank = BooleanField('Bank data')
     private = BooleanField('Private sector data')
+    assets = BooleanField('Financial assets data')
     qe = BooleanField('QE data')
 
     income_expenses_percentage = BooleanField('Inflow & outflow')
