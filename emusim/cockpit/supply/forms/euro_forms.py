@@ -6,7 +6,9 @@ from emusim.cockpit.supply.constants import *
 
 class ParameterForm(FlaskForm):
     num_iterations = IntegerField('Iterations', default=500)
-    initial_im = FloatField('Initial IM', default=100000)
+    desired_initial_im = FloatField('Desired initial IM', default=100000)
+    lending_satisfaction_rate = FloatField('Lending satisfaction rate', default=100)
+    auto_calculate = BooleanField('Auto calculate from IM and lending rate')
     initial_debt = FloatField('Initial debt', default=100000)
     initial_created_im = FloatField('Initial created IM', default=100000)
 
@@ -18,15 +20,15 @@ class ParameterForm(FlaskForm):
     initial_bank_assets = FloatField('Initial bank assets', default=0)
 
 
-    growth_rate = FloatField('Growth rate', default=0.0)
-    inflation_rate = FloatField('Inflation rate', default=1.9)
+    desired_growth_rate = FloatField('Desired growth rate', default=1.5)
+    inflation_rate = FloatField('Inflation rate', default=1.5)
 
     ecb_interest_rate = FloatField('ECB interest', default=1.0)
     ecb_savings_rate_mr = FloatField('ECB interest rate on minimal reserve', default=0.0)
     ecb_savings_rate_excess = FloatField('ECB interest rate on excess reserve', default=-0.15)
 
     minimum_reserve = FloatField('Minimum reserve', default=4.0)
-    maximum_reserve = FloatField('Maximum bank reserve', default=8.0)
+    maximum_reserve = FloatField('Maximum bank reserve', default=5.0)
     min_new_money = FloatField('Minimum new money', default=80.0)
     max_new_money = FloatField('Maximum new money', default=100.0)
     bank_interest_rate = FloatField('Commercial bank interest', default=2.5)
@@ -58,6 +60,7 @@ class ParameterForm(FlaskForm):
 
     savings_rate = FloatField('Savings rate', default=20.0)
     savings_interest_rate = FloatField('Savings interest', default=0.5)
+    saving_asset_percentage = FloatField('% of savings invested in assets', default=5)
     private_payback_rate = FloatField('Private payback rate', default=5.0)
 
 

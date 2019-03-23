@@ -17,8 +17,23 @@
                     <td>{{ parameter_form.num_iterations }}</td>
                 </tr>
                 <tr>
-                    <td>{{ parameter_form.initial_im.label }}</td>
-                    <td>{{ parameter_form.initial_im }}</td>
+                    <td colspan="3" class="divider"><hr /></td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.desired_initial_im.label }}</td>
+                    <td>{{ parameter_form.desired_initial_im }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.lending_satisfaction_rate.label }}</td>
+                    <td>{{ parameter_form.lending_satisfaction_rate }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="divider"><hr /></td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.auto_calculate.label }}</td>
+                    <td>{{ parameter_form.auto_calculate }}</td>
                 </tr>
                 <tr>
                     <td>{{ parameter_form.initial_debt.label }}</td>
@@ -41,6 +56,9 @@
                     <td>{{ parameter_form.initial_created_reserves }}</td>
                 </tr>
                 <tr>
+                    <td colspan="3" class="divider"><hr /></td>
+                </tr>
+                <tr>
                     <td>{{ parameter_form.initial_private_assets.label }}</td>
                     <td>{{ parameter_form.initial_private_assets }}</td>
                 </tr>
@@ -49,8 +67,11 @@
                     <td>{{ parameter_form.initial_bank_assets }}</td>
                 </tr>
                 <tr>
-                    <td>{{ parameter_form.growth_rate.label }}</td>
-                    <td>{{ parameter_form.growth_rate }}</td>
+                    <td colspan="3" class="divider"><hr /></td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.desired_growth_rate.label }}</td>
+                    <td>{{ parameter_form.desired_growth_rate }}</td>
                     <td>%</td>
                 </tr>
                 <tr>
@@ -59,8 +80,16 @@
                     <td>%</td>
                 </tr>
                 <tr>
+                    <td colspan="3" class="divider"><hr /></td>
+                </tr>
+                <tr>
                     <td>{{ parameter_form.ecb_interest_rate.label }}</td>
                     <td>{{ parameter_form.ecb_interest_rate }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.bank_payback_rate.label }}</td>
+                    <td>{{ parameter_form.bank_payback_rate }}</td>
                     <td>%</td>
                 </tr>
                 <tr>
@@ -74,6 +103,9 @@
                     <td>%</td>
                 </tr>
                 <tr>
+                    <td colspan="3" class="divider"><hr /></td>
+                </tr>
+                <tr>
                     <td>{{ parameter_form.minimum_reserve.label }}</td>
                     <td>{{ parameter_form.minimum_reserve }}</td>
                     <td>%</td>
@@ -82,6 +114,9 @@
                     <td>{{ parameter_form.maximum_reserve.label }}</td>
                     <td>{{ parameter_form.maximum_reserve }}</td>
                     <td>%</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="divider"><hr /></td>
                 </tr>
                 <tr>
                     <td>{{ parameter_form.min_new_money.label }}</td>
@@ -94,14 +129,20 @@
                     <td>%</td>
                 </tr>
                 <tr>
+                    <td colspan="3" class="divider"><hr /></td>
+                </tr>
+                <tr>
                     <td>{{ parameter_form.bank_interest_rate.label }}</td>
                     <td>{{ parameter_form.bank_interest_rate }}</td>
                     <td>%</td>
                 </tr>
                 <tr>
-                    <td>{{ parameter_form.bank_payback_rate.label }}</td>
-                    <td>{{ parameter_form.bank_payback_rate }}</td>
+                    <td>{{ parameter_form.private_payback_rate.label }}</td>
+                    <td>{{ parameter_form.private_payback_rate }}</td>
                     <td>%</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="divider"><hr /></td>
                 </tr>
                 <tr>
                     <td>{{ parameter_form.no_loss.label }}</td>
@@ -111,6 +152,9 @@
                     <td>{{ parameter_form.min_profit.label }}</td>
                     <td>{{ parameter_form.min_profit }}</td>
                     <td>%</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="divider"><hr /></td>
                 </tr>
                 <tr>
                     <td>{{ parameter_form.spending_mode.label }}</td>
@@ -136,6 +180,9 @@
                     <td>%</td>
                 </tr>
                 <tr>
+                    <td colspan="3" class="divider"><hr /></td>
+                </tr>
+                <tr>
                     <td>{{ parameter_form.asset_trickle_mode.label }}</td>
                     <td>{{ parameter_form.asset_trickle_mode }}</td>
                 </tr>
@@ -143,6 +190,9 @@
                     <td>{{ parameter_form.asset_trickle.label }}</td>
                     <td>{{ parameter_form.asset_trickle }}</td>
                     <td>%</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="divider"><hr /></td>
                 </tr>
                 <tr>
                     <td>{{ parameter_form.qe_mode.label }}</td>
@@ -167,6 +217,9 @@
                     <td>{{ parameter_form.qe_profit }}</td>
                 </tr>
                 <tr>
+                    <td colspan="3" class="divider"><hr /></td>
+                </tr>
+                <tr>
                     <td>{{ parameter_form.savings_rate.label }}</td>
                     <td>{{ parameter_form.savings_rate }}</td>
                     <td>%</td>
@@ -177,8 +230,8 @@
                     <td>%</td>
                 </tr>
                 <tr>
-                    <td>{{ parameter_form.private_payback_rate.label }}</td>
-                    <td>{{ parameter_form.private_payback_rate }}</td>
+                    <td>{{ parameter_form.saving_asset_percentage.label }}</td>
+                    <td>{{ parameter_form.saving_asset_percentage }}</td>
                     <td>%</td>
                 </tr>
             </table>
@@ -217,6 +270,9 @@
                 <tr>
                     <td>{{ data_selection_form.qe.label }}</td>
                     <td>{{ data_selection_form.qe }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="divider"><hr /></td>
                 </tr>
                 <tr>
                     <td>{{ data_selection_form.income_expenses_percentage.label }}</td>

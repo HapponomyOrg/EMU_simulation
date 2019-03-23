@@ -26,16 +26,31 @@ def euro_supply_simulation():
     if parameter_form.validate_on_submit():
         simulation = Euro_MS_Simulation()
 
-        simulation.initial_im = parameter_form.initial_im.data
-        simulation.initial_debt = parameter_form.initial_debt.data
-        simulation.initial_created_im = parameter_form.initial_created_im.data
-        simulation.initial_bank_reserve = parameter_form.initial_bank_reserve.data
-        simulation.initial_bank_debt = parameter_form.initial_bank_debt.data
-        simulation.initial_created_reserve = parameter_form.initial_created_reserves.data
+        simulation.desired_initial_im = parameter_form.desired_initial_im.data
+        simulation.lending_satisfaction_rate = parameter_form.lending_satisfaction_rate.data / 100
+
+        simulation.minimum_reserve = parameter_form.minimum_reserve.data / 100
+        simulation.maximum_reserve = parameter_form.maximum_reserve.data / 100
+
+        if parameter_form.auto_calculate.data:
+            lending_satisfaction_rate = simulation.lending_satisfaction_rate
+
+            simulation.initial_debt = parameter_form.initial_debt.data * lending_satisfaction_rate
+            simulation.initial_created_im = parameter_form.initial_created_im.data * lending_satisfaction_rate
+            simulation.initial_bank_reserve = simulation.initial_created_im * simulation.minimum_reserve
+            simulation.initial_bank_debt = simulation.initial_bank_reserve
+            simulation.initial_created_reserve = simulation.initial_bank_reserve
+        else:
+            simulation.initial_debt = parameter_form.initial_debt.data
+            simulation.initial_created_im = parameter_form.initial_created_im.data
+            simulation.initial_bank_reserve = parameter_form.initial_bank_reserve.data
+            simulation.initial_bank_debt = parameter_form.initial_bank_debt.data
+            simulation.initial_created_reserve = parameter_form.initial_created_reserves.data
+
         simulation.initial_private_assets = parameter_form.initial_private_assets.data
         simulation.initial_bank_assets = parameter_form.initial_bank_assets.data
 
-        simulation.growth_rate = parameter_form.growth_rate.data / 100
+        simulation.desired_growth_rate = parameter_form.desired_growth_rate.data / 100
         simulation.inflation_rate = parameter_form.inflation_rate.data / 100
 
         simulation.spending_mode = parameter_form.spending_mode.data
@@ -44,9 +59,6 @@ def euro_supply_simulation():
         simulation.profit_spending = parameter_form.profit_spending.data / 100
         simulation.capital_spending = parameter_form.capital_spending.data / 100
         simulation.max_spending = parameter_form.max_spending.data / 100
-
-        simulation.minimum_reserve = parameter_form.minimum_reserve.data / 100
-        simulation.maximum_reserve = parameter_form.maximum_reserve.data / 100
 
         simulation.bank_payback_rate = parameter_form.bank_payback_rate.data / 100
         simulation.private_payback_rate = parameter_form.private_payback_rate.data / 100
@@ -59,6 +71,7 @@ def euro_supply_simulation():
 
         simulation.savings_ir = parameter_form.savings_interest_rate.data / 100
         simulation.saving_rate = parameter_form.savings_rate.data / 100
+        simulation.saving_asset_percentage = parameter_form.saving_asset_percentage.data / 100
 
         simulation.minimum_new_money = parameter_form.min_new_money.data / 100
         simulation.maximum_new_money = parameter_form.max_new_money.data / 100
@@ -96,12 +109,15 @@ def euro_supply_simulation():
         if data_selection_form.im.data:
             im_charts = []
             chart_im = create_chart('IM')
+            chart_im_growth = create_chart('IM growth')
 
+            chart_im.add('Desired IM', simulation.get_data(simulation.desired_im, deflate))
             chart_im.add('IM', simulation.get_data(simulation.im, deflate))
-            chart_im.add('IM growth', simulation.get_growth(simulation.im, deflate))
             chart_im.add('Created IM', simulation.get_data(simulation.created_im, deflate))
+            chart_im_growth.add('Growth %', simulation.get_data(simulation.growth))
 
             im_charts.append(chart_im.render_data_uri())
+            im_charts.append(chart_im_growth.render_data_uri())
             graph_data.append(im_charts)
 
         if data_selection_form.bank.data:
@@ -213,9 +229,11 @@ def euro_supply_simulation():
 
         if data_selection_form.lending_percentage.data:
             lending_charts = []
-            chart_lending = create_chart('Required lending')
-            chart_lending.add('% of real economy', simulation.get_data(simulation.lending_percentage_im))
-            chart_lending.add('% of total money', simulation.get_data(simulation.lending_percentage_total_money))
+            chart_lending = create_chart('Required & real lending')
+            chart_lending.add('Required % of real economy', simulation.get_data(simulation.required_lending_percentage_im))
+            chart_lending.add('Required % of total money', simulation.get_data(simulation.required_lending_percentage_total_money))
+            chart_lending.add('Real % of real economy', simulation.get_data(simulation.lending_percentage_im))
+            chart_lending.add('Real % of total money', simulation.get_data(simulation.lending_percentage_total_money))
 
             chart_bank_lending = create_chart('Bank lending')
             chart_bank_lending.add('% of bank reserve',

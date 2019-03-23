@@ -24,11 +24,11 @@ class ParameterForm(FlaskForm):
     dem_tier_4 = FloatField('Demurrage tier 4', default=5000000.0)
     dem_tier_5 = FloatField('Demurrage tier 5', default=10000000.0)
 
-    dem_rate_1 = FloatField('Demurrage rate 1', default=0.01)
-    dem_rate_2 = FloatField('Demurrage rate 2', default=0.05)
-    dem_rate_3 = FloatField('Demurrage rate 3', default=0.1)
-    dem_rate_4 = FloatField('Demurrage rate 4', default=0.5)
-    dem_rate_5 = FloatField('Demurrage rate 5', default=0.9)
+    dem_rate_1 = FloatField('Demurrage rate 1', default=1)
+    dem_rate_2 = FloatField('Demurrage rate 2', default=5)
+    dem_rate_3 = FloatField('Demurrage rate 3', default=10)
+    dem_rate_4 = FloatField('Demurrage rate 4', default=50)
+    dem_rate_5 = FloatField('Demurrage rate 5', default=90)
 
     common_good_spending = SelectField('Common good spending mode',
                                        choices=[(NONE, 'None'),

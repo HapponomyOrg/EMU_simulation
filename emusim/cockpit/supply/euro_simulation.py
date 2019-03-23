@@ -14,7 +14,10 @@ class Euro_MS_Simulation(Simulation):
         self.minimum_reserve = 0.04  # minimum reserve
         self.maximum_reserve = self.minimum_reserve  # maximum % reserve a bank wants to hold in OM. This influences how much money will be used to buy financial assets.
 
-        self.initial_im = 100000.0  # initial amount of IM. Needs to be > 0.
+        self.lending_satisfaction_rate = 1.0  # percentage of required lending that is actually executed
+
+        self.desired_initial_im = 100000.0  # initial desired amount of IM. Needs to be > 0.
+        self.initial_im = self.desired_initial_im * self.lending_satisfaction_rate  # initial real amount of IM
         self.initial_debt = self.initial_im
         self.initial_created_im = self.initial_im
 
@@ -26,7 +29,7 @@ class Euro_MS_Simulation(Simulation):
 
         self.initial_bank_assets = 0.0
 
-        self.growth_rate = 0.030  # growth rate of available money (IM2). This is money that circulates in the real economy
+        self.desired_growth_rate = 0.030  # desired growth rate of available money (IM2). This is money that circulates in the real economy
         self.inflation_rate = 0.019  # inflation_rate
 
         self.initial_fixed_spending = 1000.0  # initial spending if bank spending mode is FIXED
@@ -74,8 +77,12 @@ class Euro_MS_Simulation(Simulation):
         self.asset_investment_growth = []       # Total amount of money that flows into financial assets per cycle
         self.asset_trickle = []                 # amount of money that trickles back to IM. From both bank and private assets
 
-        self.im = []  # Money available to the real economy
+        self.desired_im = []  # Money that would be available in the real economy if required lending would be met exactly.
+        self.im = []  # Money actually available to the real economy
 
+        self.growth = []  # actual growth
+
+        self.required_lending = []  # lending amount that is required to maintain money supply
         self.lending = []  # money that has been borrowed per cycle
         self.created_im = []  # money that has been created
         self.debt = []  # outstanding debt on which interest is paid
@@ -99,8 +106,10 @@ class Euro_MS_Simulation(Simulation):
         self.bank_payoff = []               # payoff of principal bank debt
         self.bank_interest = []             # interest paid to ecb
 
+        self.required_lending_percentage_im = []
         self.lending_percentage_im = []
         self.lending_percentage_total_money = []
+        self.required_lending_percentage_total_money = []
 
         self.bank_reserve_percentage_debt = []
         self.bank_lending_percentage_bank_reserve = []
@@ -145,7 +154,10 @@ class Euro_MS_Simulation(Simulation):
 
 
     def initialize(self):
+        self.desired_im.clear()
         self.im.clear()
+        self.growth.clear()
+        self.required_lending.clear()
         self.lending.clear()
         self.debt.clear()
         self.payoff.clear()
@@ -222,7 +234,10 @@ class Euro_MS_Simulation(Simulation):
         self.created_bank_reserve_percentage_total_money.clear()
         self.created_money_percentage_total_money.clear()
 
+        self.desired_im.append(self.desired_initial_im)
         self.im.append(self.initial_im)
+        self.growth.append(0.0)
+        self.required_lending.append(self.initial_im)
         self.lending.append(self.initial_im)
         self.debt.append(self.initial_debt)
         self.payoff.append(0.0)
@@ -266,7 +281,10 @@ class Euro_MS_Simulation(Simulation):
                 self.initialize()
             else:
                 # copy previous state
+                self.desired_im.append(self.desired_im[i - 1])
                 self.im.append(self.im[i - 1])
+                self.growth.append(0.0)
+                self.required_lending.append(0.0)
                 self.lending.append(0.0)
                 self.debt.append(self.debt[i - 1])
                 self.payoff.append(0.0)
@@ -311,10 +329,13 @@ class Euro_MS_Simulation(Simulation):
                 self.savings_interest.append(self.savings[i - 1] * self.savings_ir)
 
                 # determine growth
-                growth = self.im[i] * self.growth_rate + \
-                         self.im[i] * self.growth_rate * self.inflation_rate + \
-                         self.im[i] * self.inflation_rate
-                target_im = self.im[i] + growth
+                self.desired_im[i] += self.desired_im[i] * self.desired_growth_rate + \
+                                      self.desired_im[i] * self.desired_growth_rate * self.inflation_rate + \
+                                      self.desired_im[i] * self.inflation_rate
+                desired_growth = self.im[i] * self.desired_growth_rate + \
+                                 self.im[i] * self.desired_growth_rate * self.inflation_rate + \
+                                 self.im[i] * self.inflation_rate
+                target_im = self.im[i] + desired_growth
 
                 # earn calculated interest
                 self.im[i] += self.savings_interest[i]
@@ -459,7 +480,8 @@ class Euro_MS_Simulation(Simulation):
 
                 # grow economy through lending if needed
                 max_desired_reserve = self.maximum_reserve * self.debt[i]
-                self.lending[i] = max(0.0, target_im - self.im[i])
+                self.required_lending[i] = max(0.0, target_im - self.im[i])
+                self.lending[i] = self.required_lending[i] * self.lending_satisfaction_rate
 
                 if self.lending[i] > 0.0:
                     self.im[i] += self.lending[i]
@@ -515,7 +537,14 @@ class Euro_MS_Simulation(Simulation):
     def calculate_percentages(self, i):
         total_money = self.financial_assets[i] + self.bank_reserve[i] + self.im[i]
 
+        self.growth[i] = (self.im[i] - (self.im[i - 1] + self.im[i - 1] * self.inflation_rate)) * 100 \
+                         / (self.im[i - 1] + self.im[i - 1] * self.inflation_rate)
+
+        print(self.growth[i])
+
+        self.required_lending_percentage_im.append(self.required_lending[i] * 100 / self.im[i])
         self.lending_percentage_im.append(self.lending[i] * 100 / self.im[i])
+        self.required_lending_percentage_total_money.append(self.required_lending[i] * 100 / total_money)
         self.lending_percentage_total_money.append(self.lending[i] * 100 / total_money)
 
         self.bank_reserve_percentage_debt.append(self.bank_reserve[i] * 100 / self.debt[i])
@@ -592,7 +621,7 @@ class Euro_MS_Simulation(Simulation):
             f = open('./cockpit/supply/generated data/parameters.txt', 'w')
             f.write(f'Initial IM2 = {self.initial_im:.2f}\n')
             f.write('\n')
-            f.write(f'IM2 growth rate = {self.growth_rate * 100} %\n')
+            f.write(f'IM2 growth rate = {self.desired_growth_rate * 100} %\n')
             f.write(f'Inflation = {self.inflation_rate * 100} %\n')
             f.write('\n')
             f.write(f'Commercial payback rate (% of debt) = {self.private_payback_rate * 100} %\n')
