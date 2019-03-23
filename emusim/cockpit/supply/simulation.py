@@ -11,7 +11,7 @@ class Simulation:
         cycle = 0
 
         for data_point in data:
-            if cycle != 0:  # remove setup step
+            if cycle != 0 and cycle != len(data) - 1:  # remove setup and last step
                 if do_deflate:
                     processed_data.append(round(self.deflate(data_point, cycle), 2))
                 else:
@@ -33,7 +33,7 @@ class Simulation:
     def get_growth(self, raw_data, do_deflate):
         growth = []
 
-        for cycle in range(len(raw_data)):
+        for cycle in range(len(raw_data) - 1):
             if cycle != 0:
                 if do_deflate:
                     growth.append(round(self.deflate(raw_data[cycle], cycle)

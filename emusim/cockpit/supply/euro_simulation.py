@@ -30,6 +30,7 @@ class Euro_MS_Simulation(Simulation):
         self.initial_bank_assets = 0.0
 
         self.desired_growth_rate = 0.030  # desired growth rate of available money (IM2). This is money that circulates in the real economy
+        self.growth_target = GROW_CURRENT
         self.inflation_rate = 0.019  # inflation_rate
 
         self.initial_fixed_spending = 1000.0  # initial spending if bank spending mode is FIXED
@@ -271,7 +272,6 @@ class Euro_MS_Simulation(Simulation):
         self.total_inflow.append(0.0)
         self.total_outflow.append(0.0)
 
-
         self.calculate_percentages(0)
 
 
@@ -280,6 +280,9 @@ class Euro_MS_Simulation(Simulation):
             if i == 0:
                 self.initialize()
             else:
+                if self.im[i - 1] <= 0:
+                    break
+
                 # copy previous state
                 self.desired_im.append(self.desired_im[i - 1])
                 self.im.append(self.im[i - 1])
@@ -332,10 +335,17 @@ class Euro_MS_Simulation(Simulation):
                 self.desired_im[i] += self.desired_im[i] * self.desired_growth_rate + \
                                       self.desired_im[i] * self.desired_growth_rate * self.inflation_rate + \
                                       self.desired_im[i] * self.inflation_rate
-                desired_growth = self.im[i] * self.desired_growth_rate + \
-                                 self.im[i] * self.desired_growth_rate * self.inflation_rate + \
-                                 self.im[i] * self.inflation_rate
-                target_im = self.im[i] + desired_growth
+
+                desired_growth = 0
+
+                if self.growth_target == GROW_CURRENT:
+                    desired_growth = self.im[i] * self.desired_growth_rate + \
+                                     self.im[i] * self.desired_growth_rate * self.inflation_rate + \
+                                     self.im[i] * self.inflation_rate
+                else:  # self.growth_target == GROW_INITIAL:
+                    desired_growth = self.desired_im[i] - self.im[i]
+
+                target_im = max(0.0, self.im[i] + desired_growth)
 
                 # earn calculated interest
                 self.im[i] += self.savings_interest[i]
@@ -539,8 +549,6 @@ class Euro_MS_Simulation(Simulation):
 
         self.growth[i] = (self.im[i] - (self.im[i - 1] + self.im[i - 1] * self.inflation_rate)) * 100 \
                          / (self.im[i - 1] + self.im[i - 1] * self.inflation_rate)
-
-        print(self.growth[i])
 
         self.required_lending_percentage_im.append(self.required_lending[i] * 100 / self.im[i])
         self.lending_percentage_im.append(self.lending[i] * 100 / self.im[i])

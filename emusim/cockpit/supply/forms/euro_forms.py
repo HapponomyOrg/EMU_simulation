@@ -8,6 +8,9 @@ class ParameterForm(FlaskForm):
     num_iterations = IntegerField('Iterations', default=500)
     desired_initial_im = FloatField('Desired initial IM', default=100000)
     lending_satisfaction_rate = FloatField('Lending satisfaction rate', default=100)
+    growth_target = SelectField('Growth target',
+                                choices=[(GROW_INITIAL, 'Based on initial IM'),
+                                         (GROW_CURRENT, 'Based on current IM')])
     auto_calculate = BooleanField('Auto calculate from IM and lending rate')
     initial_debt = FloatField('Initial debt', default=100000)
     initial_created_im = FloatField('Initial created IM', default=100000)

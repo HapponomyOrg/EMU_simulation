@@ -7,6 +7,10 @@ RESERVE_PERCENTAGE = 'RESERVE PERCENTAGE'  # banks spend a percentage of their r
 CAPITAL_PERCENTAGE = 'CAPITAL PERCENTAGE'  # banks spend a percentage of their capital (reserve + financial assets) into the economy
 SPENDING_MODES = [FIXED, PROFIT_PERCENTAGE, RESERVE_PERCENTAGE, CAPITAL_PERCENTAGE]
 
+GROW_INITIAL = 'GROW INITIAL'
+GROW_CURRENT = 'GROW_CURRENT'
+GROWTH_TARGETS = [GROW_INITIAL, GROW_CURRENT]
+
 ASSET_GROWTH = 'ASSET GROWTH'  # a percentage of what is added to the financial market trickles to the real economy
 ASSET_CAPITAL = 'ASSET_CAPITAL'  # a percentage of what exists in the financial market trickles to the real economy
 ASSET_TRICKLE_MODES = [ASSET_GROWTH, ASSET_CAPITAL]

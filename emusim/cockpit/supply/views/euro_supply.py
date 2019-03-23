@@ -51,6 +51,7 @@ def euro_supply_simulation():
         simulation.initial_bank_assets = parameter_form.initial_bank_assets.data
 
         simulation.desired_growth_rate = parameter_form.desired_growth_rate.data / 100
+        simulation.growth_target = parameter_form.growth_target.data
         simulation.inflation_rate = parameter_form.inflation_rate.data / 100
 
         simulation.spending_mode = parameter_form.spending_mode.data
@@ -142,13 +143,14 @@ def euro_supply_simulation():
         if data_selection_form.private.data:
             private_charts = []
             chart_debt = create_chart('Debt')
-            chart_lending = create_chart('Required lending')
+            chart_lending = create_chart('Lending')
             chart_inflow = create_chart('Inflow')
 
             chart_debt.add('Debt', simulation.get_data(simulation.debt, deflate))
             chart_debt.add('Payoff', simulation.get_data(simulation.payoff, deflate))
             chart_debt.add('Interest', simulation.get_data(simulation.interest, deflate))
-            chart_lending.add('Lending', simulation.get_data(simulation.lending, deflate))
+            chart_lending.add('Required', simulation.get_data(simulation.required_lending, deflate))
+            chart_lending.add('Real', simulation.get_data(simulation.lending, deflate))
             chart_inflow.add('Bank spending', simulation.get_data(simulation.bank_spending, deflate))
             chart_inflow.add('Savings interest', simulation.get_data(simulation.savings_interest, deflate))
             chart_inflow.add('ECB interest', simulation.get_data(simulation.bank_interest, deflate))
