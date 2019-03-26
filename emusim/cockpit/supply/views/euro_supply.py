@@ -119,7 +119,7 @@ def euro_supply_simulation():
             chart_im = create_chart('IM')
             chart_im_growth = create_chart('IM growth & inflation')
 
-            chart_im.add('Desired IM', simulation.get_data(simulation.desired_im, deflate))
+            #  chart_im.add('Desired IM', simulation.get_data(simulation.desired_im, deflate))
             chart_im.add('IM', simulation.get_data(simulation.im, deflate))
             chart_im.add('Created IM', simulation.get_data(simulation.created_im, deflate))
             chart_im_growth.add('Growth %', simulation.get_data(simulation.actual_growth))
