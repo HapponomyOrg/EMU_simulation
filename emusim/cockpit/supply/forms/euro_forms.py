@@ -9,8 +9,8 @@ class ParameterForm(FlaskForm):
     desired_initial_im = FloatField('Desired initial IM', default=100000)
     lending_satisfaction_rate = FloatField('Lending satisfaction rate', default=100)
     growth_target = SelectField('Growth target',
-                                choices=[(GROW_INITIAL, 'Based on initial IM'),
-                                         (GROW_CURRENT, 'Based on current IM')])
+                                choices=[(GROW_CURRENT, 'Based on current IM'),
+                                         (GROW_INITIAL, 'Based on initial IM')])
     auto_calculate = BooleanField('Auto calculate from IM and lending rate')
     initial_debt = FloatField('Initial debt', default=100000)
     initial_created_im = FloatField('Initial created IM', default=100000)
@@ -22,9 +22,11 @@ class ParameterForm(FlaskForm):
     initial_private_assets = FloatField('Initial private assets', default=0)
     initial_bank_assets = FloatField('Initial bank assets', default=0)
 
+    desired_growth_rate = FloatField('Desired actual_growth rate', default=1.5)
+    inflation_rate = FloatField('Desired inflation rate', default=1.5)
 
-    desired_growth_rate = FloatField('Desired growth rate', default=1.5)
-    inflation_rate = FloatField('Inflation rate', default=1.5)
+    link_growth_inflation = BooleanField('Link inflation to growth')
+    growth_inflation_influence = FloatField('Influence of growth on inflation', default=100)
 
     ecb_interest_rate = FloatField('ECB interest', default=1.0)
     ecb_savings_rate_mr = FloatField('ECB interest rate on minimal reserve', default=0.0)
@@ -35,20 +37,21 @@ class ParameterForm(FlaskForm):
     min_new_money = FloatField('Minimum new money', default=80.0)
     max_new_money = FloatField('Maximum new money', default=100.0)
     bank_interest_rate = FloatField('Commercial bank interest', default=2.5)
+    interest_percentage_bank_income = FloatField('Interest % of bank income', default=100)
     bank_payback_rate = FloatField('Bank payback rate', default=100.0)
     no_loss = BooleanField('No loss')
     min_profit = FloatField('Minimum profit', default=20.0)
     spending_mode = SelectField('Bank spending mode',
-                                choices=[(FIXED, 'Fixed'),
-                                         (PROFIT_PERCENTAGE, '% of profit'),
-                                         (CAPITAL_PERCENTAGE, '% of capital')])
+                                choices=[(PROFIT_PERCENTAGE, '% of profit'),
+                                         (CAPITAL_PERCENTAGE, '% of capital'),
+                                         (FIXED, 'Fixed')])
     max_spending = FloatField('Spending max % of IM', default=20.0)
     fixed_spending = FloatField('Fixed spending', default=1000.0)
     profit_spending = FloatField('Profit spending', default=80.0)
     capital_spending = FloatField('Capital spending', default=2.0)
 
     asset_trickle_mode = SelectField('Asset trickle mode',
-                          choices=[(ASSET_GROWTH, '% of asset growth'),
+                          choices=[(ASSET_GROWTH, '% of asset actual_growth'),
                                    (ASSET_CAPITAL, '% of asset capital')])
     asset_trickle = FloatField('Asset trickle', default=5.0)
 

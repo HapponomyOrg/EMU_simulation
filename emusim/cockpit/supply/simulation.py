@@ -3,7 +3,13 @@
 class Simulation:
 
     def __init__(self):
-        self.inflation_rate = 0.0  # inflation_rate
+        self.initial_inflation_rate = 0.019  # initial_inflation_rate
+        self.inflation_rate = []  # real inflation rate
+
+
+    def initialize(self):
+        self.inflation_rate.clear()
+        self.inflation_rate.append(self.initial_inflation_rate)
 
 
     def get_data(self, data, do_deflate=False):
@@ -22,10 +28,10 @@ class Simulation:
         return processed_data
 
 
-    # only call after inflation_rate has been applied in a cycle
+    # only call after initial_inflation_rate has been applied in a cycle
     def deflate(self, num, cycle):
         for i in range(cycle):
-            num /= 1 + self.inflation_rate
+            num /= 1 + self.inflation_rate[i]
 
         return num
 

@@ -16,7 +16,7 @@ ASSET_CAPITAL = 'ASSET_CAPITAL'  # a percentage of what exists in the financial 
 ASSET_TRICKLE_MODES = [ASSET_GROWTH, ASSET_CAPITAL]
 
 QE_NONE = 'QE_NONE'  # no QE
-QE_FIXED = 'QE_FIXED'  # fixed amount QE, adjusted for inflation_rate
+QE_FIXED = 'QE_FIXED'  # fixed amount QE, adjusted for initial_inflation_rate
 QE_RELATIVE = 'QE_RELATIVE'  # QE amount relative to outstanding debt
 
 QE_MODES = [QE_NONE, QE_FIXED, QE_RELATIVE]

@@ -79,8 +79,20 @@
                     <td>{{ parameter_form.growth_target }}</td>
                 </tr>
                 <tr>
+                    <td colspan="3" class="divider"><hr /></td>
+                </tr>
+                <tr>
                     <td>{{ parameter_form.inflation_rate.label }}</td>
                     <td>{{ parameter_form.inflation_rate }}</td>
+                    <td>%</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.link_growth_inflation.label }}</td>
+                    <td>{{ parameter_form.link_growth_inflation }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.growth_inflation_influence.label }}</td>
+                    <td>{{ parameter_form.growth_inflation_influence }}</td>
                     <td>%</td>
                 </tr>
                 <tr>
@@ -134,6 +146,11 @@
                 </tr>
                 <tr>
                     <td colspan="3" class="divider"><hr /></td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_form.interest_percentage_bank_income.label }}</td>
+                    <td>{{ parameter_form.interest_percentage_bank_income }}</td>
+                    <td>%</td>
                 </tr>
                 <tr>
                     <td>{{ parameter_form.bank_interest_rate.label }}</td>
@@ -252,6 +269,9 @@
                     <td>{{ data_selection_form.deflate }}</td>
                 </tr>
                 <tr>
+                    <td colspan="2" class="divider"><hr /></td>
+                </tr>
+                <tr>
                     <td>{{ data_selection_form.om.label }}</td>
                     <td>{{ data_selection_form.om }}</td>
                 </tr>
@@ -309,6 +329,9 @@
         <div class="input submit">
             <input class="button" type="submit" value="Run">
         </div>
+        {% if crashed %}
+        <h2>Crashed after {{ crash_cycle }} cycles</h2>
+        {% endif %}
         {% if render_graphs %}
             {% for graphs in graph_data %}
                 {% for graph in graphs %}

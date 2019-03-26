@@ -21,6 +21,8 @@ def euro_supply_simulation():
     parameter_form = ParameterForm(request.form)
     data_selection_form = DataSelectionForm(request.form)
     render_graphs = False
+    crashed = False
+    crash_cycle = 0
     graph_data = []
 
     if parameter_form.validate_on_submit():
@@ -52,7 +54,9 @@ def euro_supply_simulation():
 
         simulation.desired_growth_rate = parameter_form.desired_growth_rate.data / 100
         simulation.growth_target = parameter_form.growth_target.data
-        simulation.inflation_rate = parameter_form.inflation_rate.data / 100
+        simulation.initial_inflation_rate = parameter_form.inflation_rate.data / 100
+        simulation.link_growth_inflation = parameter_form.link_growth_inflation.data
+        simulation.growth_inflation_influence = parameter_form.growth_inflation_influence.data / 100
 
         simulation.spending_mode = parameter_form.spending_mode.data
 
@@ -66,6 +70,7 @@ def euro_supply_simulation():
 
         simulation.ecb_ir = parameter_form.ecb_interest_rate.data / 100
         simulation.bank_ir = parameter_form.bank_interest_rate.data / 100
+        simulation.interest_percentage_bank_income = parameter_form.interest_percentage_bank_income.data / 100
 
         simulation.ecb_savings_ir_mr = parameter_form.ecb_savings_rate_mr.data / 100
         simulation.ecb_savings_ir_reserve = parameter_form.ecb_savings_rate_excess.data / 100
@@ -93,6 +98,8 @@ def euro_supply_simulation():
         simulation.run_simulation(iterations)
         graph_data.clear()
 
+        crashed = simulation.crash
+        crash_cycle = simulation.crash_cycle
         deflate = data_selection_form.deflate.data
 
         if data_selection_form.om.data:
@@ -110,12 +117,13 @@ def euro_supply_simulation():
         if data_selection_form.im.data:
             im_charts = []
             chart_im = create_chart('IM')
-            chart_im_growth = create_chart('IM growth')
+            chart_im_growth = create_chart('IM growth & inflation')
 
             chart_im.add('Desired IM', simulation.get_data(simulation.desired_im, deflate))
             chart_im.add('IM', simulation.get_data(simulation.im, deflate))
             chart_im.add('Created IM', simulation.get_data(simulation.created_im, deflate))
-            chart_im_growth.add('Growth %', simulation.get_data(simulation.growth))
+            chart_im_growth.add('Growth %', simulation.get_data(simulation.actual_growth))
+            chart_im_growth.add('Inflation', simulation.get_data(simulation.actual_inflation))
 
             im_charts.append(chart_im.render_data_uri())
             im_charts.append(chart_im_growth.render_data_uri())
@@ -199,6 +207,7 @@ def euro_supply_simulation():
             chart_inflow_outflow.add('Total inflow', simulation.get_data(simulation.total_inflow_percentage_im))
             chart_inflow_outflow.add('Payoff due', simulation.get_data(simulation.payoff_percentage_im))
             chart_inflow_outflow.add('Interest due', simulation.get_data(simulation.interest_percentage_im))
+            chart_inflow_outflow.add('Banking costs', simulation.get_data(simulation.banking_costs_percentage_im))
             chart_inflow_outflow.add('Total outflow', simulation.get_data(simulation.total_outflow_percentage_im))
 
             inflow_outflow_charts.append(chart_inflow_outflow.render_data_uri())
@@ -279,4 +288,6 @@ def euro_supply_simulation():
                            parameter_form=parameter_form,
                            data_selection_form=data_selection_form,
                            render_graphs=render_graphs,
-                           graph_data=graph_data)
+                           graph_data=graph_data,
+                           crashed=crashed,
+                           crash_cycle=crash_cycle)

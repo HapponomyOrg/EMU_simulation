@@ -8,7 +8,7 @@ class ParameterForm(FlaskForm):
     num_iterations = IntegerField('Iterations', default=500)
     inflation = FloatField('Inflation rate', default=0.0)
     population = IntegerField('Population', default=5000)
-    population_growth = FloatField('Population growth rate', default=0.0)
+    population_growth = FloatField('Population actual_growth rate', default=0.0)
     money_mass = FloatField('Money mass', default=100000)
     income = FloatField('Guaranteed income', default=2000.0)
     num_dem_tiers = SelectField('Common good spending mode',

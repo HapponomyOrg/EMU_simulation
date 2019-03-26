@@ -10,7 +10,6 @@ class SumSy_MS_Simulation(Simulation):
         self.initial_population = 5000
         self.population_growth = 0.0
         self.initial_money_mass = 100000.0
-        self.inflation_rate = 0.0
         self.initial_income = 2000.0
         self.num_dem_tiers = MAX_DEM_TIERS
         self.initial_dem_tiers = {0: 50000.0,
@@ -27,7 +26,7 @@ class SumSy_MS_Simulation(Simulation):
         self.initial_common_good_budget = 0.0
 
         self.population = []            # total population
-        self.income = []                # income adjusted for inflation_rate
+        self.income = []                # income adjusted for initial_inflation_rate
         self.money_mass = []            # total monetary mass
         self.per_capita_money_mass = [] # monetary mass per capita
         self.demurrage = []             # amount of demurrage paid
@@ -85,15 +84,16 @@ class SumSy_MS_Simulation(Simulation):
             if i == 0:
                 self.initialize()
             else:
-                # apply inflation_rate
-                self.income.append(max(0.0, self.income[i - 1] + self.income[i - 1] * self.inflation_rate))
+                self.inflation_rate.append(self.inflation_rate[i - 1])
+                # apply inflation rate
+                self.income.append(max(0.0, self.income[i - 1] + self.income[i - 1] * self.inflation_rate[i]))
                 self.common_good_budget.append(max(0.0, self.common_good_budget[i - 1]
-                                               + self.common_good_budget[i - 1] * self.inflation_rate))
+                                               + self.common_good_budget[i - 1] * self.inflation_rate[i]))
                 cur_dem_tiers = {}
 
                 for tier in range(self.num_dem_tiers - 1):
                     prev_value = self.dem_tiers[i - 1][tier]
-                    cur_dem_tiers[tier] =  max(0.0, prev_value + prev_value * self.inflation_rate)
+                    cur_dem_tiers[tier] =  max(0.0, prev_value + prev_value * self.inflation_rate[i])
 
                 self.dem_tiers.append(cur_dem_tiers)
 
