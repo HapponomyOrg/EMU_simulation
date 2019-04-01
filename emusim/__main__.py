@@ -21,4 +21,5 @@ CSRFProtect(app)
 app.register_blueprint(euro_supply)
 app.register_blueprint(sumsy_supply)
 
-app.run(debug=False)
+if __name__ == '__main__':
+    app.run(debug=False)
