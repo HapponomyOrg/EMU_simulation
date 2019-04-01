@@ -87,6 +87,7 @@ class SumSy_MS_Simulation(Simulation):
                 self.initialize()
             else:
                 self.inflation_rate.append(self.inflation_rate[i - 1])
+
                 # apply inflation rate
                 self.income.append(max(0.0, self.income[i - 1] + self.income[i - 1] * self.inflation_rate[i]))
                 self.common_good_budget.append(max(0.0, self.common_good_budget[i - 1]

@@ -7,16 +7,16 @@ from emusim.cockpit.supply.constants import *
 class ParameterForm(FlaskForm):
     num_iterations = IntegerField('Iterations', default=500)
     inflation = FloatField('Inflation rate', default=0.0)
-    population = IntegerField('Population', default=5000)
-    population_growth = FloatField('Population actual_growth rate', default=0.0)
+    population = IntegerField('Population', default=100000)
+    population_growth = FloatField('Population growth rate', default=0.0)
     money_mass = FloatField('Money mass', default=100000)
     income = FloatField('Guaranteed income', default=2000.0)
     num_dem_tiers = SelectField('Common good spending mode',
-                                choices=[(1, '1 tier'),
-                                         (2, '2 tiers'),
-                                         (3, '3 tiers'),
+                                choices=[(5, '5 tier'),
                                          (4, '4 tiers'),
-                                         (5, '5 tiers')], coerce=int)
+                                         (3, '3 tiers'),
+                                         (2, '3 tiers'),
+                                         (1, '2 tiers')], coerce=int)
 
     dem_tier_1 = FloatField('Demurrage tier 1', default=50000.0)
     dem_tier_2 = FloatField('Demurrage tier 2', default=250000.0)
