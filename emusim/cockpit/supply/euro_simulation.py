@@ -576,10 +576,8 @@ class Euro_MS_Simulation(Simulation):
                                     / (self.im[i - 1] + self.im[i - 1] * self.inflation_rate[i])
 
             if self.link_growth_inflation:
-                if self.desired_growth_rate != 0:
-                    growth_gap = (self.desired_growth_rate - self.actual_growth[i] / 100) / self.desired_growth_rate
-                    inflation_gap = growth_gap * self.growth_inflation_influence
-                    self.inflation_rate[i] = self.initial_inflation_rate * (1 - inflation_gap)
+                growth_gap = self.actual_growth[i] / 100 - self.desired_growth_rate
+                self.inflation_rate[i] += growth_gap * self.growth_inflation_influence
 
         self.actual_inflation.append(self.inflation_rate[i] * 100)
 
