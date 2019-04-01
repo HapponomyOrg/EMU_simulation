@@ -22,7 +22,7 @@ class ParameterForm(FlaskForm):
     initial_private_assets = FloatField('Initial private assets', default=0)
     initial_bank_assets = FloatField('Initial bank assets', default=0)
 
-    desired_growth_rate = FloatField('Desired actual_growth rate', default=1.5)
+    desired_growth_rate = FloatField('Desired actual growth rate', default=1.5)
     inflation_rate = FloatField('Desired inflation rate', default=1.5)
 
     link_growth_inflation = BooleanField('Link inflation to growth')
