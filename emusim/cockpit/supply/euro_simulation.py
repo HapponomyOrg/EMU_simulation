@@ -401,23 +401,22 @@ class Euro_MS_Simulation(Simulation):
 
                 # generate interest from ECB
                 min_reserve = self.debt[i - 1] * self.minimum_reserve
+                create_interest = 0
 
                 if self.bank_reserve[i - 1] <= min_reserve:
                     create_interest = self.bank_reserve[i - 1] * self.ecb_savings_ir_mr
-                    self.bank_reserve[i] += create_interest
-                    self.bank_income[i] += create_interest
-                    self.created_bank_reserve[i] += create_interest
                 else:
                     create_interest = min_reserve * self.ecb_savings_ir_mr  # interest on minimum reserve
                     create_interest += (self.bank_reserve[i - 1] - min_reserve) * self.ecb_savings_ir_reserve # interest on surplus
-                    self.bank_reserve[i] += create_interest
-                    self.bank_profit[i] += create_interest
 
-                    if create_interest > 0:
-                        self.created_bank_reserve[i] += create_interest
-                        self.bank_income[i] += create_interest
-                    else:
-                        self.im[i] -= create_interest # interest paid by banks goes to real economy
+                self.bank_reserve[i] += create_interest
+                self.bank_profit[i] += create_interest
+
+                if create_interest > 0:
+                    self.created_bank_reserve[i] += create_interest
+                    self.bank_income[i] += create_interest
+                else:
+                    self.im[i] -= create_interest # interest paid by banks goes to real economy
 
                 # pay bank debts and interests. If insufficient, sell financial assets (first) or get a new loan
                 if self.bank_reserve[i] >= self.bank_payoff[i] + self.bank_interest[i]:
