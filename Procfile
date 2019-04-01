@@ -1,1 +1,1 @@
-web: gunicorn emu-simulation:app
+web: gunicorn __main__:app
