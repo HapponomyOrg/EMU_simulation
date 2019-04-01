@@ -27,15 +27,15 @@ def sumsy_supply_simulation():
         simulation.num_dem_tiers = parameter_form.num_dem_tiers.data
 
         simulation.initial_dem_tiers[0] = parameter_form.dem_tier_1.data
-        simulation.dem_rates[0] = parameter_form.dem_rate_1.data
+        simulation.dem_rates[0] = parameter_form.dem_rate_1.data / 100
         simulation.initial_dem_tiers[1] = parameter_form.dem_tier_2.data
-        simulation.dem_rates[1] = parameter_form.dem_rate_2.data
+        simulation.dem_rates[1] = parameter_form.dem_rate_2.data / 100
         simulation.initial_dem_tiers[2] = parameter_form.dem_tier_3.data
-        simulation.dem_rates[2] = parameter_form.dem_rate_3.data
+        simulation.dem_rates[2] = parameter_form.dem_rate_3.data / 100
         simulation.initial_dem_tiers[3] = parameter_form.dem_tier_4.data
-        simulation.dem_rates[3] = parameter_form.dem_rate_4.data
+        simulation.dem_rates[3] = parameter_form.dem_rate_4.data / 100
         simulation.initial_dem_tiers[4] = parameter_form.dem_tier_5.data
-        simulation.dem_rates[4] = parameter_form.dem_rate_5.data
+        simulation.dem_rates[4] = parameter_form.dem_rate_5.data / 100
 
         simulation.common_good_spending = parameter_form.common_good_spending.data
         simulation.initial_common_good_budget = parameter_form.common_good_budget.data
