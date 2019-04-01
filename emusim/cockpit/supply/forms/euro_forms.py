@@ -45,7 +45,7 @@ class ParameterForm(FlaskForm):
                                 choices=[(PROFIT_PERCENTAGE, '% of profit'),
                                          (CAPITAL_PERCENTAGE, '% of capital'),
                                          (FIXED, 'Fixed')])
-    max_spending = FloatField('Spending max % of IM', default=20.0)
+    max_spending = FloatField('Spending max % of IM', default=5.0)
     fixed_spending = FloatField('Fixed spending', default=1000.0)
     profit_spending = FloatField('Profit spending', default=80.0)
     capital_spending = FloatField('Capital spending', default=2.0)
