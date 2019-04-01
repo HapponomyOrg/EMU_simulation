@@ -11,6 +11,7 @@ sys.path.append( str( Path( __file__ ).parent ) )
 
 from emusim.cockpit.supply.views.euro_supply import euro_supply
 from emusim.cockpit.supply.views.sumsy_supply import sumsy_supply
+from emusim.cockpit.supply.views.home import home
 from emusim.config import Config
 
 app = Flask(__name__)
@@ -20,6 +21,7 @@ CSRFProtect(app)
 # client = mongo.cx
 app.register_blueprint(euro_supply)
 app.register_blueprint(sumsy_supply)
+app.register_blueprint(home)
 
 if __name__ == '__main__':
     app.run(debug=False)

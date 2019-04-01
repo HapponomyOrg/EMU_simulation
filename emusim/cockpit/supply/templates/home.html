@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to the Happonomy cockpit</title>
+</head>
+<body>
+<p>The Happonomy cockpit provides tools for scientific research.</p>
+<p>In order to continue, please accept the <a href="https://www.happonomy.org/en/disclaimer/" target="_blank">terms and
+    conditions</a>.</p>
+<form action="" method="post">
+    {{ license_form.csrf_token }}
+    <p>{{ license_form.license_accept.label }} {{ license_form.license_accept }}</p>
+    <div class="input submit">
+        <input class="button" type="submit" value="Continue">
+    </div>
+</form>
+</body>
+</html>

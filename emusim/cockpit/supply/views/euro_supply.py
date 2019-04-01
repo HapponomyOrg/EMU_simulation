@@ -11,11 +11,6 @@ euro_supply = Blueprint('euro_supply', __name__,
                         static_folder='../static')
 
 
-@euro_supply.route('/')
-def home():
-    return render_template('base.html')
-
-
 @euro_supply.route('/euro_supply_simulation', methods=['GET', 'POST'])
 def euro_supply_simulation():
     parameter_form = ParameterForm(request.form)
