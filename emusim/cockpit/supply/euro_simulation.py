@@ -576,9 +576,10 @@ class Euro_MS_Simulation(Simulation):
                                     / (self.im[i - 1] + self.im[i - 1] * self.inflation_rate[i])
 
             if self.link_growth_inflation:
-                growth_gap = (self.desired_growth_rate - self.actual_growth[i] / 100) / self.desired_growth_rate
-                inflation_gap = growth_gap * self.growth_inflation_influence
-                self.inflation_rate[i] = self.initial_inflation_rate * (1 - inflation_gap)
+                if self.desired_growth_rate != 0:
+                    growth_gap = (self.desired_growth_rate - self.actual_growth[i] / 100) / self.desired_growth_rate
+                    inflation_gap = growth_gap * self.growth_inflation_influence
+                    self.inflation_rate[i] = self.initial_inflation_rate * (1 - inflation_gap)
 
         self.actual_inflation.append(self.inflation_rate[i] * 100)
 
@@ -587,8 +588,16 @@ class Euro_MS_Simulation(Simulation):
         self.required_lending_percentage_total_money.append(self.required_lending[i] * 100 / total_money)
         self.lending_percentage_total_money.append(self.lending[i] * 100 / total_money)
 
-        self.bank_reserve_percentage_debt.append(self.bank_reserve[i] * 100 / self.debt[i])
-        self.bank_lending_percentage_bank_reserve.append(self.bank_lending[i] * 100 / self.bank_reserve[i])
+        if self.debt[i] != 0:
+            self.bank_reserve_percentage_debt.append(self.bank_reserve[i] * 100 / self.debt[i])
+        else:
+            self.bank_reserve_percentage_debt.append(0.0)
+
+        if self.bank_reserve[i] != 0:
+            self.bank_lending_percentage_bank_reserve.append(self.bank_lending[i] * 100 / self.bank_reserve[i])
+        else:
+            self.bank_lending_percentage_bank_reserve.append(0.0)
+
         self.bank_lending_percentage_total_money.append(self.bank_lending[i] * 100 / total_money)
 
         self.im_percentage_total_money.append(self.im[i] * 100 / total_money)
@@ -629,13 +638,18 @@ class Euro_MS_Simulation(Simulation):
         self.debt_percentage_im.append(self.debt[i] * 100 / self.im[i])
         self.debt_percentage_total_money.append(self.debt[i] * 100 / total_money)
 
-        self.bank_debt_percentage_bank_reserve.append(self.bank_debt[i] * 100 / self.bank_reserve[i])
+        if self.bank_reserve[i] != 0:
+            self.bank_debt_percentage_bank_reserve.append(self.bank_debt[i] * 100 / self.bank_reserve[i])
+            self.created_bank_reserve_percentage_bank_reserve.append(self.created_bank_reserve[i] * 100 / self.bank_reserve[i])
+        else:
+            self.bank_debt_percentage_bank_reserve.append(0.0)
+            self.created_bank_reserve_percentage_bank_reserve.append(0.0)
+
         self.bank_debt_percentage_total_money.append(self.bank_debt[i] * 100 / total_money)
 
         self.created_im_percentage_im.append(self.created_im[i] * 100 / self.im[i])
         self.created_im_percentage_total_money.append(self.created_im[i] * 100 / total_money)
 
-        self.created_bank_reserve_percentage_bank_reserve.append(self.created_bank_reserve[i] * 100 / self.bank_reserve[i])
         self.created_bank_reserve_percentage_total_money.append(self.created_bank_reserve[i] * 100 / total_money)
         self.created_money_percentage_total_money.append((self.created_bank_reserve[i] + self.created_im[i]) * 100 / total_money)
 

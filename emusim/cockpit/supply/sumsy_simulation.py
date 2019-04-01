@@ -26,7 +26,7 @@ class SumSy_MS_Simulation(Simulation):
         self.initial_common_good_budget = 0.0
 
         self.population = []            # total population
-        self.income = []                # income adjusted for initial_inflation_rate
+        self.income = []                # income adjusted for inflation rate
         self.money_mass = []            # total monetary mass
         self.per_capita_money_mass = [] # monetary mass per capita
         self.demurrage = []             # amount of demurrage paid
@@ -44,6 +44,8 @@ class SumSy_MS_Simulation(Simulation):
 
 
     def initialize(self):
+        super(SumSy_MS_Simulation, self).initialize()
+
         self.population.clear()
         self.income.clear()
         self.money_mass.clear()

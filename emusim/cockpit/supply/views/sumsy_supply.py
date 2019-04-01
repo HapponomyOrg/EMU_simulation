@@ -22,7 +22,7 @@ def sumsy_supply_simulation():
         simulation.initial_population = parameter_form.population.data
         simulation.population_growth = parameter_form.population_growth.data / 100
         simulation.initial_money_mass = parameter_form.money_mass.data
-        simulation.inflation_rate = parameter_form.inflation.data / 100
+        simulation.initial_inflation_rate = parameter_form.inflation.data / 100
         simulation.initial_income = parameter_form.income.data
         simulation.num_dem_tiers = parameter_form.num_dem_tiers.data
 
