@@ -41,6 +41,7 @@ class DataSelectionForm(FlaskForm):
     population = BooleanField('Population')
 
     deflate = BooleanField('Deflate')
+    demurrage_tiers = BooleanField('Demurrage tiers')
     demurrage = BooleanField('Demurrage')
     per_capita_demurrage = BooleanField('Demurrage per capita')
     new_money = BooleanField('New money')

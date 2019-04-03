@@ -9,17 +9,19 @@
             <table>
                 <caption>Simulation parameters</caption>
                 <tr>
-                    <th>Parameter</th>
-                    <th>Value</th>
-                </tr>
-                <tr>
                     <td>{{ parameter_form.num_iterations.label }}</td>
                     <td>{{ parameter_form.num_iterations }}</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="divider"><hr /></td>
                 </tr>
                 <tr>
                     <td>{{ parameter_form.inflation.label }}</td>
                     <td>{{ parameter_form.inflation }}</td>
                     <td>%</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="divider"><hr /></td>
                 </tr>
                 <tr>
                     <td>{{ parameter_form.population.label }}</td>
@@ -31,12 +33,18 @@
                     <td>%</td>
                 </tr>
                 <tr>
+                    <td colspan="3" class="divider"><hr /></td>
+                </tr>
+                <tr>
                     <td>{{ parameter_form.money_mass.label }}</td>
                     <td>{{ parameter_form.money_mass }}</td>
                 </tr>
                 <tr>
                     <td>{{ parameter_form.income.label }}</td>
                     <td>{{ parameter_form.income }}</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="divider"><hr /></td>
                 </tr>
                 <tr>
                     <td>{{ parameter_form.num_dem_tiers.label }}</td>
@@ -73,6 +81,9 @@
                     <td>%</td>
                 </tr>
                 <tr>
+                    <td colspan="3" class="divider"><hr /></td>
+                </tr>
+                <tr>
                     <td>{{ parameter_form.common_good_spending.label }}</td>
                     <td>{{ parameter_form.common_good_spending }}</td>
                 </tr>
@@ -86,16 +97,18 @@
             <table>
                 <caption>Output</caption>
                 <tr>
-                    <th>Output</th>
-                    <th>Selected</th>
-                </tr>
-                <tr>
                     <td>{{ data_selection_form.population.label }}</td>
                     <td>{{ data_selection_form.population }}</td>
                 </tr>
                 <tr>
+                    <td colspan="2" class="divider"><hr /></td>
+                </tr>
+                <tr>
                     <td>{{ data_selection_form.deflate.label }}</td>
                     <td>{{ data_selection_form.deflate }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="divider"><hr /></td>
                 </tr>
                 <tr>
                     <td>{{ data_selection_form.money_mass.label }}</td>
@@ -106,12 +119,22 @@
                     <td>{{ data_selection_form.per_capita_money_mass }}</td>
                 </tr>
                 <tr>
+                    <td colspan="2" class="divider"><hr /></td>
+                </tr>
+                <tr>
+                    <td>{{ data_selection_form.demurrage_tiers.label }}</td>
+                    <td>{{ data_selection_form.demurrage_tiers }}</td>
+                </tr>
+                <tr>
                     <td>{{ data_selection_form.demurrage.label }}</td>
                     <td>{{ data_selection_form.demurrage }}</td>
                 </tr>
                 <tr>
                     <td>{{ data_selection_form.per_capita_demurrage.label }}</td>
                     <td>{{ data_selection_form.per_capita_demurrage }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="divider"><hr /></td>
                 </tr>
                 <tr>
                     <td>{{ data_selection_form.new_money.label }}</td>
@@ -122,8 +145,14 @@
                     <td>{{ data_selection_form.per_capita_new_money }}</td>
                 </tr>
                 <tr>
+                    <td colspan="2" class="divider"><hr /></td>
+                </tr>
+                <tr>
                     <td>{{ data_selection_form.common_good.label }}</td>
                     <td>{{ data_selection_form.common_good }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="divider"><hr /></td>
                 </tr>
                 <tr>
                     <td>{{ data_selection_form.percentages.label }}</td>

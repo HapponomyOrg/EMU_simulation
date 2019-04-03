@@ -72,12 +72,26 @@ def sumsy_supply_simulation():
             per_capita_money_charts.append(per_capita_money_chart.render_data_uri())
             graph_data.append(per_capita_money_charts)
 
+        if data_selection_form.demurrage_tiers.data:
+            tier_charts = []
+
+            tiers_chart = create_chart('Demurrage tiers')
+            tiers_chart.add('Tier 1', simulation.get_data(simulation.get_tier(0), deflate))
+            tiers_chart.add('Tier 2', simulation.get_data(simulation.get_tier(1), deflate))
+            tiers_chart.add('Tier 3', simulation.get_data(simulation.get_tier(2), deflate))
+            tiers_chart.add('Tier 4', simulation.get_data(simulation.get_tier(3), deflate))
+            tiers_chart.add('Tier 5', simulation.get_data(simulation.get_tier(4), deflate))
+
+            tier_charts.append(tiers_chart.render_data_uri())
+            graph_data.append(tier_charts)
+
         if data_selection_form.demurrage.data:
             demurrage_charts = []
+
             demurrage_chart = create_chart('Demurrage')
             demurrage_chart.add('Demurrage', simulation.get_data(simulation.demurrage, deflate))
-
             demurrage_charts.append(demurrage_chart.render_data_uri())
+
             graph_data.append(demurrage_charts)
 
         if data_selection_form.per_capita_demurrage.data:

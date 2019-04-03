@@ -94,7 +94,7 @@ class SumSy_MS_Simulation(Simulation):
                                                + self.common_good_budget[i - 1] * self.inflation_rate[i]))
                 cur_dem_tiers = {}
 
-                for tier in range(self.num_dem_tiers - 1):
+                for tier in range(self.num_dem_tiers):
                     prev_value = self.dem_tiers[i - 1][tier]
                     cur_dem_tiers[tier] =  max(0.0, prev_value + prev_value * self.inflation_rate[i])
 
@@ -148,7 +148,7 @@ class SumSy_MS_Simulation(Simulation):
     def calculate_demurrage(self, cycle, amount):
         demurrage = 0
 
-        for tier in range(self.num_dem_tiers - 1):
+        for tier in range(self.num_dem_tiers):
             calculate_on = amount - self.dem_tiers[cycle][tier]
 
             if calculate_on > 0:
@@ -160,3 +160,12 @@ class SumSy_MS_Simulation(Simulation):
             demurrage += calculate_on * self.dem_rates[tier]
 
         return demurrage
+
+
+    def get_tier(self, tier_nr):
+        tier = []
+
+        for tiers in self.dem_tiers:
+            tier.append(tiers[tier_nr])
+
+        return tier
