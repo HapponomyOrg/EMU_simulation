@@ -111,12 +111,12 @@ def euro_supply_simulation():
 
         if data_selection_form.im.data:
             im_charts = []
-            chart_im = create_chart('IM')
-            chart_im_growth = create_chart('IM growth & inflation')
+            chart_im = create_chart('RIM')
+            chart_im_growth = create_chart('RIM growth & inflation')
 
-            #  chart_im.add('Desired IM', simulation.get_data(simulation.desired_im, deflate))
-            chart_im.add('IM', simulation.get_data(simulation.im, deflate))
-            chart_im.add('Created IM', simulation.get_data(simulation.created_im, deflate))
+            #  chart_im.add('Desired RIM', simulation.get_data(simulation.desired_im, deflate))
+            chart_im.add('RIM', simulation.get_data(simulation.im, deflate))
+            chart_im.add('Created RIM', simulation.get_data(simulation.created_im, deflate))
             chart_im_growth.add('Growth %', simulation.get_data(simulation.actual_growth))
             chart_im_growth.add('Inflation', simulation.get_data(simulation.actual_inflation))
 
@@ -270,9 +270,9 @@ def euro_supply_simulation():
             profit_spending_charts = []
             chart_bank_profit_spending = create_chart('Bank profit & spending')
             chart_bank_profit_spending.add('Profit % income', simulation.get_data(simulation.bank_profit_percentage_bank_income))
-            chart_bank_profit_spending.add('Profit % of IM', simulation.get_data(simulation.bank_profit_percentage_im))
+            chart_bank_profit_spending.add('Profit % of RIM', simulation.get_data(simulation.bank_profit_percentage_im))
             chart_bank_profit_spending.add('Spending % profit', simulation.get_data(simulation.bank_spending_percentage_profit))
-            chart_bank_profit_spending.add('Spending % IM', simulation.get_data(simulation.bank_spending_percentage_im))
+            chart_bank_profit_spending.add('Spending % RIM', simulation.get_data(simulation.bank_spending_percentage_im))
 
             profit_spending_charts.append(chart_bank_profit_spending.render_data_uri())
             graph_data.append(profit_spending_charts)

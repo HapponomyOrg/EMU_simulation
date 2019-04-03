@@ -6,14 +6,14 @@ from emusim.cockpit.supply.constants import *
 
 class ParameterForm(FlaskForm):
     num_iterations = IntegerField('Iterations', default=500)
-    desired_initial_im = FloatField('Desired initial IM', default=100000)
+    desired_initial_im = FloatField('Desired initial RIM', default=100000)
     lending_satisfaction_rate = FloatField('Lending satisfaction rate', default=100)
     growth_target = SelectField('Growth target',
-                                choices=[(GROW_CURRENT, 'Based on current IM'),
-                                         (GROW_INITIAL, 'Based on initial IM')])
-    auto_calculate = BooleanField('Auto calculate from IM and lending rate')
+                                choices=[(GROW_CURRENT, 'Based on current RIM'),
+                                         (GROW_INITIAL, 'Based on initial RIM')])
+    auto_calculate = BooleanField('Auto calculate from RIM and lending rate')
     initial_debt = FloatField('Initial debt', default=100000)
-    initial_created_im = FloatField('Initial created IM', default=100000)
+    initial_created_im = FloatField('Initial created RIM', default=100000)
 
     initial_bank_reserve = FloatField('Initial bank reserve', default=4000)
     initial_bank_debt = FloatField('Initial bank debt', default=4000)
@@ -45,7 +45,7 @@ class ParameterForm(FlaskForm):
                                 choices=[(PROFIT_PERCENTAGE, '% of profit'),
                                          (CAPITAL_PERCENTAGE, '% of capital'),
                                          (FIXED, 'Fixed')])
-    max_spending = FloatField('Spending max % of IM', default=5.0)
+    max_spending = FloatField('Spending max % of RIM', default=5.0)
     fixed_spending = FloatField('Fixed spending', default=1000.0)
     profit_spending = FloatField('Profit spending', default=80.0)
     capital_spending = FloatField('Capital spending', default=2.0)
@@ -73,16 +73,16 @@ class ParameterForm(FlaskForm):
 class DataSelectionForm(FlaskForm):
     deflate = BooleanField('Deflate')
 
-    om = BooleanField('OM data')
-    im = BooleanField('IM data')
+    om = BooleanField('Bank reserve data')
+    im = BooleanField('RIM data')
     bank = BooleanField('Bank data')
     private = BooleanField('Private sector data')
     assets = BooleanField('Financial assets data')
     qe = BooleanField('QE data')
 
     income_expenses_percentage = BooleanField('Inflow & outflow')
-    im_distribution = BooleanField('IM distribution')
+    im_distribution = BooleanField('RIM distribution')
     debt_percentage = BooleanField('Debt %')
     lending_percentage = BooleanField('Lending %')
-    created_percentage = BooleanField('Created IM %')
+    created_percentage = BooleanField('Created RIM %')
     bank_profit_spending_percentage = BooleanField('Bank profit % spending')
