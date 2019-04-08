@@ -114,6 +114,7 @@ class Euro_MS_Simulation(Simulation):
         self.bank_interest = []             # interest paid to ecb
 
         # Percentages
+        self.required_growth = [] # required growth to fulfill initial parameters
         self.actual_growth = []  # actual actual_growth
         self.actual_inflation = []  # actual inflation
 
@@ -173,6 +174,7 @@ class Euro_MS_Simulation(Simulation):
         self.desired_im.clear()
         self.im.clear()
 
+        self.required_growth.clear()
         self.actual_growth.clear()
 
         self.required_lending.clear()
@@ -256,6 +258,7 @@ class Euro_MS_Simulation(Simulation):
 
         self.desired_im.append(self.desired_initial_im)
         self.im.append(self.initial_im)
+        self.required_growth.append(self.desired_growth_rate * 100)
         self.actual_growth.append(self.desired_growth_rate * 100)  # percentage
         self.required_lending.append(self.initial_im)
         self.lending.append(self.initial_im)
@@ -355,7 +358,7 @@ class Euro_MS_Simulation(Simulation):
                 # calculate interest on savings from previous cycle and add to im
                 self.savings_interest.append(self.savings[i - 1] * self.savings_ir)
 
-                # determine actual_growth
+                # determine desired growth
                 self.desired_im[i] += self.desired_im[i] * self.desired_growth_rate + \
                                       self.desired_im[i] * self.desired_growth_rate * self.inflation_rate[i] + \
                                       self.desired_im[i] * self.inflation_rate[i]
@@ -501,7 +504,7 @@ class Euro_MS_Simulation(Simulation):
 
                 self.im[i] += self.bank_spending[i]
                 self.bank_profit[i] -= self.bank_spending[i]
-                
+
                 # save money and invest in financial assets (IM)
                 target_savings = target_im * self.saving_rate
                 self.savings[i] += target_savings * (1 - self.saving_asset_percentage) - self.savings[i]
@@ -574,6 +577,8 @@ class Euro_MS_Simulation(Simulation):
         if i > 0:
             self.actual_growth[i] = (self.im[i] - (self.im[i - 1] + self.im[i - 1] * self.inflation_rate[i])) * 100 \
                                     / (self.im[i - 1] + self.im[i - 1] * self.inflation_rate[i])
+            self.required_growth.append((self.desired_im[i] - (self.im[i - 1] + self.im[i - 1] * self.inflation_rate[i])) * 100 \
+                                    / (self.im[i - 1] + self.im[i - 1] * self.inflation_rate[i]))
 
             if self.link_growth_inflation:
                 growth_gap = self.actual_growth[i] / 100 - self.desired_growth_rate

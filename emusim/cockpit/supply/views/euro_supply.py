@@ -117,7 +117,8 @@ def euro_supply_simulation():
             #  chart_im.add('Desired RIM', simulation.get_data(simulation.desired_im, deflate))
             chart_im.add('RIM', simulation.get_data(simulation.im, deflate))
             chart_im.add('Created RIM', simulation.get_data(simulation.created_im, deflate))
-            chart_im_growth.add('Growth %', simulation.get_data(simulation.actual_growth))
+            chart_im_growth.add('Real growth', simulation.get_data(simulation.actual_growth))
+            chart_im_growth.add('Required growth', simulation.get_data(simulation.required_growth))
             chart_im_growth.add('Inflation', simulation.get_data(simulation.actual_inflation))
 
             im_charts.append(chart_im.render_data_uri())

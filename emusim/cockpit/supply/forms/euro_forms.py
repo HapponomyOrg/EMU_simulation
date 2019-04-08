@@ -22,7 +22,7 @@ class ParameterForm(FlaskForm):
     initial_private_assets = FloatField('Initial private assets', default=0)
     initial_bank_assets = FloatField('Initial bank assets', default=0)
 
-    desired_growth_rate = FloatField('Desired actual growth rate', default=1.5)
+    desired_growth_rate = FloatField('Desired growth rate', default=1.5)
     inflation_rate = FloatField('Desired inflation rate', default=1.5)
 
     link_growth_inflation = BooleanField('Link inflation to growth')
@@ -51,7 +51,7 @@ class ParameterForm(FlaskForm):
     capital_spending = FloatField('Capital spending', default=2.0)
 
     asset_trickle_mode = SelectField('Asset trickle mode',
-                          choices=[(ASSET_GROWTH, '% of asset actual_growth'),
+                          choices=[(ASSET_GROWTH, '% of asset growth'),
                                    (ASSET_CAPITAL, '% of asset capital')])
     asset_trickle = FloatField('Asset trickle', default=5.0)
 
