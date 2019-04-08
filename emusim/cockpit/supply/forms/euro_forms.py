@@ -23,7 +23,7 @@ class ParameterForm(FlaskForm):
     initial_bank_assets = FloatField('Initial bank assets', default=0)
 
     desired_growth_rate = FloatField('Desired growth rate', default=1.5)
-    inflation_rate = FloatField('Desired inflation rate', default=1.5)
+    inflation_rate = FloatField('Desired inflation rate', default=1.9)
 
     link_growth_inflation = BooleanField('Link inflation to growth')
     growth_inflation_influence = FloatField('Influence of growth on inflation', default=100)
@@ -37,7 +37,7 @@ class ParameterForm(FlaskForm):
     min_new_money = FloatField('Minimum new money', default=80.0)
     max_new_money = FloatField('Maximum new money', default=100.0)
     bank_interest_rate = FloatField('Commercial bank interest', default=2.5)
-    interest_percentage_bank_income = FloatField('Interest % of bank income', default=100)
+    interest_percentage_bank_income = FloatField('Interest % of bank income', default=80)
     bank_payback_cycles = IntegerField('Bank payback cycles', default=1)
     no_loss = BooleanField('No loss')
     min_profit = FloatField('Minimum profit', default=20.0)
@@ -45,7 +45,7 @@ class ParameterForm(FlaskForm):
                                 choices=[(PROFIT_PERCENTAGE, '% of profit'),
                                          (CAPITAL_PERCENTAGE, '% of capital'),
                                          (FIXED, 'Fixed')])
-    max_spending = FloatField('Spending max % of RIM', default=5.0)
+    max_spending = FloatField('Spending max % of RIM', default=10.0)
     fixed_spending = FloatField('Fixed spending', default=1000.0)
     profit_spending = FloatField('Profit spending', default=80.0)
     capital_spending = FloatField('Capital spending', default=2.0)
