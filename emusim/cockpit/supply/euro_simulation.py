@@ -294,7 +294,11 @@ class Euro_MS_Simulation(Simulation):
         self.asset_investment_growth.append(0.0)
         self.asset_trickle.append(0.0)
 
-        self.qe.append(0.0)
+        if self.qe_spending_mode == QE_FIXED:
+            self.qe.append(self.qe_fixed_initial)
+        else:
+            self.qe.append(0.0)
+
         self.qe_trickle.append(0.0)
 
         self.savings.append(0.0)
