@@ -38,7 +38,7 @@ class ParameterForm(FlaskForm):
     max_new_money = FloatField('Maximum new money', default=100.0)
     bank_interest_rate = FloatField('Commercial bank interest', default=2.5)
     interest_percentage_bank_income = FloatField('Interest % of bank income', default=100)
-    bank_payback_rate = FloatField('Bank payback rate', default=100.0)
+    bank_payback_cycles = IntegerField('Bank payback cycles', default=1)
     no_loss = BooleanField('No loss')
     min_profit = FloatField('Minimum profit', default=20.0)
     spending_mode = SelectField('Bank spending mode',
@@ -67,7 +67,7 @@ class ParameterForm(FlaskForm):
     savings_rate = FloatField('Savings rate', default=20.0)
     savings_interest_rate = FloatField('Savings interest', default=0.5)
     saving_asset_percentage = FloatField('% of savings invested in assets', default=5)
-    private_payback_rate = FloatField('Private payback rate', default=5.0)
+    private_payback_cycles = IntegerField('Private payback cycles', default=20)
 
 
 class DataSelectionForm(FlaskForm):

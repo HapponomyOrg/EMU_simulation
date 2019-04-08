@@ -45,8 +45,8 @@ class Euro_MS_Simulation(Simulation):
         self.reserve_spending = 0.02  #percentage of bank reserves that are spent in the real economy
         self.capital_spending = 0.02  # percentage of capital (reserves + financial assets) that banks spend into the real economy
 
-        self.bank_payback_rate = 0.1  # bank payback rate
-        self.private_payback_rate = 0.05  # private payback rate
+        self.bank_payback_cycles = 1  # bank payback cycles
+        self.private_payback_cycles = 20  # private payback cycles
 
         self.ecb_ir = 0.01                  # ECB interest rate
         self.ecb_savings_ir_mr = 0.015      # ECB interest rate on minimal bank reserves
@@ -93,7 +93,7 @@ class Euro_MS_Simulation(Simulation):
         self.banking_costs = []  # money spent on banking costs other than paying off loans
         self.created_im = []  # money that has been created
         self.debt = []  # outstanding debt on which interest is paid
-        self.payoff = []  # payoff of principal debt
+        self.private_payoff = []  # private_payoff of principal debt
         self.interest = []  # interest paid
 
         self.savings = []           # amount that has been saved. This is part of IM
@@ -105,12 +105,12 @@ class Euro_MS_Simulation(Simulation):
         self.created_bank_reserve = []      # bank reserve money created by the ECB
         self.bank_reserve = []              # Bank reserves
         self.bank_income = []               # Bank income
-        self.bank_profit = []               # bank profit: income from interest - payoff of loans and interests to ECB
+        self.bank_profit = []               # bank profit: income from interest - private_payoff of loans and interests to ECB
         self.bank_spending = []             # money banks spend into the real economy
         self.bank_fixed = []                # fixed amount that banks spend into the real economy, adjusted for inflation rate
         self.bank_lending = []              # money lent by the banks from the ECB
         self.bank_debt = []                 # outstanding debt of banks to the ECB
-        self.bank_payoff = []               # payoff of principal bank debt
+        self.bank_payoff = []               # private_payoff of principal bank debt
         self.bank_interest = []             # interest paid to ecb
 
         # Percentages
@@ -181,7 +181,7 @@ class Euro_MS_Simulation(Simulation):
         self.lending.clear()
         self.banking_costs.clear()
         self.debt.clear()
-        self.payoff.clear()
+        self.private_payoff.clear()
         self.interest.clear()
         self.created_im.clear()
 
@@ -264,7 +264,11 @@ class Euro_MS_Simulation(Simulation):
         self.lending.append(self.initial_im)
         self.banking_costs.append(0.0)
         self.debt.append(self.initial_debt)
-        self.payoff.append(0.0)
+        self.private_payoff.append(0.0)
+
+        for cycle in range(0, self.private_payback_cycles):
+            self.private_payoff.append(self.initial_debt / self.private_payback_cycles)
+
         self.interest.append(0.0)
         self.created_im.append(self.initial_created_im)
 
@@ -277,6 +281,10 @@ class Euro_MS_Simulation(Simulation):
         self.bank_fixed.append(self.initial_fixed_spending)
         self.bank_debt.append(self.initial_bank_debt)
         self.bank_payoff.append(0.0)
+
+        for cycle in range(0, self.bank_payback_cycles):
+            self.bank_payoff.append(self.initial_bank_debt / self.bank_payback_cycles)
+
         self.bank_interest.append(0.0)
 
         self.financial_assets.append(self.initial_bank_assets + self.initial_private_assets)
@@ -300,15 +308,23 @@ class Euro_MS_Simulation(Simulation):
 
     def run_simulation(self, iterations):
         for i in range(iterations):
+            self.crash_cycle = i
+
             if i == 0:
                 self.initialize()
             else:
                 if self.im[i - 1] <= 0:
                     self.crash = True
-                    self.crash_cycle = i
+                    self.crash_cycle -= 1
                     break
 
                 # copy previous state
+                if len(self.private_payoff) <= i:
+                    self.private_payoff.append(0.0)
+
+                if len(self.bank_payoff) <= i:
+                    self.bank_payoff.append(0.0)
+
                 self.desired_im.append(self.desired_im[i - 1])
                 self.im.append(self.im[i - 1])
                 self.actual_growth.append(0.0)
@@ -317,7 +333,6 @@ class Euro_MS_Simulation(Simulation):
                 self.lending.append(0.0)
                 self.banking_costs.append(0.0)
                 self.debt.append(self.debt[i - 1])
-                self.payoff.append(0.0)
                 self.interest.append(0.0)
                 self.created_im.append(self.created_im[i - 1])
 
@@ -329,7 +344,6 @@ class Euro_MS_Simulation(Simulation):
                 self.bank_fixed.append(self.bank_fixed[i - 1] + self.bank_fixed[i - 1] * self.inflation_rate[i])
                 self.bank_lending.append(0.0)
                 self.bank_debt.append(self.bank_debt[i - 1])
-                self.bank_payoff.append(0.0)
                 self.bank_interest.append(0.0)
                 self.savings.append(self.savings[i - 1])
 
@@ -379,23 +393,21 @@ class Euro_MS_Simulation(Simulation):
                 self.bank_reserve[i] -= self.savings_interest[i]
                 self.bank_profit[i] -= self.savings_interest[i]
 
-                # calculate debt payoff, interest due and banking costs
-                self.payoff[i] = self.debt[i] * self.private_payback_rate
+                # calculate debt, interest due and banking costs
                 self.interest[i] = self.debt[i] * self.bank_ir
                 self.banking_costs[i] = self.interest[i] / self.interest_percentage_bank_income * (1 - self.interest_percentage_bank_income)
 
-                self.bank_payoff[i] = self.bank_debt[i] * self.bank_payback_rate
                 self.bank_interest[i] = self.bank_debt[i] * self.ecb_ir
 
                 # pay non bank debts, interests and banking costs. First clear newly created money
-                if self.created_im[i] > self.payoff[i]:
-                    self.created_im[i] -= self.payoff[i]
+                if self.created_im[i] > self.private_payoff[i]:
+                    self.created_im[i] -= self.private_payoff[i]
                 else:
-                    self.bank_reserve[i] += self.payoff[i] - self.created_im[i]
+                    self.bank_reserve[i] += self.private_payoff[i] - self.created_im[i]
                     self.created_im[i] = 0
 
-                self.im[i] -= self.payoff[i] + self.interest[i] + self.banking_costs[i]
-                self.debt[i] -= self.payoff[i]
+                self.im[i] -= self.private_payoff[i] + self.interest[i] + self.banking_costs[i]
+                self.debt[i] -= self.private_payoff[i]
                 self.debt[i] = max(0.0, self.debt[i])  # avoid debt going negative due to rounding
 
                 self.bank_income[i] += self.interest[i] + self.banking_costs[i]
@@ -520,7 +532,15 @@ class Euro_MS_Simulation(Simulation):
                 self.required_lending[i] = max(0.0, target_im - self.im[i])
                 self.lending[i] = self.required_lending[i] * self.lending_satisfaction_rate
 
-                if self.lending[i] > 0.0:
+                if self.lending[i] > 0.0:  # distribute payback tranches
+                    payback_tranch = self.lending[i] / self.private_payback_cycles
+
+                    for cycle in range(i + 1, i + 1 + self.private_payback_cycles):
+                        if len(self.private_payoff) > cycle:
+                            self.private_payoff[cycle] += payback_tranch
+                        else:
+                            self.private_payoff.append(payback_tranch)
+
                     self.im[i] += self.lending[i]
                     self.debt[i] += self.lending[i]
                     min_create_im = self.lending[i] * self.minimum_new_money
@@ -549,6 +569,16 @@ class Euro_MS_Simulation(Simulation):
                 if self.bank_reserve[i] < min_reserve:
                     available_assets = min(self.bank_asset_investments[i], self.financial_assets[i])
                     ecb_lending = max(0.0, min_reserve - (self.bank_reserve[i] + available_assets))
+
+                    if ecb_lending > 0:  # distribute payback tranches
+                        payback_tranch = ecb_lending / self.bank_payback_cycles
+
+                        for cycle in range(i + 1, i + 1 + self.bank_payback_cycles):
+                            if len(self.bank_payoff) > cycle:
+                                self.bank_payoff[cycle] += payback_tranch
+                            else:
+                                self.bank_payoff.append(payback_tranch)
+
                     asset_transfer = min(available_assets, min_reserve - self.bank_reserve[i])
 
                     self.bank_asset_investments[i] -= asset_transfer
@@ -562,7 +592,7 @@ class Euro_MS_Simulation(Simulation):
 
                 # calculate totals
                 self.total_inflow[i] = self.bank_interest[i] + self.savings_interest[i] + self.asset_trickle[i] + self.qe_trickle[i] + self.bank_spending[i]
-                self.total_outflow[i] = self.payoff[i] + self.interest[i] + self.banking_costs[i]
+                self.total_outflow[i] = self.private_payoff[i] + self.interest[i] + self.banking_costs[i]
                 self.total_asset_investments[i] = self.bank_asset_investments[i] + self.private_asset_investments[i]
 
                 self.calculate_percentages(i)
@@ -582,7 +612,7 @@ class Euro_MS_Simulation(Simulation):
 
             if self.link_growth_inflation:
                 growth_gap = self.actual_growth[i] / 100 - self.desired_growth_rate
-                self.inflation_rate[i] += growth_gap * self.growth_inflation_influence
+                self.inflation_rate[i] = self.initial_inflation_rate + growth_gap * self.growth_inflation_influence
 
         self.actual_inflation.append(self.inflation_rate[i] * 100)
 
@@ -632,7 +662,7 @@ class Euro_MS_Simulation(Simulation):
 
         self.total_inflow_percentage_im.append(self.total_inflow[i] * 100 / self.im[i])
 
-        self.payoff_percentage_im.append(self.payoff[i] * 100 / self.im[i])
+        self.payoff_percentage_im.append(self.private_payoff[i] * 100 / self.im[i])
         self.interest_percentage_im.append(self.interest[i] * 100 / self.im[i])
         self.banking_costs_percentage_im.append(self.banking_costs[i] * 100 / self.im[i])
 
@@ -682,7 +712,7 @@ class Euro_MS_Simulation(Simulation):
             f.write(f'IM2 actual_growth rate = {self.desired_growth_rate * 100} %\n')
             f.write(f'Inflation = {self.initial_inflation_rate * 100} %\n')
             f.write('\n')
-            f.write(f'Commercial payback rate (% of debt) = {self.private_payback_rate * 100} %\n')
+            f.write(f'Commercial payback rate (% of debt) = {self.private_payback_cycles} %\n')
             f.write(f'Commercial interest rate (% of debt) = {self.bank_ir * 100} %\n')
             f.write('\n')
             f.write(f'Saving rate (% of IM2) = {self.saving_rate * 100}\n')
@@ -691,7 +721,7 @@ class Euro_MS_Simulation(Simulation):
             f.write(f'Minimal required reserve = {self.minimum_reserve * 100} %\n')
             f.write(f'Maximum desired reserve (IM) = {self.maximum_reserve * 100} %\n')
             f.write('\n')
-            f.write(f'Bank payback rate (% of debt) = {self.bank_payback_rate * 100} %\n')
+            f.write(f'Bank payback rate (% of debt) = {self.bank_payback_cycles * 100} %\n')
             f.write(f'Bank interest rate (% of debt) = {self.ecb_ir * 100} %\n')
             f.write('\n')
             f.write(f'Minimal \'new IM %\' on loans = {self.minimum_new_money * 100} %\n')
@@ -722,7 +752,7 @@ class Euro_MS_Simulation(Simulation):
             f = open(f'./cockpit/supply/generated data/{self.spending_mode}.csv', 'w')
             f.write('Created OM,OM,OM actual_growth,')
             f.write('QE,QE trickle,')
-            f.write('Bank spending,Bank profit,Bank debt,Bank payoff,Bank interest,')
+            f.write('Bank spending,Bank profit,Bank debt,Bank private_payoff,Bank interest,')
             f.write('IM 1,IM 2,Earned interest,Created IM,Debt,Payoff,Interest,')
             f.write('Growth,Lending,IM total,')
             f.write('Lending % IM2,Lending % IM total,')
@@ -745,7 +775,7 @@ class Euro_MS_Simulation(Simulation):
                     {self.deflate(self.savings_interest[i], i):.2f},\
                     {self.deflate(self.created_im[i], i)},\
                     {self.deflate(self.debt[i], i):.2f},\
-                    {self.deflate(self.payoff[i], i):.2f},\
+                    {self.deflate(self.private_payoff[i], i):.2f},\
                     {self.deflate(self.interest[i], i):.2f},\
                     {self.deflate(self.im[i], i) - self.deflate(self.im[i - 1], i - 1):.2f},\
                     {self.deflate(self.lending[i], i):.2f},\

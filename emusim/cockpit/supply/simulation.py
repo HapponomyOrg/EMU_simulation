@@ -12,18 +12,15 @@ class Simulation:
         self.inflation_rate.append(self.initial_inflation_rate)
 
 
-    def get_data(self, data, do_deflate=False):
+    def get_data(self, data, start, stop, do_deflate=False):
         processed_data = []
         cycle = 0
 
-        for data_point in data:
-            if cycle != 0 and cycle != len(data) - 1:  # remove setup and last step
-                if do_deflate:
-                    processed_data.append(round(self.deflate(data_point, cycle), 2))
-                else:
-                    processed_data.append(round(data_point, 2))
-
-            cycle += 1
+        for cycle in range(start, stop):
+            if do_deflate:
+                processed_data.append(round(self.deflate(data[cycle], cycle), 2))
+            else:
+                processed_data.append(round(data[cycle], 2))
 
         return processed_data
 
