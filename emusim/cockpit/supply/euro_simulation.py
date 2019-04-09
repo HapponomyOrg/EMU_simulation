@@ -475,6 +475,7 @@ class Euro_MS_Simulation(Simulation):
                         self.qe[i] = self.qe_relative * self.debt[i]
 
                     self.qe_trickle[i] = self.qe[i] * self.qe_trickle_rate
+                    self.bank_income[i] += self.qe[i] - self.qe_trickle[i]
                     self.bank_reserve[i] += self.qe[i] - self.qe_trickle[i]
                     self.created_bank_reserve[i] += self.qe[i] - self.qe_trickle[i]
                     self.created_im[i] += self.qe_trickle[i]
