@@ -474,9 +474,10 @@ class Euro_MS_Simulation(Simulation):
                     if self.qe_spending_mode == QE_RELATIVE:
                         self.qe[i] = self.qe_relative * self.debt[i]
 
-                    self.created_bank_reserve[i] += self.qe[i]
                     self.qe_trickle[i] = self.qe[i] * self.qe_trickle_rate
                     self.bank_reserve[i] += self.qe[i] - self.qe_trickle[i]
+                    self.created_bank_reserve[i] += self.qe[i] - self.qe_trickle[i]
+                    self.created_im[i] += self.qe_trickle[i]
                     self.im[i] += self.qe_trickle[i]
 
                     if self.qe_profit:
