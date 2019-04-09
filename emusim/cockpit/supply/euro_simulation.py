@@ -630,12 +630,12 @@ class Euro_MS_Simulation(Simulation):
         if self.debt[i] != 0:
             self.bank_reserve_percentage_debt.append(self.bank_reserve[i] * 100 / self.debt[i])
         else:
-            self.bank_reserve_percentage_debt.append(0.0)
+            self.bank_reserve_percentage_debt.append(float("inf"))
 
         if self.bank_reserve[i] != 0:
             self.bank_lending_percentage_bank_reserve.append(self.bank_lending[i] * 100 / self.bank_reserve[i])
         else:
-            self.bank_lending_percentage_bank_reserve.append(0.0)
+            self.bank_lending_percentage_bank_reserve.append(float("inf"))
 
         self.bank_lending_percentage_total_money.append(self.bank_lending[i] * 100 / total_money)
 
@@ -646,12 +646,12 @@ class Euro_MS_Simulation(Simulation):
         if self.bank_income[i] != 0:
             self.bank_profit_percentage_bank_income.append(self.bank_profit[i] * 100 / self.bank_income[i])
         else:
-            self.bank_profit_percentage_bank_income.append(100.0)
+            self.bank_profit_percentage_bank_income.append(float("inf"))
 
         if self.bank_profit[i] != 0:
             self.bank_spending_percentage_profit.append(self.bank_spending[i] * 100 / self.bank_profit[i])
         else:
-            self.bank_spending_percentage_profit.append(100.0)
+            self.bank_spending_percentage_profit.append(float("inf"))
 
         self.bank_spending_percentage_im.append(self.bank_spending[i] * 100 / self.im[i])
 
@@ -681,8 +681,8 @@ class Euro_MS_Simulation(Simulation):
             self.bank_debt_percentage_bank_reserve.append(self.bank_debt[i] * 100 / self.bank_reserve[i])
             self.created_bank_reserve_percentage_bank_reserve.append(self.created_bank_reserve[i] * 100 / self.bank_reserve[i])
         else:
-            self.bank_debt_percentage_bank_reserve.append(0.0)
-            self.created_bank_reserve_percentage_bank_reserve.append(0.0)
+            self.bank_debt_percentage_bank_reserve.append(float("inf"))
+            self.created_bank_reserve_percentage_bank_reserve.append(float("inf"))
 
         self.bank_debt_percentage_total_money.append(self.bank_debt[i] * 100 / total_money)
 
