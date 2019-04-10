@@ -147,13 +147,14 @@ class SumSy_MS_Simulation(Simulation):
 
     def calculate_demurrage(self, cycle, amount):
         demurrage = 0
+        tiers = self.dem_tiers[cycle]
 
         for tier in range(self.num_dem_tiers):
-            calculate_on = amount - self.dem_tiers[cycle][tier]
+            calculate_on = amount - tiers[tier]
 
             if calculate_on > 0:
-                if tier < MAX_DEM_TIERS - 1 and calculate_on > self.dem_tiers[cycle][tier + 1]:
-                    calculate_on = self.dem_tiers[tier + 1] = self.dem_tiers[cycle][tier]
+                if tier < MAX_DEM_TIERS - 1 and amount > tiers[tier + 1]:
+                    calculate_on = tiers[tier + 1] - tiers[tier]
             else:
                  calculate_on = 0
 
