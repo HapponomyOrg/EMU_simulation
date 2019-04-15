@@ -7,7 +7,7 @@ from emusim.cockpit.supply.constants import *
 class ParameterForm(FlaskForm):
     num_iterations = IntegerField('Iterations', default=500)
     inflation = FloatField('Inflation rate', default=0.0)
-    population = IntegerField('Initial population', default=100000)
+    population = IntegerField('Initial population', default=1000)
     population_growth = FloatField('Population growth rate', default=0.0)
     start_at_saturation = BooleanField('Start at saturation')
     money_mass = FloatField('Initial money mass', default=100000)
