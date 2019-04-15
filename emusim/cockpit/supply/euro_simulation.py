@@ -11,9 +11,6 @@ class Euro_MS_Simulation(Simulation):
         super().__init__()
 
         # initial parameters
-        self.crash = False
-        self.crash_cycle = 0
-
         self.minimum_reserve = 0.04  # minimum reserve
         self.maximum_reserve = self.minimum_reserve  # maximum % reserve a bank wants to hold in OM. This influences how much money will be used to buy financial assets.
 
@@ -116,7 +113,6 @@ class Euro_MS_Simulation(Simulation):
         # Percentages
         self.required_growth = [] # required growth to fulfill initial parameters
         self.actual_growth = []  # actual actual_growth
-        self.actual_inflation = []  # actual inflation
 
         self.required_lending_percentage_im = []
         self.lending_percentage_im = []
@@ -258,8 +254,8 @@ class Euro_MS_Simulation(Simulation):
 
         self.desired_im.append(self.desired_initial_im)
         self.im.append(self.initial_im)
-        self.required_growth.append(self.desired_growth_rate * 100)
-        self.actual_growth.append(self.desired_growth_rate * 100)  # percentage
+        self.required_growth.append(self.desired_growth_rate)
+        self.actual_growth.append(self.desired_growth_rate)
         self.required_lending.append(self.initial_im)
         self.lending.append(self.initial_im)
         self.banking_costs.append(0.0)
@@ -312,14 +308,14 @@ class Euro_MS_Simulation(Simulation):
 
     def run_simulation(self, iterations):
         for i in range(iterations):
-            self.crash_cycle = i
+            self.cycles_executed = i
 
             if i == 0:
                 self.initialize()
             else:
                 if self.im[i - 1] <= 0:
                     self.crash = True
-                    self.crash_cycle -= 1
+                    self.cycles_executed -= 1
                     break
 
                 # copy previous state
@@ -611,86 +607,84 @@ class Euro_MS_Simulation(Simulation):
         total_money = self.financial_assets[i] + self.bank_reserve[i] + self.im[i]
 
         if i > 0:
-            self.actual_growth[i] = (self.im[i] - (self.im[i - 1] + self.im[i - 1] * self.inflation_rate[i])) * 100 \
+            self.actual_growth[i] = (self.im[i] - (self.im[i - 1] + self.im[i - 1] * self.inflation_rate[i])) \
                                     / (self.im[i - 1] + self.im[i - 1] * self.inflation_rate[i])
-            self.required_growth.append((self.desired_im[i] - (self.im[i - 1] + self.im[i - 1] * self.inflation_rate[i])) * 100 \
+            self.required_growth.append((self.desired_im[i] - (self.im[i - 1] + self.im[i - 1] * self.inflation_rate[i])) \
                                     / (self.im[i - 1] + self.im[i - 1] * self.inflation_rate[i]))
 
             if self.link_growth_inflation:
                 growth_gap = self.actual_growth[i] / 100 - self.desired_growth_rate
                 self.inflation_rate[i] = self.initial_inflation_rate + growth_gap * self.growth_inflation_influence
 
-        self.actual_inflation.append(self.inflation_rate[i] * 100)
-
-        self.required_lending_percentage_im.append(self.required_lending[i] * 100 / self.im[i])
-        self.lending_percentage_im.append(self.lending[i] * 100 / self.im[i])
-        self.required_lending_percentage_total_money.append(self.required_lending[i] * 100 / total_money)
-        self.lending_percentage_total_money.append(self.lending[i] * 100 / total_money)
+        self.required_lending_percentage_im.append(self.required_lending[i] / self.im[i])
+        self.lending_percentage_im.append(self.lending[i] / self.im[i])
+        self.required_lending_percentage_total_money.append(self.required_lending[i] / total_money)
+        self.lending_percentage_total_money.append(self.lending[i] / total_money)
 
         if self.debt[i] != 0:
-            self.bank_reserve_percentage_debt.append(self.bank_reserve[i] * 100 / self.debt[i])
+            self.bank_reserve_percentage_debt.append(self.bank_reserve[i] / self.debt[i])
         else:
-            self.bank_reserve_percentage_debt.append(float("inf"))
+            self.bank_reserve_percentage_debt.append(INFINITY)
 
         if self.bank_reserve[i] != 0:
-            self.bank_lending_percentage_bank_reserve.append(self.bank_lending[i] * 100 / self.bank_reserve[i])
+            self.bank_lending_percentage_bank_reserve.append(self.bank_lending[i] / self.bank_reserve[i])
         else:
-            self.bank_lending_percentage_bank_reserve.append(float("inf"))
+            self.bank_lending_percentage_bank_reserve.append(INFINITY)
 
-        self.bank_lending_percentage_total_money.append(self.bank_lending[i] * 100 / total_money)
+        self.bank_lending_percentage_total_money.append(self.bank_lending[i] / total_money)
 
-        self.im_percentage_total_money.append(self.im[i] * 100 / total_money)
-        self.bank_reserve_percentage_total_money.append(self.bank_reserve[i] * 100 / total_money)
-        self.asset_percentage_total_money.append(self.financial_assets[i] * 100 / total_money)
+        self.im_percentage_total_money.append(self.im[i] / total_money)
+        self.bank_reserve_percentage_total_money.append(self.bank_reserve[i] / total_money)
+        self.asset_percentage_total_money.append(self.financial_assets[i] / total_money)
 
         if self.bank_income[i] != 0:
-            self.bank_profit_percentage_bank_income.append(self.bank_profit[i] * 100 / self.bank_income[i])
+            self.bank_profit_percentage_bank_income.append(self.bank_profit[i] / self.bank_income[i])
         else:
-            self.bank_profit_percentage_bank_income.append(float("inf"))
+            self.bank_profit_percentage_bank_income.append(INFINITY)
 
         if self.bank_profit[i] != 0:
-            self.bank_spending_percentage_profit.append(self.bank_spending[i] * 100 / self.bank_profit[i])
+            self.bank_spending_percentage_profit.append(self.bank_spending[i] / self.bank_profit[i])
         else:
-            self.bank_spending_percentage_profit.append(float("inf"))
+            self.bank_spending_percentage_profit.append(INFINITY)
 
-        self.bank_spending_percentage_im.append(self.bank_spending[i] * 100 / self.im[i])
+        self.bank_spending_percentage_im.append(self.bank_spending[i] / self.im[i])
 
-        self.bank_profit_percentage_im.append(self.bank_profit[i] * 100 / self.im[i])
+        self.bank_profit_percentage_im.append(self.bank_profit[i] / self.im[i])
 
-        self.savings_interest_percentage_im.append(self.savings_interest[i] * 100 / self.im[i])
-        self.savings_interest_percentage_total_money.append(self.savings_interest[i] * 100 / total_money)
+        self.savings_interest_percentage_im.append(self.savings_interest[i] / self.im[i])
+        self.savings_interest_percentage_total_money.append(self.savings_interest[i] / total_money)
 
-        self.ecb_interest_percentage_im.append(self.bank_interest[i] * 100 / self.im[i])
-        self.ecb_interest_percentage_total_money.append(self.bank_interest[i] * 100 / total_money)
+        self.ecb_interest_percentage_im.append(self.bank_interest[i] / self.im[i])
+        self.ecb_interest_percentage_total_money.append(self.bank_interest[i] / total_money)
 
-        self.asset_trickle_percentage_im.append(self.asset_trickle[i] * 100 / self.im[i])
-        self.qe_trickle_percentage_im.append(self.qe_trickle[i] * 100 / self.im[i])
+        self.asset_trickle_percentage_im.append(self.asset_trickle[i] / self.im[i])
+        self.qe_trickle_percentage_im.append(self.qe_trickle[i] / self.im[i])
 
-        self.total_inflow_percentage_im.append(self.total_inflow[i] * 100 / self.im[i])
+        self.total_inflow_percentage_im.append(self.total_inflow[i] / self.im[i])
 
-        self.payoff_percentage_im.append(self.private_payoff[i] * 100 / self.im[i])
-        self.interest_percentage_im.append(self.interest[i] * 100 / self.im[i])
-        self.banking_costs_percentage_im.append(self.banking_costs[i] * 100 / self.im[i])
+        self.payoff_percentage_im.append(self.private_payoff[i] / self.im[i])
+        self.interest_percentage_im.append(self.interest[i] / self.im[i])
+        self.banking_costs_percentage_im.append(self.banking_costs[i] / self.im[i])
 
-        self.total_outflow_percentage_im.append(self.total_outflow[i] * 100 / self.im[i])
+        self.total_outflow_percentage_im.append(self.total_outflow[i] / self.im[i])
 
-        self.debt_percentage_im.append(self.debt[i] * 100 / self.im[i])
-        self.debt_percentage_total_money.append(self.debt[i] * 100 / total_money)
+        self.debt_percentage_im.append(self.debt[i] / self.im[i])
+        self.debt_percentage_total_money.append(self.debt[i] / total_money)
 
         if self.bank_reserve[i] != 0:
-            self.bank_debt_percentage_bank_reserve.append(self.bank_debt[i] * 100 / self.bank_reserve[i])
-            self.created_bank_reserve_percentage_bank_reserve.append(self.created_bank_reserve[i] * 100 / self.bank_reserve[i])
+            self.bank_debt_percentage_bank_reserve.append(self.bank_debt[i] / self.bank_reserve[i])
+            self.created_bank_reserve_percentage_bank_reserve.append(self.created_bank_reserve[i] / self.bank_reserve[i])
         else:
-            self.bank_debt_percentage_bank_reserve.append(float("inf"))
-            self.created_bank_reserve_percentage_bank_reserve.append(float("inf"))
+            self.bank_debt_percentage_bank_reserve.append(INFINITY)
+            self.created_bank_reserve_percentage_bank_reserve.append(INFINITY)
 
-        self.bank_debt_percentage_total_money.append(self.bank_debt[i] * 100 / total_money)
+        self.bank_debt_percentage_total_money.append(self.bank_debt[i] / total_money)
 
-        self.created_im_percentage_im.append(self.created_im[i] * 100 / self.im[i])
-        self.created_im_percentage_total_money.append(self.created_im[i] * 100 / total_money)
+        self.created_im_percentage_im.append(self.created_im[i] / self.im[i])
+        self.created_im_percentage_total_money.append(self.created_im[i] / total_money)
 
-        self.created_bank_reserve_percentage_total_money.append(self.created_bank_reserve[i] * 100 / total_money)
-        self.created_money_percentage_total_money.append((self.created_bank_reserve[i] + self.created_im[i]) * 100 / total_money)
+        self.created_bank_reserve_percentage_total_money.append(self.created_bank_reserve[i] / total_money)
+        self.created_money_percentage_total_money.append((self.created_bank_reserve[i] + self.created_im[i]) / total_money)
 
 
     def get_total_inflow(self, do_deflate=False):
@@ -715,39 +709,39 @@ class Euro_MS_Simulation(Simulation):
             f = open('./cockpit/supply/generated data/parameters.txt', 'w')
             f.write(f'Initial IM2 = {self.initial_im:.2f}\n')
             f.write('\n')
-            f.write(f'IM2 actual_growth rate = {self.desired_growth_rate * 100} %\n')
-            f.write(f'Inflation = {self.initial_inflation_rate * 100} %\n')
+            f.write(f'IM2 actual_growth rate = {self.desired_growth_rate} %\n')
+            f.write(f'Inflation = {self.initial_inflation_rate} %\n')
             f.write('\n')
             f.write(f'Commercial payback rate (% of debt) = {self.private_payback_cycles} %\n')
-            f.write(f'Commercial interest rate (% of debt) = {self.bank_ir * 100} %\n')
+            f.write(f'Commercial interest rate (% of debt) = {self.bank_ir} %\n')
             f.write('\n')
-            f.write(f'Saving rate (% of IM2) = {self.saving_rate * 100}\n')
-            f.write(f'Savings interest rate = {self.savings_ir * 100} %\n')
+            f.write(f'Saving rate (% of IM2) = {self.saving_rate}\n')
+            f.write(f'Savings interest rate = {self.savings_ir} %\n')
             f.write('\n')
-            f.write(f'Minimal required reserve = {self.minimum_reserve * 100} %\n')
-            f.write(f'Maximum desired reserve (IM) = {self.maximum_reserve * 100} %\n')
+            f.write(f'Minimal required reserve = {self.minimum_reserve} %\n')
+            f.write(f'Maximum desired reserve (IM) = {self.maximum_reserve} %\n')
             f.write('\n')
-            f.write(f'Bank payback rate (% of debt) = {self.bank_payback_cycles * 100} %\n')
-            f.write(f'Bank interest rate (% of debt) = {self.ecb_ir * 100} %\n')
+            f.write(f'Bank payback rate (% of debt) = {self.bank_payback_cycles} %\n')
+            f.write(f'Bank interest rate (% of debt) = {self.ecb_ir} %\n')
             f.write('\n')
-            f.write(f'Minimal \'new IM %\' on loans = {self.minimum_new_money * 100} %\n')
+            f.write(f'Minimal \'new IM %\' on loans = {self.minimum_new_money} %\n')
             f.write('\n')
             f.write(f'No loss = {self.no_loss}\n')
             if self.no_loss:
-                f.write(f'Minimal profit from interest = {self.min_profit * 100} %\n')
+                f.write(f'Minimal profit from interest = {self.min_profit} %\n')
             f.write('\n')
             f.write(f'Initial fixed spending = {self.initial_fixed_spending:.2f}\n')
-            f.write(f'% profit spending = {self.profit_spending * 100} %\n')
-            f.write(f'% capital spending = {self.capital_spending * 100} %\n')
+            f.write(f'% profit spending = {self.profit_spending} %\n')
+            f.write(f'% capital spending = {self.capital_spending} %\n')
             f.write('\n')
             f.write(f'QE spending mode: {self.qe_spending_mode}\n')
             if self.qe_spending_mode == QE_FIXED:
                 f.write(f'Initial QE = {self.qe_fixed_initial:.2f}\n')
             elif self.qe_spending_mode == QE_RELATIVE:
-                f.write(f'QE % of debt = {self.qe_relative * 100} %\n')
+                f.write(f'QE % of debt = {self.qe_relative} %\n')
             # f.write(f'QE is bank profit = {qe_profit}\n')
             if self.qe_spending_mode != QE_NONE:
-                f.write(f'QE trickle = {self.qe_trickle_rate * 100} %\n')
+                f.write(f'QE trickle = {self.qe_trickle_rate} %\n')
             f.close()
 
 

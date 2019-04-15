@@ -9,7 +9,8 @@ class ParameterForm(FlaskForm):
     inflation = FloatField('Inflation rate', default=0.0)
     population = IntegerField('Population', default=100000)
     population_growth = FloatField('Population growth rate', default=0.0)
-    money_mass = FloatField('Money mass', default=100000)
+    start_at_saturation = BooleanField('Start at saturation')
+    money_mass = FloatField('Initial money mass', default=100000)
     income = FloatField('Guaranteed income', default=2000.0)
     num_dem_tiers = SelectField('Common good spending mode',
                                 choices=[(5, '5 tiers'),
@@ -44,8 +45,8 @@ class DataSelectionForm(FlaskForm):
     demurrage_tiers = BooleanField('Demurrage tiers')
     demurrage = BooleanField('Demurrage')
     per_capita_demurrage = BooleanField('Demurrage per capita')
-    new_money = BooleanField('New money')
-    per_capita_new_money = BooleanField('New money per capita')
+    money_cycle = BooleanField('Money creation and destruction')
+    per_capita_money_cycle = BooleanField('Money creation and destruction per capita')
     money_mass = BooleanField('Money mass')
     per_capita_money_mass = BooleanField('Money mass per capita')
     common_good = BooleanField('Common good spending')

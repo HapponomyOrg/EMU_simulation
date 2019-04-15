@@ -3,6 +3,8 @@
 class Simulation:
 
     def __init__(self):
+        self.crash = False
+        self.cycles_executed = 0
         self.initial_inflation_rate = 0.019  # initial_inflation_rate
         self.inflation_rate = []  # real inflation rate
 
@@ -14,7 +16,6 @@ class Simulation:
 
     def get_data(self, data, start, stop, do_deflate=False):
         processed_data = []
-        cycle = 0
 
         for cycle in range(start, stop):
             if do_deflate:
@@ -23,6 +24,14 @@ class Simulation:
                 processed_data.append(round(data[cycle], 2))
 
         return processed_data
+
+    def get_percentages(self, data, start, stop):
+        percentages = []
+
+        for cycle in range(start, stop):
+            percentages.append(round(data[cycle] * 100, 2))
+
+        return percentages
 
 
     # only call after initial_inflation_rate has been applied in a cycle

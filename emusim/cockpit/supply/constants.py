@@ -1,5 +1,7 @@
 # module constants
 
+INFINITY = float('inf')
+
 # Euro constants
 FIXED = 'FIXED'  # banks spend a fixed amount into the economy
 PROFIT_PERCENTAGE = 'PROFIT PERCENTAGE'  # banks spend a percentage of their profit into the economy
