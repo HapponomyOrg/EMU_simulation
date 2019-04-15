@@ -12,7 +12,7 @@ class ParameterForm(FlaskForm):
     start_at_saturation = BooleanField('Start at saturation')
     money_mass = FloatField('Initial money mass', default=100000)
     income = FloatField('Guaranteed income', default=2000.0)
-    num_dem_tiers = SelectField('Inflation tiers',
+    num_dem_tiers = SelectField('Demurrage tiers tiers',
                                 choices=[(5, '5 tiers'),
                                          (4, '4 tiers'),
                                          (3, '3 tiers'),
