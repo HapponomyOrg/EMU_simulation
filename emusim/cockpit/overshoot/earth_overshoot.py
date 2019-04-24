@@ -108,7 +108,6 @@ class Earth_Overshoot:
             while current_date > self.calculate_future_date(past_date):
                 past_date += relativedelta.relativedelta(days=1)
 
-            print(past_date, self.calculate_future_date(past_date))
             return past_date
 
 
