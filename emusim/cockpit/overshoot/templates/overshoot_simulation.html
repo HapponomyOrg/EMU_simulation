@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <form action="" method="post">
+        {{ date_form.csrf_token }}
+            <table>
+                <tr>
+                    <td>{{ date_form.target_date.label }}</td>
+                    <td>{{ date_form.target_date }}</td>
+                </tr>
+                <tr>
+                    <td>Resources were used up on</td>
+                    <td>{{ depletion_date }}</td>
+                </tr>
+                <tr>
+                    <td>Using resources of</td>
+                    <td>{{ overshoot_date }}</td>
+                </tr>
+            </table>
+        <hr>
+        <div class="input submit">
+            <input class="button" type="submit" value="Calculate dates">
+        </div>
+        {% for graph in graph_data %}
+              <div class="container" align="left">
+                    <embed type="image/svg+xml" src={{graph|safe}} style='max-width:600px'/>
+              </div>
+        {% endfor %}
+    </form>
+
+{% endblock %}
