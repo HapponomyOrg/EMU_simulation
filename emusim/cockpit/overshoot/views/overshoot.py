@@ -37,17 +37,17 @@ def overshoot_simulation():
 
     overshoot_per_year_chart = create_chart('Earth overshoot days per year')
     overshoot_per_year_chart.add('Overshoot days', overshoot_days)
-    overshoot_per_year_chart.x_labels = map(str, range(Earth_Overshoot.FIRST_YEAR, Earth_Overshoot.LAST_YEAR))
+    overshoot_per_year_chart.x_labels = map(str, range(Earth_Overshoot.FIRST_YEAR, Earth_Overshoot.LAST_YEAR + 1))
     graph_data.append(overshoot_per_year_chart.render_data_uri())
 
     cumulative_overshoot_chart = create_chart('Cumulative overshoot days')
     cumulative_overshoot_chart.add('Overshoot days', cumulative_overshoot_days)
-    cumulative_overshoot_chart.x_labels = map(str, range(Earth_Overshoot.FIRST_YEAR, Earth_Overshoot.LAST_YEAR))
+    cumulative_overshoot_chart.x_labels = map(str, range(Earth_Overshoot.FIRST_YEAR, Earth_Overshoot.LAST_YEAR + 1))
     graph_data.append(cumulative_overshoot_chart.render_data_uri())
 
     weight_chart = create_chart('Day weight per year')
     weight_chart.add('Weight', weights)
-    weight_chart.x_labels = map(str, range(Earth_Overshoot.FIRST_YEAR, Earth_Overshoot.LAST_YEAR))
+    weight_chart.x_labels = map(str, range(Earth_Overshoot.FIRST_YEAR, Earth_Overshoot.LAST_YEAR + 1))
     graph_data.append(weight_chart.render_data_uri())
 
     return render_template('overshoot_simulation.html',
