@@ -58,21 +58,24 @@
     </div>
     <table class="outertable">
         <tr>
-            <th class="datarow">Overshoot date</th>
-            <th class="datarow">Resources used up on</th>
-            <th class="datarow">Using resources of</th>
-            <th class="datarow">Overshoot days</th>
-            <th class="datarow">Cumulative overshoot days</th>
-            <th class="datarow">Day weight</th>
+            <th>Overshoot date</th>
+            <th>Resources used up on</th>
+            <th>Using resources of</th>
+            <th>Overshoot days</th>
+            <th>Cumulative overshoot days</th>
+            <th>Day weight</th>
         </tr>
         {% for i in range(0, num_dates) %}
-        <tr class="datarow">
-            <td class="datarow">{{ overshoot_dates[i] }}</td>
-            <td class="datarow">{{ depletion_dates[i] }}</td>
-            <td class="datarow">{{ cumulative_overshoot_dates[i] }}</td>
-            <td class="datarow">{{ overshoot_days[i] }}</td>
-            <td class="datarow">{{ cumulative_overshoot_days[i] }}</td>
-            <td class="datarow">{{ weights[i] }}</td>
+        <tr>
+            <td colspan="6" class="divider"><hr /></td>
+        </tr>
+        <tr>
+            <td>{{ overshoot_dates[i] }}</td>
+            <td>{{ depletion_dates[i] }}</td>
+            <td>{{ cumulative_overshoot_dates[i] }}</td>
+            <td>{{ overshoot_days[i] }}</td>
+            <td>{{ cumulative_overshoot_days[i] }}</td>
+            <td>{{ weights[i] }}</td>
         </tr>
         {% endfor %}
     </table>

@@ -30,12 +30,6 @@ input {
     border: no-border;
 }
 
-.datarow {
-    border: 1px solid black;
-    padding-right: 5px;
-    padding-left: 5px;
-}
-
 .button {
     width: auto;
     text-align: center;
