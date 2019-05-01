@@ -5,7 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="79ae4c6e-6885-4f9a-98ae-2ed692ecd8f6" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/emusim/cockpit/overshoot/earth_overshoot.py" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/cockpit/overshoot/earth_overshoot.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/emusim/cockpit/overshoot/templates/overshoot_simulation.html" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/cockpit/overshoot/templates/overshoot_simulation.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/emusim/cockpit/overshoot/views/overshoot.py" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/cockpit/overshoot/views/overshoot.py" afterDir="false" />
@@ -24,11 +23,14 @@
     <splitter split-orientation="horizontal" split-proportion="0.5">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="true">
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/emusim/cockpit/overshoot/earth_overshoot.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="490">
-                  <caret line="100" column="92" selection-start-line="100" selection-start-column="92" selection-end-line="100" selection-end-column="92" />
+                <state relative-caret-position="792">
+                  <caret line="123" column="51" selection-start-line="123" selection-start-column="51" selection-end-line="123" selection-end-column="51" />
+                  <folding>
+                    <element signature="e#0#35#0" expanded="true" />
+                  </folding>
                 </state>
               </provider>
             </entry>
@@ -42,11 +44,11 @@
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="false">
+          <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/emusim/cockpit/overshoot/views/overshoot.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="984">
-                  <caret line="66" column="43" selection-start-line="66" selection-start-column="43" selection-end-line="66" selection-end-column="43" />
+                <state relative-caret-position="360">
+                  <caret line="24" column="66" selection-start-line="24" selection-start-column="66" selection-end-line="24" selection-end-column="66" />
                   <folding>
                     <element signature="e#0#53#0" expanded="true" />
                   </folding>
@@ -103,8 +105,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/emusim/cockpit/overshoot/templates/overshoot_simulation.html">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="850">
-                  <caret line="68" column="27" selection-start-line="68" selection-start-column="27" selection-end-line="68" selection-end-column="27" />
+                <state relative-caret-position="1060">
+                  <caret line="76" column="20" selection-start-line="76" selection-start-column="20" selection-end-line="76" selection-end-column="20" />
                 </state>
               </provider>
             </entry>
@@ -112,8 +114,8 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/emusim/static/style.css">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="495">
-                  <caret line="33" column="28" selection-start-line="33" selection-start-column="28" selection-end-line="33" selection-end-column="28" />
+                <state relative-caret-position="525">
+                  <caret line="35" column="22" lean-forward="true" selection-start-line="35" selection-start-column="22" selection-end-line="35" selection-end-column="22" />
                 </state>
               </provider>
             </entry>
@@ -132,7 +134,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>bank_interest</find>
       <find>savings_interest</find>
       <find>&quot;</find>
       <find>payback</find>
@@ -162,6 +163,7 @@
       <find>base_date</find>
       <find>sumsy_supply</find>
       <find>parameter_form</find>
+      <find>date_found</find>
     </findStrings>
     <replaceStrings>
       <replace>FloatField</replace>
@@ -249,10 +251,10 @@
         <option value="$PROJECT_DIR$/emusim/cockpit/overshoot/forms/overshoot_forms.py" />
         <option value="$PROJECT_DIR$/emusim/__main__.py" />
         <option value="$PROJECT_DIR$/emusim/templates/base.html" />
-        <option value="$PROJECT_DIR$/emusim/cockpit/overshoot/views/overshoot.py" />
         <option value="$PROJECT_DIR$/emusim/static/style.css" />
         <option value="$PROJECT_DIR$/emusim/cockpit/overshoot/templates/overshoot_simulation.html" />
         <option value="$PROJECT_DIR$/emusim/cockpit/overshoot/earth_overshoot.py" />
+        <option value="$PROJECT_DIR$/emusim/cockpit/overshoot/views/overshoot.py" />
       </list>
     </option>
   </component>
@@ -507,13 +509,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1548084789004</updated>
-    </task>
-    <task id="LOCAL-00018" summary="Added bank spending to inflow graph">
-      <created>1552559514458</created>
-      <option name="number" value="00018" />
-      <option name="presentableId" value="LOCAL-00018" />
-      <option name="project" value="LOCAL" />
-      <updated>1552559514458</updated>
     </task>
     <task id="LOCAL-00019" summary="Added private financial assets&#10;Added more initial parameters for greater control">
       <created>1553084156940</created>
@@ -851,7 +846,14 @@
       <option name="project" value="LOCAL" />
       <updated>1556119113785</updated>
     </task>
-    <option name="localTasksCounter" value="67" />
+    <task id="LOCAL-00067" summary="Added table with raw data">
+      <created>1556701758679</created>
+      <option name="number" value="00067" />
+      <option name="presentableId" value="LOCAL-00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1556701758680</updated>
+    </task>
+    <option name="localTasksCounter" value="68" />
     <servers />
   </component>
   <component name="TodoView">
@@ -943,7 +945,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
-    <MESSAGE value="Added demurrage tiers chart to SuMSy&#10;Cleaned up interface (added separators)" />
     <MESSAGE value="Updated notebook to v 5.7.8" />
     <MESSAGE value="Renamed IM to RIM&#10;Renamed OM to Bank reserves" />
     <MESSAGE value="Changed parameter order on euro sim html&#10;Added required growth output in euro sim" />
@@ -968,7 +969,8 @@
     <MESSAGE value="Added some comments" />
     <MESSAGE value="Corrected X-Axis labels" />
     <MESSAGE value="Changed title" />
-    <option name="LAST_COMMIT_MESSAGE" value="Changed title" />
+    <MESSAGE value="Added table with raw data" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added table with raw data" />
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="breakpointCondition">
@@ -1288,12 +1290,26 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/emusim/cockpit/overshoot/views/overshoot.py">
+    <entry file="file://$PROJECT_DIR$/emusim/static/style.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="984">
-          <caret line="66" column="43" selection-start-line="66" selection-start-column="43" selection-end-line="66" selection-end-column="43" />
+        <state relative-caret-position="525">
+          <caret line="35" column="22" lean-forward="true" selection-start-line="35" selection-start-column="22" selection-end-line="35" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/emusim/cockpit/overshoot/templates/overshoot_simulation.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1060">
+          <caret line="76" column="20" selection-start-line="76" selection-start-column="20" selection-end-line="76" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/emusim/cockpit/overshoot/earth_overshoot.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="792">
+          <caret line="123" column="51" selection-start-line="123" selection-start-column="51" selection-end-line="123" selection-end-column="51" />
           <folding>
-            <element signature="e#0#53#0" expanded="true" />
+            <element signature="e#0#35#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1305,24 +1321,13 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/emusim/static/style.css">
+    <entry file="file://$PROJECT_DIR$/emusim/cockpit/overshoot/views/overshoot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="495">
-          <caret line="33" column="28" selection-start-line="33" selection-start-column="28" selection-end-line="33" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/emusim/cockpit/overshoot/templates/overshoot_simulation.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="850">
-          <caret line="68" column="27" selection-start-line="68" selection-start-column="27" selection-end-line="68" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/emusim/cockpit/overshoot/earth_overshoot.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="490">
-          <caret line="100" column="92" selection-start-line="100" selection-start-column="92" selection-end-line="100" selection-end-column="92" />
+        <state relative-caret-position="360">
+          <caret line="24" column="66" selection-start-line="24" selection-start-column="66" selection-end-line="24" selection-end-column="66" />
+          <folding>
+            <element signature="e#0#53#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
