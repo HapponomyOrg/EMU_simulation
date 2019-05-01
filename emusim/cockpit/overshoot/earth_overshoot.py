@@ -4,6 +4,8 @@ import calendar
 
 
 class Earth_Overshoot:
+    START_DATE = date(1969, 12, 31)
+
     FIRST_YEAR = 1970
     LAST_YEAR = 2018
 
@@ -63,7 +65,7 @@ class Earth_Overshoot:
 
 
     def __init__(self):
-        cumulative_overshoot_date = date(1969, 12, 31)
+        cumulative_overshoot_date = self.START_DATE
 
         for year in sorted(self.overshoot_dates.keys()):
             overshoot_date = self.overshoot_dates[year]
@@ -78,25 +80,25 @@ class Earth_Overshoot:
         if year < self.FIRST_YEAR:
             return current_date
         else:
-            if year > self.LAST_YEAR:
-                cur_year = year
+            cur_year = year
 
-                while cur_year > self.LAST_YEAR:
-                    if calendar.isleap(cur_year - 1):
-                        extra_days += 366
+            while cur_year >= self.FIRST_YEAR:
+                if cur_year > self.LAST_YEAR:
+                    year_weight = self.overshoot_data[self.LAST_YEAR].weight
+                else:
+                    year_weight = self.overshoot_data[cur_year].weight
+
+                if cur_year == year:
+                    extra_days += current_date.timetuple().tm_yday * year_weight
+                else:
+                    if calendar.isleap(cur_year):
+                        extra_days += 366 * year_weight
                     else:
-                        extra_days += 365
+                        extra_days += 365 * year_weight
 
-                    cur_year -= 1
+                cur_year -= 1
 
-                data = self.overshoot_data[self.LAST_YEAR]
-            else:
-                data = self.overshoot_data[year]
-
-            day_in_year = current_date.timetuple().tm_yday
-            weighted_delta_days = (day_in_year - data.day_in_year + extra_days) * data.weight
-
-            return data.cumulative_overshoot_date + relativedelta.relativedelta(days=weighted_delta_days)
+            return self.START_DATE + relativedelta.relativedelta(days=round(extra_days + 0.5))
 
 
     def calculate_past_date(self, current_date):

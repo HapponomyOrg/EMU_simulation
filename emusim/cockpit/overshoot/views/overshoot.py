@@ -23,14 +23,20 @@ def overshoot_simulation():
     overshoot_date = simulation.calculate_future_date(target_date)
 
     overshoot_data = simulation.overshoot_data
+    overshoot_dates = []
     overshoot_days = []
+    cumulative_overshoot_dates = []
     cumulative_overshoot_days = []
+    depletion_dates = []
     weights = []
 
     for year in sorted(overshoot_data.keys()):
         data = overshoot_data[year]
+        overshoot_dates.append(data.overshoot_date)
+        cumulative_overshoot_dates.append(data.cumulative_overshoot_date)
         overshoot_days.append(data.get_overshoot_days())
         cumulative_overshoot_days.append(data.get_cumulative_overshoot_days())
+        depletion_dates.append(simulation.calculate_past_date(data.overshoot_date))
         weights.append(round(data.weight, 2))
 
     graph_data = []
@@ -53,5 +59,11 @@ def overshoot_simulation():
     return render_template('overshoot_simulation.html',
                            date_form=date_form,
                            graph_data=graph_data,
+                           overshoot_dates=overshoot_dates,
+                           depletion_dates=depletion_dates,
+                           cumulative_overshoot_dates=cumulative_overshoot_dates,
+                           overshoot_days=overshoot_days,
+                           cumulative_overshoot_days=cumulative_overshoot_days,
+                           weights=weights,
                            depletion_date=depletion_date,
                            overshoot_date=overshoot_date)

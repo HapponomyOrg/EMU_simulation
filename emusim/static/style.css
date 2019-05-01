@@ -30,6 +30,10 @@ input {
     border: no-border;
 }
 
+.datarow {
+    border: 1px solid black;
+}
+
 .button {
     width: auto;
     text-align: center;
