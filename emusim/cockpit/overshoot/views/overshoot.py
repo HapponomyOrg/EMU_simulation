@@ -4,6 +4,8 @@ from emusim.cockpit.overshoot.forms.overshoot_forms import DateForm
 from emusim.cockpit.utilities import create_chart
 from emusim.cockpit.overshoot.earth_overshoot import Earth_Overshoot
 
+from datetime import datetime
+
 overshoot = Blueprint('overshoot', __name__,
                          template_folder='../templates',
                          static_folder='../static')
@@ -16,7 +18,7 @@ def overshoot_simulation():
     date_form = DateForm(request.form)
     depletion_date = None
     overshoot_date = None
-    show_dates = False
+    num_dates = len(simulation.overshoot_data)
 
     target_date = date_form.target_date.data
     depletion_date = simulation.calculate_past_date(target_date)
@@ -59,6 +61,7 @@ def overshoot_simulation():
     return render_template('overshoot_simulation.html',
                            date_form=date_form,
                            graph_data=graph_data,
+                           num_dates=num_dates,
                            overshoot_dates=overshoot_dates,
                            depletion_dates=depletion_dates,
                            cumulative_overshoot_dates=cumulative_overshoot_dates,

@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 from dateutil import relativedelta
 import calendar
 
@@ -105,10 +105,32 @@ class Earth_Overshoot:
         if current_date.year < self.FIRST_YEAR:
             return current_date
         else:
-            past_date = date(1970, 1, 1)
+            approximation_date_found = False
+            delta = current_date - date(1970, 1, 1)
+            delta_days = round(delta.days / 2)
+            past_date = date(1970, 1, 1) + relativedelta.relativedelta(days=delta_days)
+            future_date = self.calculate_future_date(past_date)
 
-            while current_date > self.calculate_future_date(past_date):
-                past_date += relativedelta.relativedelta(days=1)
+            while not approximation_date_found and delta_days != 0:
+                delta_days = delta_days / 2
+
+                if future_date > current_date:
+                    past_date -= relativedelta.relativedelta(days=delta_days)
+                    future_date = self.calculate_future_date(past_date)
+                elif future_date < current_date:
+                    past_date += relativedelta.relativedelta(days=delta_days)
+                    future_date = self.calculate_future_date(past_date)
+                else:
+                    approximation_date_found = True
+
+            if current_date != future_date:
+                while future_date > current_date:
+                    past_date -= relativedelta.relativedelta(days=1)
+                    future_date = self.calculate_future_date(past_date)
+
+                while future_date < current_date:
+                    past_date += relativedelta.relativedelta(days=1)
+                    future_date = self.calculate_future_date(past_date)
 
             return past_date
 
