@@ -30,7 +30,7 @@ class ParameterForm(FlaskForm):
 
     ecb_interest_rate = FloatField('ECB interest', default=1.0)
     ecb_savings_rate_mr = FloatField('ECB interest rate on minimal reserve', default=0.0)
-    ecb_savings_rate_excess = FloatField('ECB interest rate on excess reserve', default=-0.15)
+    ecb_savings_rate_excess = FloatField('ECB interest rate on excess reserve', default=-0.40)
 
     minimum_reserve = FloatField('Minimum reserve', default=4.0)
     maximum_reserve = FloatField('Maximum bank reserve', default=5.0)
