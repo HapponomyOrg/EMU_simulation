@@ -624,12 +624,18 @@ class Euro_MS_Simulation(Simulation):
         if self.debt[i] != 0:
             self.bank_reserve_percentage_debt.append(self.bank_reserve[i] / self.debt[i])
         else:
-            self.bank_reserve_percentage_debt.append(INFINITY)
+            if self.bank_reserve[i] == 0:
+                self.bank_reserve_percentage_debt.append(0)
+            else:
+                self.bank_reserve_percentage_debt.append(INFINITY)
 
         if self.bank_reserve[i] != 0:
             self.bank_lending_percentage_bank_reserve.append(self.bank_lending[i] / self.bank_reserve[i])
         else:
-            self.bank_lending_percentage_bank_reserve.append(INFINITY)
+            if self.bank_lending[i] == 0:
+                self.bank_lending_percentage_bank_reserve.append(0)
+            else:
+                self.bank_lending_percentage_bank_reserve.append(INFINITY)
 
         self.bank_lending_percentage_total_money.append(self.bank_lending[i] / total_money)
 
@@ -640,12 +646,18 @@ class Euro_MS_Simulation(Simulation):
         if self.bank_income[i] != 0:
             self.bank_profit_percentage_bank_income.append(self.bank_profit[i] / self.bank_income[i])
         else:
-            self.bank_profit_percentage_bank_income.append(INFINITY)
+            if self.bank_profit[i] == 0:
+                self.bank_profit_percentage_bank_income.append(0)
+            else:
+                self.bank_profit_percentage_bank_income.append(INFINITY)
 
         if self.bank_profit[i] != 0:
             self.bank_spending_percentage_profit.append(self.bank_spending[i] / self.bank_profit[i])
         else:
-            self.bank_spending_percentage_profit.append(INFINITY)
+            if self.bank_spending[i] == 0:
+                self.bank_spending_percentage_profit.append(0)
+            else:
+                self.bank_spending_percentage_profit.append(INFINITY)
 
         self.bank_spending_percentage_im.append(self.bank_spending[i] / self.im[i])
 
@@ -675,8 +687,15 @@ class Euro_MS_Simulation(Simulation):
             self.bank_debt_percentage_bank_reserve.append(self.bank_debt[i] / self.bank_reserve[i])
             self.created_bank_reserve_percentage_bank_reserve.append(self.created_bank_reserve[i] / self.bank_reserve[i])
         else:
-            self.bank_debt_percentage_bank_reserve.append(INFINITY)
-            self.created_bank_reserve_percentage_bank_reserve.append(INFINITY)
+            if self.bank_debt[i] == 0:
+                self.bank_debt_percentage_bank_reserve.append(0)
+            else:
+                self.bank_debt_percentage_bank_reserve.append(INFINITY)
+
+            if self.created_bank_reserve[i] == 0:
+                self.created_bank_reserve_percentage_bank_reserve.append(0)
+            else:
+                self.created_bank_reserve_percentage_bank_reserve.append(INFINITY)
 
         self.bank_debt_percentage_total_money.append(self.bank_debt[i] / total_money)
 

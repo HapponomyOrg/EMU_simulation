@@ -1,6 +1,7 @@
 # module constants
+import sys
 
-INFINITY = float('inf')
+INFINITY = sys.maxsize
 
 # Euro constants
 FIXED = 'FIXED'  # banks spend a fixed amount into the economy
