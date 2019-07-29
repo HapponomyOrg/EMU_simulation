@@ -58,7 +58,8 @@ class Earth_Overshoot:
         2015: date(2015, 8, 6),
         2016: date(2016, 8, 5),
         2017: date(2017, 8, 3),
-        2018: date(2018, 8, 1)
+        2018: date(2018, 8, 1),
+        2019: date(2019, 7, 29)
     }
 
     overshoot_data = {}
