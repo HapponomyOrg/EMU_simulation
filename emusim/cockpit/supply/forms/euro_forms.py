@@ -26,7 +26,7 @@ class ParameterForm(FlaskForm):
     inflation_rate = FloatField('Desired inflation rate', default=1.9)
 
     link_growth_inflation = BooleanField('Link inflation to growth')
-    growth_inflation_influence = FloatField('Influence of growth on inflation', default=100)
+    growth_inflation_influence = FloatField('Influence of growth on inflation', default=50)
 
     ecb_interest_rate = FloatField('ECB interest', default=1.0)
     ecb_savings_rate_mr = FloatField('ECB interest rate on minimal reserve', default=0.0)
@@ -34,7 +34,7 @@ class ParameterForm(FlaskForm):
 
     minimum_reserve = FloatField('Minimum reserve', default=4.0)
     maximum_reserve = FloatField('Maximum bank reserve', default=5.0)
-    min_new_money = FloatField('Minimum new money', default=80.0)
+    min_new_money = FloatField('Minimum new money', default=98.0)
     max_new_money = FloatField('Maximum new money', default=100.0)
     bank_interest_rate = FloatField('Commercial bank interest', default=2.5)
     interest_percentage_bank_income = FloatField('Interest % of bank income', default=80)
