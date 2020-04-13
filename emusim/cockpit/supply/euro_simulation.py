@@ -369,14 +369,7 @@ class Euro_MS_Simulation(Simulation):
                 else:
                     self.qe.append(0.0)  # determine after debt has been processed
 
-                # calculate interest on savings from previous cycle and add to im
-                self.savings_interest.append(self.savings[i - 1] * self.savings_ir)
-
                 # determine desired growth
-                self.desired_im[i] += self.desired_im[i] * self.desired_growth_rate + \
-                                      self.desired_im[i] * self.desired_growth_rate * self.inflation_rate[i] + \
-                                      self.desired_im[i] * self.inflation_rate[i]
-
                 desired_growth = 0
 
                 if self.growth_target == GROW_CURRENT:
@@ -384,9 +377,15 @@ class Euro_MS_Simulation(Simulation):
                                      self.im[i] * self.desired_growth_rate * self.inflation_rate[i] + \
                                      self.im[i] * self.inflation_rate[i]
                 else:  # self.growth_target == GROW_INITIAL:
+                    self.desired_im[i] += self.desired_im[i] * self.desired_growth_rate + \
+                                      self.desired_im[i] * self.desired_growth_rate * self.inflation_rate[i] + \
+                                      self.desired_im[i] * self.inflation_rate[i]
                     desired_growth = self.desired_im[i] - self.im[i]
 
                 target_im = max(0.0, self.im[i] + desired_growth)
+
+                # calculate interest on savings from previous cycle
+                self.savings_interest.append(self.savings[i - 1] * self.savings_ir)
 
                 # earn calculated interest
                 self.im[i] += self.savings_interest[i]
