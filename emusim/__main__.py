@@ -13,6 +13,7 @@ from emusim.cockpit.supply.views.euro_supply import euro_supply
 from emusim.cockpit.supply.views.sumsy_supply import sumsy_supply
 from emusim.cockpit.overshoot.views.overshoot import overshoot
 from emusim.cockpit.supply.views.home import home
+from emusim.cockpit.abm.views.abm import abm
 from emusim.config import Config
 
 app = Flask(__name__)
@@ -23,6 +24,7 @@ CSRFProtect(app)
 app.register_blueprint(euro_supply)
 app.register_blueprint(sumsy_supply)
 app.register_blueprint(overshoot)
+# app.register_blueprint(abm)
 app.register_blueprint(home)
 
 if __name__ == '__main__':
