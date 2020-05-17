@@ -215,7 +215,7 @@ class SumSy_MS_Simulation(Simulation):
             calculate_on = amount - tiers[tier]
 
             if calculate_on > 0:
-                if tier < MAX_DEM_TIERS - 1 and amount > tiers[tier + 1]:
+                if tier < self.num_dem_tiers - 1 and amount > tiers[tier + 1]:
                     calculate_on = tiers[tier + 1] - tiers[tier]
             else:
                 calculate_on = 0
