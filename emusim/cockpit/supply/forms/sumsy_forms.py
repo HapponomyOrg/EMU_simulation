@@ -31,8 +31,6 @@ class ParameterForm(FlaskForm):
     dem_rate_4 = FloatField('Demurrage rate 4', default=50)
     dem_rate_5 = FloatField('Demurrage rate 5', default=90)
 
-    inflate_dem_tiers = BooleanField('Inflate demurrage tiers')
-
     common_good_spending = SelectField('Common good spending mode',
                                        choices=[(NONE, 'None'),
                                                 (FIXED_SPENDING, 'Fixed'),

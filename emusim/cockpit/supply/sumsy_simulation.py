@@ -24,7 +24,6 @@ class SumSy_MS_Simulation(Simulation):
                           2: 0.1,
                           3: 0.5,
                           4: 0.9}
-        self.inflate_dem_tiers = False
         self.common_good_spending = NONE
         self.initial_common_good_budget = 0.0
 
@@ -130,16 +129,13 @@ class SumSy_MS_Simulation(Simulation):
                 self.common_good_budget.append(max(0.0, self.common_good_budget[i - 1]
                                                    + self.common_good_budget[i - 1] * self.inflation_rate[i - 1]))
 
-                if self.inflate_dem_tiers:
-                    cur_dem_tiers = {}
+                cur_dem_tiers = {}
 
-                    for tier in range(self.num_dem_tiers):
-                        prev_value = self.dem_tiers[i - 1][tier]
-                        cur_dem_tiers[tier] = max(0.0, prev_value + prev_value * self.inflation_rate[i - 1])
+                for tier in range(self.num_dem_tiers):
+                    prev_value = self.dem_tiers[i - 1][tier]
+                    cur_dem_tiers[tier] = max(0.0, prev_value + prev_value * self.inflation_rate[i - 1])
 
-                    self.dem_tiers.append(cur_dem_tiers)
-                else:
-                    self.dem_tiers.append(self.dem_tiers[i - 1])
+                self.dem_tiers.append(cur_dem_tiers)
 
                 # distribute income
                 self.money_cycling.append(self.income[i] * self.population[i])
