@@ -18,3 +18,6 @@ class RegenerativeHealthProfile(HealthProfile):
         super(RegenerativeHealthProfile, self).__init__()
 
         self.regeneration_thresholds = {(0, 10)}
+
+    def regenerate(self):
+        self.set_health(min(self.MAX_HEALTH, self.get_health() + self.get_value_for_health(self.regeneration_thresholds)))

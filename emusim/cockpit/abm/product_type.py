@@ -7,4 +7,6 @@ class ProductType(Enum):
     ENERGY = 3
     PRODUCER = 4
     ENHANCER = 5
-    MISCELLANEOUS = 6
+    STORAGE = 6
+    POLLUTION = 7
+    MISCELLANEOUS = 8

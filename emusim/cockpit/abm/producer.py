@@ -1,14 +1,20 @@
 from emusim.cockpit.abm.product import Product
 from emusim.cockpit.abm.product_type import ProductType
 
+# Producers produce products, which can also be producers, in batches. A batch is the smallest output which can be
+# produced.
 class Producer(Product):
     max_production = 1
     over_production_capacity = 0
     damage_per_unit = 0
 
-    # Health profile: determines how much damage the producer can sustain and how damage impacts its capacities.
-    def __init__(self, label, product_expiration, health_profile):
-        super(Producer, self).__init__(label, ProductType.PRODUCER, product_expiration)
+    # label: a label for the producer. Can serve as an identifier of sorts.
+    # producer_lifetime: the amount of cycles the producer lasts. Can be set to Product.NO_EXPIRY.
+    # health_profile: determines how much damage the producer can sustain and how damage impacts its capacities.
+    # input: a dictionary of product type id's and amount values. It represents the input for one production batch.
+    # output_batch:
+    def __init__(self, label, producer_lifetime, health_profile, input, output_batch):
+        super().__init__(label, ProductType.PRODUCER, producer_lifetime)
 
         self.health_profile = health_profile
 
