@@ -1,6 +1,10 @@
 class HealthProfile:
-    # health expressed in percentages
+    # Maximum possible health. Expressed in percentages.
     MAX_HEALTH = 100
+
+    # Constant for an infinite amount of cycles.
+    INFINITE_CYCLES = -1
+
 
     max_health = MAX_HEALTH # in some circumstances, due to ageing or sustained damage, it might be possible that
                             # the maximum health to which a Producer can get is reduced.
@@ -28,6 +32,15 @@ class HealthProfile:
 
     def get_health(self):
         return self.health
+
+    # Calculates the remaining cycles if each cycle causes a specific amount of damage.
+    # damage: the damage done per cycle.
+    def calculate_cycles(self, damage):
+        if damage == 0 and self.get_health() > 0:
+            return self.INFINITE_CYCLES
+        else:
+            # TODO: implement
+            return self.INFINITE_CYCLES
 
     # Inflict damage
     # damage: the amount of damage to inflict

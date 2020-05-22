@@ -11,12 +11,13 @@ class Producer(Product):
     # label: a label for the producer. Can serve as an identifier of sorts.
     # producer_lifetime: the amount of cycles the producer lasts. Can be set to Product.NO_EXPIRY.
     # health_profile: determines how much damage the producer can sustain and how damage impacts its capacities.
+    # ageing_damage: the damage one cycle of ageing does to the producer. Depending on the health_profile older
+    #                producers might age faster due to multiplier effects. If this is set to 0, the producer does not
+    #                age.
     # input: a dictionary of product type id's and amount values. It represents the input for one production batch.
     # output_batch:
-    def __init__(self, label, producer_lifetime, health_profile, input, output_batch):
-        super().__init__(label, ProductType.PRODUCER, producer_lifetime)
-
-        self.health_profile = health_profile
+    def __init__(self, label, health_profile, ageing_damage, input, output_batch):
+        super().__init__(label, ProductType.PRODUCER, health_profile, ageing_damage)
 
     # Sets the maximum units that can be produced in one cycle without causing damage
     def set_max_production_units(self, max_production):

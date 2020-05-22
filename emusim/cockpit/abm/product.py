@@ -1,19 +1,20 @@
 from uuid import uuid4
 
 class Product:
-    NO_EXPIRY = -1
-
     # type_id: the unique id for the collection of instances of a specific type of product.
     # id: the unique id of the product.
     # label: a label for the product. For display and type identification purposes.
     # type: the type of the Product. See ProductType.
-    # product_expiration: # the amount of cycles the product lasts. Can be set to NO_EXPIRY
-    def __init__(self, label, type, product_expiration):
+    # health_profile: # health_profile of the product.
+    # ageing_damage: the damage one cycle of ageing does to the product. Depending on the health_profile older products
+    #                might age faster due to multiplier effects. If this is set to 0, the product does not age.
+    def __init__(self, label, type, health_profile, ageing_damage):
         self.type_id = str(type) + "-" + str(label)
         self.id = uuid4()
         self.label = label
         self.type = type
-        self.product_expiration = product_expiration
+        self.health_profile = health_profile
+        self.ageing_damage = ageing_damage
 
     def get_label(self):
         return self.label
@@ -21,16 +22,16 @@ class Product:
     def get_type(self):
         return self.type
 
-    def get_expiration(self):
-        return self.product_expiration
+    # returns the number of life cycles the product will last under normal ageing conditions
+    def get_remaining_cycles(self):
+        return self.health_profile.calculate_cycles(self.ageing_damage)
 
-    # Age the product. This is called each cycle and subtracts 1 from
+    # Age the product. This is called each cycle damages the product due to ageing.
     def age(self):
-        if self.product_expiration != self.NO_EXPIRY and self.product_expiration > 0:
-            self.product_expiration -= 1
+        self.health_profile.do_damage(self.ageing_damage)
 
     def is_expired(self):
-        return self.product_expiration == 0
+        return self.health_profile.get_health() == 0
 
 
 
