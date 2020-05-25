@@ -1,5 +1,5 @@
-from emusim.cockpit.abm.product import Product
-from emusim.cockpit.abm.product_type import ProductType
+from emusim.cockpit.abm.base.product import Product
+from emusim.cockpit.abm.base.product_type import ProductType
 
 
 # A store can store other products.

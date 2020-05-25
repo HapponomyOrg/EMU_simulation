@@ -1,3 +1,5 @@
+from emusim.cockpit.abm.base.health_profile import HealthProfile
+from emusim.cockpit.abm.base.product_type import ProductType
 from uuid import uuid4
 
 class Product:
@@ -8,7 +10,7 @@ class Product:
     # health_profile: # health_profile of the product.
     # ageing_damage: the damage one cycle of ageing does to the product. Depending on the health_profile older products
     #                might age faster due to multiplier effects. If this is set to 0, the product does not age.
-    def __init__(self, label, type, health_profile, ageing_damage):
+    def __init__(self, label: str, type: ProductType, health_profile: HealthProfile, ageing_damage: float = 0):
         self.type_id = str(type) + "-" + str(label)
         self.id = uuid4()
         self.label = label
@@ -32,6 +34,3 @@ class Product:
 
     def is_expired(self):
         return self.health_profile.get_health() == 0
-
-
-

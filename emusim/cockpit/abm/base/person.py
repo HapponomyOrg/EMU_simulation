@@ -1,5 +1,5 @@
-from emusim.cockpit.abm.regenerative_producer import RegenerativeProducer
-from emusim.cockpit.abm.regenerative_health_profile import RegenerativeHealthProfile
+from emusim.cockpit.abm.base.regenerative_producer import RegenerativeProducer
+from emusim.cockpit.abm.base.regenerative_health_profile import RegenerativeHealthProfile
 
 
 class Person(RegenerativeProducer):

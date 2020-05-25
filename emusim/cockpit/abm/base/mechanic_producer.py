@@ -1,4 +1,4 @@
-from emusim.cockpit.abm.producer import Producer
+from emusim.cockpit.abm.base.producer import Producer
 
 
 class MechanicProducer(Producer):

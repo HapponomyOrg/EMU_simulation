@@ -5,7 +5,6 @@ class HealthProfile:
     # Constant for an infinite amount of cycles.
     INFINITE_CYCLES = -1
 
-
     max_health = MAX_HEALTH # in some circumstances, due to ageing or sustained damage, it might be possible that
                             # the maximum health to which a Producer can get is reduced.
     health = MAX_HEALTH

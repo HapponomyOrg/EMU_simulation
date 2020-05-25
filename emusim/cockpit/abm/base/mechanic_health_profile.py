@@ -1,4 +1,4 @@
-from emusim.cockpit.abm.health_profile import HealthProfile
+from emusim.cockpit.abm.base.health_profile import HealthProfile
 
 
 class MechanicHealthProfile(HealthProfile):
