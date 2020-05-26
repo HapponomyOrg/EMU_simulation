@@ -4,34 +4,63 @@ from emusim.cockpit.abm.base.health_profile import HealthProfile
 
 from collections import deque
 
-# Producers order products, which can also be producers, in batches. A batch is the smallest output which can be
-# produced.
+
 class Producer(Product):
-    UNLIMITED = -1
+    """A Producer produces Product instances. These can also be Producer instances.
+
+    Production is done in batches. A batch can contain multiple items and it can contain a range of different Product
+    types. Production of a batch can require input resources. It is not possible to produce fractions of a batch.
+
+
+    Attributes
+    ----------
+    UNLIMITED : int
+        A constant which can be used to set the maximum number of back orders to unlimited. This is the default.
+    enhancers : list
+        A Producer can be enhanced by one or more Enhancer instances.
+    """
+
+    UNLIMITED: int = -1
 
     max_production: int = 1
     over_production_capacity: int = 0
     damage_per_over_production_batch: float = 0
     production_delay: int = 0
     orders: int = 0
-    back_orders: int = 0 # The orders that can not be satisfied at the time of production due to a lack of resources.
-                         # These will be produced as soon as resources and production capacity becomes available.
-    max_back_orders = UNLIMITED # If back_orders exceeds max_back_orders, over production will be engaged in order to
-                                # eliminate back orders as soon as possible.
-    production_queue: deque = deque(production_delay + 1)
+    back_orders: int = 0  # The orders that can not be satisfied at the time of production due to a lack of resources.
+    # These will be produced as soon as resources and production capacity becomes available.
+    max_back_orders = UNLIMITED  # If back_orders exceeds max_back_orders, over production will be engaged in order to
+                                 # eliminate back orders as soon as possible.
+    production_queue: deque = deque(maxlen=production_delay + 1)
 
-    enhancers = {} # The installed enhancers. TODO
+    enhancers = []  # The installed enhancers. TODO
 
-    # label: a label for the producer. Can serve as an identifier of sorts.
-    # producer_lifetime: the amount of cycles the producer lasts. Can be set to Product.NO_EXPIRY.
-    # health_profile: determines how much damage the producer can sustain and how damage impacts its capacities.
-    # input: a dictionary of product type id's and amount values. It represents the input for one production batch.
-    # output_batch:
-    # ageing_damage: the damage one cycle of ageing does to the producer. Depending on the health_profile older
-    #                producers might age faster due to multiplier effects. If this is set to 0, the producer does not
-    #                age.
-    def __init__(self, label: str, health_profile: HealthProfile, input, output_batch, ageing_damage: float = 0):
-        super().__init__(label, ProductType.PRODUCER, health_profile, ageing_damage)
+    def __init__(self, subtype: str, health_profile: HealthProfile, output: dict, input: dict = None, ageing_damage: float = 0):
+        """Create a new Producer.
+
+
+        Parameters
+        ----------
+            subtype : str
+                A label for the producer. Can serve as an identifier of sorts.
+            health_profile : HealthProfile
+                Determines how much damage the producer can sustain and how damage impacts its capacities.
+            input : dict
+                A dictionary of product type id's and amount values. It represents the input for one production
+                batch.
+            output : dict
+                A dictionary with 'template' Products and amounts. During production the 'template' Products are cloned.
+            ageing_damage : float
+                The damage one cycle of ageing does to the producer. Depending on the health_profile older producers
+                 might age faster due to multiplier effects. If this is set to 0, the producer does not age.
+        """
+        super().__init__(ProductType.PRODUCER, subtype, health_profile, False, ageing_damage)
+        if input is None:
+            self.input = {}
+        else:
+            self.input = input
+
+        self.output = output
 
     # Set the production delay. This can only be done when there are no outstanding orders.
     # production_delay: the number of cycles it takes before a batch is actually produced.
@@ -92,11 +121,20 @@ class Producer(Product):
 
         return orders_in_pipeline
 
-    # Produces the order that reached the end of the production queue.
-    # resources: the resources available for production. If not enough resources are available to fulfill the order,
-    #            the number of unfulfilled batches is added to the number of back orders.
-    # Returns the produced products.
     def produce(self, resources):
+        """Produces the order that reached the end of the production queue (after production_delay cycles).
+
+        Parameters
+        ----------
+        resources: dict
+            A dictionary of resources to be used for production. Keys are type_id's, values are lists of the
+            resource. Resources are used after production. Usage of a resource does not necessarily destroy the
+            resource. That depends on whether it is single use or not.
+
+        Returns
+        -------
+        dict
+            A dictionary with products where the keys are product_type_id's"""
         production_size = 0
 
         # Actual output is only generated when the production queue has been filled up with orders. These can be
@@ -117,12 +155,60 @@ class Producer(Product):
             self.back_orders -= extra_production
             production_size += extra_production
 
-        self.health_profile.do_damage(self.calculate_damage(production_size))
-        # TODO: produce units and deplete required resources. Put products in pipeline (taking delay into account)
+        produced_batches = 0
+        production = {}
+
+        for batch_nr in range(production_size):
+            resources_depleted = False
+            used_resources = []
+
+            # Loop through required resources for 1 batch.
+            for key in self.input:
+                amount = self.input.get(key)
+                available_resources = resources.get(key)
+
+                # Check is required amount of resources is available.
+                if len(available_resources) >= amount:
+                    # Put resources aside
+                    for i in range(amount):
+                        resource = available_resources.pop()
+                        used_resources.append(resource)
+                else:
+                    # Signal resource depletion and end resource gathering.
+                    resources_depleted = True
+                    break
+
+            # Check whether enough resources were available.
+            if not resources_depleted:
+                # Use resources
+                for resource in used_resources:
+                    # If the resource was not used up, make it available for the next batch.
+                    if not resource.use():
+                        resources[resource.get_type_id()].append(resource)
+
+                # Create new products.
+                for product in self.output:
+                    for i in range(self.output.get(product)):
+                        if product.get_type_id() not in production:
+                            production[product.get_type_id()] = []
+
+                        production[product.get_type_id()].append(product.clone())
+            else:
+                # Return all resources that were put aside.
+                for resource in used_resources:
+                    resources[resource.get_type_id()].append(resource)
+
+                break
+
+        # Add lack of production to back orders.
+        self.back_orders += production_size - produced_batches
+        self.health_profile.do_damage(self.calculate_damage(produced_batches))
 
         # The new orders are added to the production queue and the orders are reset to 0.
         self.production_queue.append(self.orders)
         self.orders = 0
+
+        return production
 
     def calculate_damage(self, production_demand):
         production_demand = self.trim_order(production_demand)
