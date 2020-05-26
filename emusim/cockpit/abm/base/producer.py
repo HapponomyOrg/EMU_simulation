@@ -9,7 +9,7 @@ class Producer(Product):
     """A Producer produces Product instances. These can also be Producer instances.
 
     Production is done in batches. A batch can contain multiple items and it can contain a range of different Product
-    types. Production of a batch can require input resources. It is not possible to produce fractions of a batch.
+    types. Production of a batch can require required_resources resources. It is not possible to produce fractions of a batch.
 
 
     Attributes
@@ -30,12 +30,17 @@ class Producer(Product):
     back_orders: int = 0  # The orders that can not be satisfied at the time of production due to a lack of resources.
     # These will be produced as soon as resources and production capacity becomes available.
     max_back_orders = UNLIMITED  # If back_orders exceeds max_back_orders, over production will be engaged in order to
-                                 # eliminate back orders as soon as possible.
-    production_queue: deque = deque(maxlen=production_delay + 1)
+    # eliminate back orders as soon as possible.
+    production_queue: deque = deque(maxlen = production_delay + 1)
 
     enhancers = []  # The installed enhancers. TODO
 
-    def __init__(self, subtype: str, health_profile: HealthProfile, output: dict, input: dict = None, ageing_damage: float = 0):
+    def __init__(self,
+                 subtype: str,
+                 health_profile: HealthProfile,
+                 production_batch: dict,
+                 required_resources: dict = None,
+                 ageing_damage: float = 0.0):
         """Create a new Producer.
 
 
@@ -45,22 +50,23 @@ class Producer(Product):
                 A label for the producer. Can serve as an identifier of sorts.
             health_profile : HealthProfile
                 Determines how much damage the producer can sustain and how damage impacts its capacities.
-            input : dict
-                A dictionary of product type id's and amount values. It represents the input for one production
+            required_resources : dict
+                A dictionary of product type id's and amount values. It represents the required_resources for one production
                 batch.
-            output : dict
+            production_batch : dict
                 A dictionary with 'template' Products and amounts. During production the 'template' Products are cloned.
             ageing_damage : float
                 The damage one cycle of ageing does to the producer. Depending on the health_profile older producers
                  might age faster due to multiplier effects. If this is set to 0, the producer does not age.
         """
-        super().__init__(ProductType.PRODUCER, subtype, health_profile, False, ageing_damage)
-        if input is None:
-            self.input = {}
-        else:
-            self.input = input
 
-        self.output = output
+        super().__init__(ProductType.PRODUCER, subtype, health_profile, False, ageing_damage)
+        if required_resources is None:
+            self.required_resources = {}
+        else:
+            self.required_resources = required_resources
+
+        self.production_batch = production_batch
 
     # Set the production delay. This can only be done when there are no outstanding orders.
     # production_delay: the number of cycles it takes before a batch is actually produced.
@@ -121,6 +127,13 @@ class Producer(Product):
 
         return orders_in_pipeline
 
+    def idle(self):
+        """Do nothing during a cycle."""
+        self.health_profile.idle()
+
+        for enhancer in self.enhancers:
+            enhancer.idle()
+
     def produce(self, resources):
         """Produces the order that reached the end of the production queue (after production_delay cycles).
 
@@ -137,7 +150,7 @@ class Producer(Product):
             A dictionary with products where the keys are product_type_id's"""
         production_size = 0
 
-        # Actual output is only generated when the production queue has been filled up with orders. These can be
+        # Actual production_batch is only generated when the production queue has been filled up with orders. These can be
         # orders of 0 batches, which will result in no production.
         if len(self.production_queue) == self.production_delay:
             production_size += self.production_queue.pop()
@@ -163,8 +176,8 @@ class Producer(Product):
             used_resources = []
 
             # Loop through required resources for 1 batch.
-            for key in self.input:
-                amount = self.input.get(key)
+            for key in self.required_resources:
+                amount = self.required_resources.get(key)
                 available_resources = resources.get(key)
 
                 # Check is required amount of resources is available.
@@ -187,8 +200,8 @@ class Producer(Product):
                         resources[resource.get_type_id()].append(resource)
 
                 # Create new products.
-                for product in self.output:
-                    for i in range(self.output.get(product)):
+                for product in self.production_batch:
+                    for i in range(self.production_batch.get(product)):
                         if product.get_type_id() not in production:
                             production[product.get_type_id()] = []
 

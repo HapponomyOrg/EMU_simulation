@@ -16,8 +16,12 @@ class Product:
     -------
     get_id()"""
 
-    def __init__(self, product_type: ProductType, subtype: str, health_profile: HealthProfile, single_use: bool = True,
-                 ageing_damage: float = 0):
+    def __init__(self,
+                 product_type: ProductType,
+                 subtype: str,
+                 health_profile: HealthProfile,
+                 single_use: bool = True,
+                 ageing_damage: float = 0.0):
         """Create a new Product.
 
         Parameters

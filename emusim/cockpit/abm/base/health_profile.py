@@ -18,7 +18,9 @@ class HealthProfile:
     #  This simulates the fragility of already damaged Producers.
     #
     # By default, restorable is set to False
-    def __init__(self, damage_thresholds, health_thresholds):
+    def __init__(self,
+                 damage_thresholds: dict,
+                 health_thresholds: dict):
         self.damage_thresholds = damage_thresholds
         self.health_thersholds = health_thresholds
 
@@ -69,6 +71,9 @@ class HealthProfile:
             self.set_health(min(self.MAX_HEALTH, self.health + self.get_value_for_health(self.restore_thresholds, True)))
 
         return self.get_health()
+
+    def idle(self):
+        pass
 
     # thresholds: the list of thresholds.
     # maximize: True for retrieving the highest matching value, False for retrieving the lowest matching value.

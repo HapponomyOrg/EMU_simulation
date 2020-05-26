@@ -9,4 +9,5 @@ class ProductType(Enum):
     ENHANCER = 5
     STORAGE = 6
     POLLUTION = 7
-    MISCELLANEOUS = 8
+    ENHANCER = 8
+    MISCELLANEOUS = 9
