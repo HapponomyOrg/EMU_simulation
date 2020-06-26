@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt  # needed for plotting histogram of wealth
+
 from flask import Blueprint, render_template, request
 from emusim.cockpit.abm.forms.abm_forms_d import ParameterForm
 
