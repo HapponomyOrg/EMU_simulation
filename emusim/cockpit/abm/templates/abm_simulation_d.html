@@ -1,0 +1,69 @@
+{% extends "lorecosim.html" %}
+
+{% block content %}
+<div class="row d-flex justify-content-center">
+    <h2>ABM Simulation</h2>
+</div>
+{% if not render_graphs %}
+<form action="" method="post">
+    {{ parameter_form.csrf_token }}
+    <div class="card  d-inline-flex mb-2">
+        <h5 class="card-header success-color-dark white-text text-center py-4">
+            <strong>Simulation parameters</strong>
+        </h5>
+        <div class="card-body px-lg-5 pt-0">
+
+            <table class="outertable">
+                <tr>
+                    <td class="tabledata">
+                        <table>
+                            <tr>
+                                <td>{{ parameter_form.num_agents.label }}</td>
+                                <td>{{ parameter_form.num_agents }}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="divider">
+                                    <hr/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>{{ parameter_form.iterations.label }}</td>
+                                <td>{{ parameter_form.iterations }}</td>
+                            </tr>
+
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <hr>
+            <div class="input submit">
+                <input class=" btn success-color-dark text-white btn-sm button" type="submit" value="Run">
+            </div>
+        </div>
+    </div>
+</form>
+{% endif %}
+{% if render_graphs %}
+<div class="row">
+    <div class="col ">
+        <a class="btn success-color-dark text-white btn-sm float-right" type="button"
+           href="{{url_for('abm_in_flask.moneymodel')}}">New simulation</a></div>
+</div>
+<div class="container">
+    <div class="row">
+
+        {% for graphs in graph_data %}
+        {% for graph in graphs %}
+        <figure class="figure">
+            <embed type="image/svg+xml" src="{{graph|safe}}"  class="figure-img img-fluid z-depth-1" style="width: 500px"/>
+        <!--    <figcaption class="figure-caption text-right">GINI coef</figcaption> -->
+        </figure>
+        {% endfor %}
+        {% endfor %}
+
+
+    </div>
+
+</div>
+{% endif %}
+{% endblock %}
