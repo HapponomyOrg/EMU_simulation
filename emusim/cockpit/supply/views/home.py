@@ -11,7 +11,7 @@ def cockpit():
     return render_template('base.html')
 
 
-@home.route('/', methods=['GET', 'POST'])
+@home.route('/dry', methods=['GET', 'POST'])
 def accept_tc():
     license_form = LicenseForm(request.form)
 
