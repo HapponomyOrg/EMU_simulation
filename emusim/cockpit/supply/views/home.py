@@ -10,12 +10,13 @@ home = Blueprint('home', __name__,
 def cockpit():
     return render_template('base.html')
 
-#loreco implementation: /dry endpoint iso /
-#loreco implementation: endpoint / refers to router between happonomy neat, happonomy design and loreco abm
-@home.route('/dry', methods=['GET', 'POST'])
+
+@home.route('/', methods=['GET', 'POST'])
 def accept_tc():
     license_form = LicenseForm(request.form)
+
     if license_form.validate_on_submit() and license_form.license_accept.data == True:
         return redirect(url_for("home.cockpit"))
+
     return render_template('home.html',
                            license_form=license_form)
