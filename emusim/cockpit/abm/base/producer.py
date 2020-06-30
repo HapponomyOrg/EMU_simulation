@@ -1,8 +1,75 @@
+from collections import deque
+from typing import Dict, Deque, List, Tuple
+
+from emusim.cockpit.abm.base.enhancer import Enhancer
+from emusim.cockpit.abm.base.health_profile import HealthProfile
 from emusim.cockpit.abm.base.product import Product
 from emusim.cockpit.abm.base.product_type import ProductType
-from emusim.cockpit.abm.base.health_profile import HealthProfile
 
-from collections import deque
+
+class Order():
+    """For placing order_cluster with Producers.
+
+    Attributes
+    ----------
+    priority : str
+        The priority for the order. Higher priority order_cluster are handled first. High priority order_cluster result in
+        overproduction when necessary. Low priority order_cluster are pushed to the backorder queue if needed in order to
+        satisfy higher priority order_cluster.
+    requested_batches : int
+        The number of batches requested from the Producer.
+    partial_acceptance:
+        Determines whether the order can be partially accepted. If False, the order is either accepted in full or is
+        not accepted at all. If True then the number of batches acepted for production can be lower than the number
+        of requested batches.
+    accepted_batches : int
+        The number of batches accepted by the Producer. This can be less than the number of requested batches due to
+        limits in production capacity of the Producer.
+    produced_batches : int
+        The number of batches which have already been produced.
+    delayed : bool
+        Set to True when production of an order has been delayed."""
+
+    # Priorities for order_cluster.
+    PRIORITY_LOW = "LOW"
+    PRIORITY_NORMAL = "NORMAL"
+    PRIORITY_HIGH = "HIGH"
+
+    accepted_batches: int = 0
+    produced_batches: int = 0
+    delayed: bool = False
+
+    def __init__(self, requested_batches: int, partial_acceptance: bool = False, priority: str = PRIORITY_NORMAL):
+        self.requested_batches = requested_batches
+        self.partial_acceptance = partial_acceptance
+        self.priority = priority
+
+    def get_priority(self) -> str:
+        return self.priority
+
+    def get_requested_batches(self) -> int:
+        return self.requested_batches
+
+    def get_partial_acceptance(self) -> bool:
+        return self.partial_acceptance
+
+    def set_accepted_batches(self, accepted_batches : int):
+        self.accepted_batches = min(self.requested_batches, accepted_batches)
+
+    def get_accepted_batches(self) -> int:
+        return self.accepted_batches
+
+    def batch_produced(self):
+        self.produced_batches += 1
+
+    def order_finished(self) -> bool:
+        return self.produced_batches == self.accepted_batches
+
+    def set_daleyed(self, delayed : bool):
+        self.delayed = delayed
+
+    def get_delayed(self) -> bool:
+        return self.delayed
 
 
 class Producer(Product):
@@ -15,32 +82,80 @@ class Producer(Product):
     Attributes
     ----------
     UNLIMITED : int
-        A constant which can be used to set the maximum number of back orders to unlimited. This is the default.
-    enhancers : list
-        A Producer can be enhanced by one or more Enhancer instances.
+        A constant which can be used to set the maximum number of back order_cluster to unlimited. This is the default.
+    required_resources : Dict[str, int]
+        A dictionary containing the type and number of resources required to produce 1 batch.
+    production_capacity : int
+        The amount of batches the Producer can produce under normal circumstances.
+    over_production_capacity : int
+        The maximum amount of supplementary batches which can be produced. Overproduction can potentially damage the
+        Producer.
+    over_production_damage : float
+        The amount of damage per overproduced batch. This can be altered depending on the health profile.
+    production_delay : int
+        The amount of time it takes to produce products.
+    current_orders : Dict[str, Deque[Order]]
+        The accepted or partially accepted order_cluster for the current cycle. Orders are grouped by priority.
+    back_orders : Dict[str, Deque[Order]]
+        The orders that can not be satisfied at the time of production due to a lack of resources. These will be
+        produced as soon as resources and production capacity becomes available. High priority orders get precedence
+        over lower priority orders which are scheduled for production.
+    max_back_orders : int
+        If the number of batches in back_orders exceeds max_back_orders, over production will be engaged in order to
+        eliminate back orders as soon as possible.
+    production_queue : Deque[Dict[str, Deque[Order]]]
+        The production queue containing the order clusters to be produced. Each cycle an order cluster is popped for
+        production and the current order cluster is added. Production is executed from high priority ro low priority.
+    production_batch : Dict[Product, int]
+        A dictionary with 'template' Products and amounts. During production the 'template' Products are cloned.
+    maintenance_resources : Dict[str, int]
+        A dict containing the types and number of resources that are needed for maintenance. Failure to do proper
+        maintenance results in damage to the producer.
+    maintenance_failure_damage : Dict[str, float]
+        A dict containing the damage percentages which occur when 1 unit of necessary maintenance resources can not
+        be consumed for maintenance. Damage percentages are per type per unit. The state of the health profile might
+        increase the listed damage.
+    repair_profile : Dict[str, Tuple[float, float]]
+        If a product has a repair profile, damage can be repaired by expending resources. The repair profile consists of
+        a dict which contains product types as identifiers and a tuple which indicates the amount of damage which is
+        repaired for each unit of that resource and the maximum amount which can be repaired in one cycle with that
+        particular resource.
+    max_batches : int
+        The maximum amount of batches a Producer can produce over its lifetime. The default is UNLIMITED. A limit can be
+         set to simulate mines for example.
+    enhancers : List[Enhancer]
+        A Producer can be enhanced by one or more Enhancer instances. Enhancers take effect once they are installed.
     """
 
-    UNLIMITED: int = -1
+    UNLIMITED: int = int('inf')
 
-    max_production: int = 1
+    required_resources: Dict[str, int] = {}
+    production_capacity: int = 1
     over_production_capacity: int = 0
-    damage_per_over_production_batch: float = 0
+    over_production_damage: float = 0
     production_delay: int = 0
-    orders: int = 0
-    back_orders: int = 0  # The orders that can not be satisfied at the time of production due to a lack of resources.
-    # These will be produced as soon as resources and production capacity becomes available.
-    max_back_orders = UNLIMITED  # If back_orders exceeds max_back_orders, over production will be engaged in order to
-    # eliminate back orders as soon as possible.
-    production_queue: deque = deque(maxlen = production_delay + 1)
+    current_orders: Dict[str, Deque[Order]] = {Order.PRIORITY_LOW: deque(),
+                                               Order.PRIORITY_NORMAL: deque(),
+                                               Order.PRIORITY_HIGH: deque()}
+    back_orders: Dict[str, Deque[Order]] =  {Order.PRIORITY_LOW: deque(),
+                                             Order.PRIORITY_NORMAL: deque(),
+                                             Order.PRIORITY_HIGH: deque()}
+    max_back_orders = UNLIMITED
+    production_queue: Deque[Dict[str, Deque[Order]]] = deque()
 
-    enhancers = []  # The installed enhancers. TODO
+    production_batch: Dict[Product, int] = {}
+    maintenance_resources: Dict[str, int] = {}
+    maintenance_failure_damage: Dict[str, float] = {}
 
-    def __init__(self,
-                 subtype: str,
-                 health_profile: HealthProfile,
-                 production_batch: dict,
-                 required_resources: dict = None,
-                 ageing_damage: float = 0.0):
+    repair_profile: Dict[str, Tuple[float, float]] = {}
+
+    max_batches: int = UNLIMITED
+
+    enhancers: Deque[Enhancer] = []
+
+    def __init__(self, subtype: str, required_resources: Dict[str, int], production_batch: Dict[Product, int],
+                 maintenance_resources: Dict[str, int] = None, maintenance_failure_damage: Dict[str, float] = None,
+                 health_profile: HealthProfile = HealthProfile()):
         """Create a new Producer.
 
 
@@ -48,93 +163,136 @@ class Producer(Product):
         ----------
             subtype : str
                 A label for the producer. Can serve as an identifier of sorts.
+            required_resources : Dict[str, int]
+            production_batch : Dict[Product, int]
+                A dictionary with 'template' Products and amounts. During production the 'template' Products are cloned.
+            maintenance_resources : Dict[str, int]
+            maintenance_failure_damage : Dict[str, float]
             health_profile : HealthProfile
                 Determines how much damage the producer can sustain and how damage impacts its capacities.
-            required_resources : dict
-                A dictionary of product type id's and amount values. It represents the required_resources for one production
-                batch.
-            production_batch : dict
-                A dictionary with 'template' Products and amounts. During production the 'template' Products are cloned.
-            ageing_damage : float
-                The damage one cycle of ageing does to the producer. Depending on the health_profile older producers
-                 might age faster due to multiplier effects. If this is set to 0, the producer does not age.
         """
 
-        super().__init__(ProductType.PRODUCER, subtype, health_profile, False, ageing_damage)
-        if required_resources is None:
-            self.required_resources = {}
-        else:
-            self.required_resources = required_resources
+        super().__init__(ProductType.PRODUCER, subtype)
 
-        self.production_batch = production_batch
+        self.set_single_use(False)
+        self.required_resources += required_resources
+        self.production_batch += production_batch
+        self.health_profile = health_profile
+        self.maintenance_resources += maintenance_resources
+        self.maintenance_failure_damage += maintenance_failure_damage
 
-    # Set the production delay. This can only be done when there are no outstanding orders.
-    # production_delay: the number of cycles it takes before a batch is actually produced.
-    # Returns True when production_delay is succesfully set to the new value, False otherwise.
-    def set_production_delay(self, production_delay: int):
-        if self.get_orders_in_pipeline() == 0:
-            self.production_delay = production_delay
-            self.production_queue = deque(self.production_delay + 1)
-            return True
-        else:
-            return False
+    def init_production_delay(self, production_delay: int):
+        self.production_delay = production_delay
+
+    def get_production_delay(self) -> int:
+        return self.production_delay
 
     # Sets the maximum batches that can be produced in one cycle without causing damage.
-    def set_max_production(self, max_production):
-        self.max_production = max_production
+    def init_production_capacity(self, production_capacity):
+        self.production_capacity = production_capacity
+
+    # Returns production capacity without over production.
+    def get_production_capacity(self) -> int:
+        return self.production_capacity
 
     # Sets the maximum over production capacity, expressed in extra batches
     # Every batch that is produced above normal capacity results in an amount of damage. This damage is cumulative.
-    def set_over_production_capacity(self, over_production_capacity, damage_per_batch):
+    def init_over_production_capacity(self, over_production_capacity: int, over_production_damage: float = 0.0):
         self.over_production_capacity = over_production_capacity
-        self.damage_per_over_production_batch = damage_per_batch
+        self.over_production_damage = over_production_damage
 
-    # Returns production capacity without over production.
-    def get_production_capacity(self):
-        return self.max_production
+    def get_over_production_capacity(self):
+        return self.over_production_capacity
+
+    def get_over_production_damage(self) -> float:
+        return self.over_production_damage
+
+    def do_maintenance(self, maintenance_resources: Dict[str, Deque[Product]]):
+        pass # TODO implement
+
+    def do_repair(self, repair_resources: Dict[str, Deque[Product]]):
+        pass # TODO implement
+
+    def get_required_resources(self) -> Dict[str, int]:
+        required_resources = self.required_resources.copy()
+
+        for enhancer in self.enhancers:
+            required_resources = enhancer.get_required_resources(required_resources)
+
+        return required_resources
 
     # Returns production capacity with over production.
-    def get_max_production_capacity(self):
-        return self.get_production_capacity() + self.over_production_capacity
+    def get_max_production_capacity(self) -> int:
+        return self.get_production_capacity() + self.get_over_production_capacity()
 
-    # Returns the capacity still available for orders. This is production capacity without taking over production
-    # into account.
-    def get_available_order_capacity(self):
-        return self.max_production - self.orders
+    def get_spare_capacity(self) -> int:
+        """Returns the capacity still available for current orders. This is production capacity without taking over
+        production into account."""
+        return self.get_production_capacity() - self.get_batches_in_order_cluster(self.current_orders)
 
-    # Returns the available order capacity, including over production capacity.
-    def get_max_available_order_capacity(self):
-        return self.get_available_order_capacity() + self.over_production_capacity
+    def get_max_spare_capacity(self) -> int:
+        """Returns the available order capacity, including over production capacity."""
+        return self.get_max_production_capacity() - self.get_batches_in_order_cluster(self.current_orders)
 
-    # Add an order for this cycle. Production takes production_delay cycles.
-    # num_batches: the number of batches to add to the order.
-    # Returns the number of batches which are actually added. This could be less than requested if the total number of
-    # orders would exceed max production capacity + over production capacity or if not enough resources are available in
-    # order to meet demand.
-    def order(self, num_batches):
-        self.orders += num_batches
+    def order(self, order: Order) -> bool:
+        """Attempt to place an order. Orders are only accepted if enough production capacity is available. High
+        priority orders might delay low priority orders. High priority orders will engage over production if needed.
 
-    # Returns the orders that have been placed this cycle.
-    def get_current_orders(self):
-        return self.orders
+        Parameters
+        ----------
+        order: Order
+            The order to be placed. """
 
-    # Returns the sum of all orders in the production queue.
-    def get_orders_in_pipeline(self):
-        orders_in_pipeline = 0
+        available_capacity = 0
 
-        for order_size in self.production_queue:
-            orders_in_pipeline += order_size
+        if order.get_priority() != Order.PRIORITY_HIGH:
+            available_capacity = self.get_spare_capacity()
+        else:
+            # Low priority order_cluster might be delayed at time of production.
+            available_capacity = self.get_max_spare_capacity()\
+                                 + self.get_batches_in_orders(self.current_orders[Order.PRIORITY_LOW])
 
-        return orders_in_pipeline
+        if available_capacity > 0:
+            if available_capacity >= order.get_requested_batches() or order.get_partial_acceptance():
+                order.set_accepted_batches(min(order.get_requested_batches(), available_capacity))
+                self.current_orders[order.get_priority()].append(order)
+                return True
+
+        return False
+
+    def get_batches_in_production_queue(self) -> int:
+        """Returns the sum of all accepted batches of all orders in the production queue."""
+        batches_in_queue = 0
+
+        for order_cluster in self.production_queue:
+            batches_in_queue += self.get_batches_in_order_cluster(order_cluster)
+
+        return batches_in_queue
+
+    def get_batches_in_order_cluster(self, order_cluster: Dict[str, Deque[Order]]) -> int:
+        batches_in_order_cluster = 0
+
+        for orders in order_cluster.values():
+            batches_in_order_cluster += self.get_batches_in_orders(orders)
+
+        return batches_in_order_cluster
+
+    def get_batches_in_orders(self, orders: Deque[Order]):
+        batches_in_orders = 0
+
+        for order in orders:
+            batches_in_orders += order.get_accepted_batches()
+
+        return batches_in_orders
 
     def idle(self):
         """Do nothing during a cycle."""
-        self.health_profile.idle()
+        self.health_profile.regenerate(True)
 
-        for enhancer in self.enhancers:
-            enhancer.idle()
+        #for enhancer in self.enhancers: TODO
+        #    enhancer.idle()
 
-    def produce(self, resources):
+    def produce(self, resources: Dict[str, int]):
         """Produces the order that reached the end of the production queue (after production_delay cycles).
 
         Parameters
@@ -148,94 +306,27 @@ class Producer(Product):
         -------
         dict
             A dictionary with products where the keys are product_type_id's"""
-        production_size = 0
 
-        # Actual production_batch is only generated when the production queue has been filled up with orders. These can be
-        # orders of 0 batches, which will result in no production.
-        if len(self.production_queue) == self.production_delay:
-            production_size += self.production_queue.pop()
+        # TODO implement
 
-        # Produce extra batches if there are back orders and there is production capacity available
-        capacity = 0
-
-        if self.max_back_orders != self.UNLIMITED and self.back_orders > self.max_production:
-            capacity = self.get_production_capacity()
-        else:
-            capacity = self.get_max_production_capacity()
-
-        if self.back_orders > 0 and production_size < capacity:
-            extra_production = min(capacity - production_size, self.back_orders)
-            self.back_orders -= extra_production
-            production_size += extra_production
-
-        produced_batches = 0
-        production = {}
-
-        for batch_nr in range(production_size):
-            resources_depleted = False
-            used_resources = []
-
-            # Loop through required resources for 1 batch.
-            for key in self.required_resources:
-                amount = self.required_resources.get(key)
-                available_resources = resources.get(key)
-
-                # Check is required amount of resources is available.
-                if len(available_resources) >= amount:
-                    # Put resources aside
-                    for i in range(amount):
-                        resource = available_resources.pop()
-                        used_resources.append(resource)
-                else:
-                    # Signal resource depletion and end resource gathering.
-                    resources_depleted = True
-                    break
-
-            # Check whether enough resources were available.
-            if not resources_depleted:
-                # Use resources
-                for resource in used_resources:
-                    # If the resource was not used up, make it available for the next batch.
-                    if not resource.use():
-                        resources[resource.get_type_id()].append(resource)
-
-                # Create new products.
-                for product in self.production_batch:
-                    for i in range(self.production_batch.get(product)):
-                        if product.get_type_id() not in production:
-                            production[product.get_type_id()] = []
-
-                        production[product.get_type_id()].append(product.clone())
-            else:
-                # Return all resources that were put aside.
-                for resource in used_resources:
-                    resources[resource.get_type_id()].append(resource)
-
-                break
-
-        # Add lack of production to back orders.
-        self.back_orders += production_size - produced_batches
-        self.health_profile.do_damage(self.calculate_damage(produced_batches))
-
-        # The new orders are added to the production queue and the orders are reset to 0.
-        self.production_queue.append(self.orders)
-        self.orders = 0
-
-        return production
+        self.health_profile.regenerate(False)
 
     def calculate_damage(self, production_demand):
-        production_demand = self.trim_order(production_demand)
-
-        if production_demand > self.max_production:
-            return self.damage_per_over_production_batch * (production_demand - self.max_production)
+        if production_demand > self.get_production_capacity():
+            return self.get_over_production_damage() * (production_demand - self.get_production_capacity())
         else:
             return 0
 
     # Trim the order to a number of batches that can actually be produced.
-    # num_batches: the number of batches ordered.
+    # requested_batches: the number of batches ordered.
     # Returns the actual number of batches that will be produced.
-    def trim_order(self, num_batches):
-        if num_batches + self.orders > self.max_production + self.over_production_capacity:
-            return self.max_production + self.over_production_capacity - self.orders
-        else:
-            return num_batches
+    def trim_order(self, num_batches, priority: bool): # TODO review
+        #if not priority:
+        #    num_batches = min(num_batches, self.get_max_production_capacity() - self.orders)
+        #else:
+        #    num_batches = min(num_batches, self.get_production_capacity() - self.orders)
+
+        return num_batches
+
+    def repair(self, repair_resources: Dict[str, List[Product]]):
+        pass # TODO implement

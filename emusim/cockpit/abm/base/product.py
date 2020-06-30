@@ -1,7 +1,8 @@
+from copy import deepcopy
+from uuid import uuid4, UUID
+
 from emusim.cockpit.abm.base.health_profile import HealthProfile
 from emusim.cockpit.abm.base.product_type import ProductType
-from uuid import uuid4, UUID
-from copy import deepcopy
 
 
 class Product:
@@ -9,19 +10,35 @@ class Product:
 
     When a Product needs to be produced, a clone of a 'template' product is made.
 
+
     Attributes
     ----------
+    id : UUID
+        The unique id of the product.
+    health_profile : HealthProfile = HealthProfile()
+        The health profile for the product. The default is a simple health profile.
+    single_use : bool
+        When True the Product is a consumable and can only be used once. Otherwise it is reusable.
+    ageing_damage : float = 0.0
+        The damage one cycle of ageing does to the product. Depending on the health_profile older products
+        might age faster due to multiplier effects. If this is set to 0, the product does not age.
+    used_up : bool = False
+        Determines whether the product is used up. Only for single use products.
 
     Methods
     -------
     get_id()"""
 
+    id: UUID = uuid4()
+    health_profile: HealthProfile = None
+    single_use: bool = True
+    ageing_damage: float = 0.0
+    used_up = False
+
     def __init__(self,
                  product_type: ProductType,
                  subtype: str,
-                 health_profile: HealthProfile,
-                 single_use: bool = True,
-                 ageing_damage: float = 0.0):
+                 health_profile: HealthProfile = HealthProfile()):
         """Create a new Product.
 
         Parameters
@@ -31,23 +48,28 @@ class Product:
         subtype : str
             A subtype for the product. Used as a group identifier.
         health_profile : HealthProfile
-        single_use : bool
-            When True the Product is a consumable and can only be used once. Otherwise it is reusable.
-        ageing_damage : float = 0
-            the damage one cycle of ageing does to the product. Depending on the health_profile older products
-            might age faster due to multiplier effects. If this is set to 0, the product does not age."""
+            The health profile of the product. This determines how it reacts to damage, its longevity, whether or not it
+            will regenerate, ..."""
 
-        self.id = uuid4()
         self.type_id = str(type) + "-" + str(subtype)
         self.subtype = subtype
         self.product_type = product_type
         self.health_profile = health_profile
-        self.ageing_damage = ageing_damage
-        self.single_use = single_use
-        self.used_up = False
 
     def get_id(self) -> UUID:
         return self.id
+
+    def set_single_use(self, single_use: bool):
+        self.single_use = single_use
+
+    def is_single_use(self):
+        return self.single_use
+
+    def is_used_up(self):
+        return self.used_up
+
+    def set_ageing_damage(self, ageing_damage: float):
+        self.ageing_damage = ageing_damage
 
     def get_product_type(self) -> ProductType:
         return self.product_type
@@ -76,8 +98,8 @@ class Product:
     def get_remaining_cycles(self) -> int:
         return self.health_profile.calculate_cycles(self.ageing_damage)
 
-    # Age the product. This is called each cycle damages the product due to ageing.
     def age(self):
+        """Age the product. This should be called each cycle. It damages the product due to ageing."""
         self.health_profile.do_damage(self.ageing_damage)
 
     def is_expired(self) -> bool:
