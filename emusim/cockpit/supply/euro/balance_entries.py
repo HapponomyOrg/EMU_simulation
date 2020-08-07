@@ -1,0 +1,12 @@
+# balance sheet entries
+QE = "QE"
+LOANS = "Loans"
+MBS = "Mortgage Backed Ssecurities"
+SECURITIES = "Securities"
+DEPOSITS = "Deposits"
+DEBT = "Debt"
+SAVINGS = "Savings"
+EQUITY = "Equity"
+HELICOPTER_MONEY = "Helicopter money"
+RESERVES = "Reserves"
+FUNDING = "Funding"
