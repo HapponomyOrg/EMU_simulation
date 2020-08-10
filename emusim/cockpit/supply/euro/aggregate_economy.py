@@ -35,14 +35,19 @@ class AggregateEconomy():
 
     __desired_im: float = 0.0 # im if growth_target is maintained
 
-    target_im = 0.0
-    real_growth: float = 0.0
+    __target_im = 0.0
 
-    lending_satisfaction_rate: float = 1.0
+    nominal_growth: float = 0.0
+    real_growth: float = 0.0
     growth_inflation_influence: float = 0.0
 
-    mbs_growth: float = 0.0                 # the growth_target of prices of MBS
-    secirity_growth: float = 0.0            # the growth_target of security prices
+    lending_satisfaction_rate: float = 1.0
+    required_lending_percentage: float = 0.0    # required lending in order to reach growth target as % of start of
+                                                # cycle im
+    lending_percentage: float = 0.0             # lending which occurred as % of start of cycle im
+
+    mbs_growth: float = 0.0                     # the growth_target of prices of MBS
+    security_growth: float = 0.0                # the growth_target of security prices
 
     qe_mode: QEMode = QEMode.NONE
     qe_fixed: float = 0.0
@@ -125,7 +130,7 @@ class AggregateEconomy():
 
     def grow_securities(self, actor: EconomicActor):
         # grow central bank securities
-        security_growth = actor.asset(SECURITIES) * self.secirity_growth
+        security_growth = actor.asset(SECURITIES) * self.security_growth
         actor.book_asset(SECURITIES, security_growth)
         actor.book_liabilaty(EQUITY, security_growth)
 
@@ -153,16 +158,20 @@ class AggregateEconomy():
     def process_cycle(self) -> bool:
         crashed = False
 
+        start_im = self.im()
+
         # grow im for optimal scenario where growth_target is always achieved
         self.__desired_im += self.__desired_im * self.growth_target
 
         if self.growth_model == GrowthModel.CURRENT:
-            self.target_im = self.im()
-            self.target_im += self.target_im * self.growth_target
+            self.__target_im = self.im()
+            self.__target_im += self.__target_im * self.growth_target
         else:
-            self.target_im = self.desired_im
+            self.__target_im = self.desired_im
 
         self.inflate_parameters()
+
+        # reflect impact of price changes in securities
         self.grow_securities(self.central_bank)
         self.grow_securities(self.bank)
 
@@ -177,6 +186,25 @@ class AggregateEconomy():
             self.process_helicopter_money(self.private_sector.liability(DEBT * self.helicopter_debt_related))
 
         self.bank.process_savings()
+        self.bank.process_private_loans_and_income()
+        self.bank.spend()
+
+        required_lending: float = self.__target_im - self.bank.liability(DEPOSITS) - self.bank.liability(SAVINGS)
+        lending: float = required_lending * self.lending_satisfaction_rate
+
+        self.private_sector.borrow(lending)
+        self.bank.update_reserves()
+
+        self.save_state()
+
+        # calculate nominal and real growth
+        end_im = self.im()
+        self.nominal_growth = (end_im - start_im) / start_im
+        self.real_growth = (end_im / (1 + self.inflation) - start_im) / start_im
+
+        # calculate required and real lending percentages
+        self.required_lending_percentage = required_lending / start_im
+        self.lending_percentage = lending / start_im
 
         return crashed
 

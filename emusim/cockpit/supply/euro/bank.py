@@ -26,6 +26,10 @@ class Bank(EconomicActor):
     min_profit: float = 0.2
 
     spending_mode: SpendingMode = SpendingMode.PROFIT
+    fixed_spending: float = 0.0
+    profit_spending: float = 0.0
+    equity_spending: float = 0.0
+    capital_spending: float = 0.0
 
     __central_bank: CentralBank
     __clients: Set[PrivateActor] = set()
@@ -74,22 +78,56 @@ class Bank(EconomicActor):
         self.book_asset(LOANS, amount)
         self.book_liabilaty(DEPOSITS, amount)
 
-    def process_private_loans(self) -> bool:
+    def process_private_loans_and_income(self) -> bool:
         success: bool = True
+        total_interest: float = 0.0
+        total_installment: float = 0.0
 
         for client in self.clients:
             result: Tuple[bool, float, float] = client.pay_debt(self.loan_ir)
             success = success and result[0]
-            interest = result[1]
-            installment = result[2]
+            total_interest += result[1]
+            total_installment += result[2]
 
-            self.book_liabilaty(DEPOSITS, -interest)
-            self.book_liabilaty(EQUITY, interest)
+        self.book_liabilaty(DEPOSITS, -total_interest)
+        self.book_liabilaty(EQUITY, total_interest)
 
-            self.book_asset(LOANS, -installment)
-            self.book_liabilaty(DEPOSITS, -installment)
+        self.book_asset(LOANS, -total_installment)
+        self.book_liabilaty(DEPOSITS, -total_installment)
+
+        # calculate income from other sources than interest
+        income: float = total_interest / self.income_from_interest - total_interest
+        self.book_liabilaty(DEPOSITS, -income)
+        self.book_liabilaty(EQUITY, income)
 
         return success
+
+    def spend(self):
+        expenses: float = 0.0
+
+        if self.spending_mode == SpendingMode.FIXED:
+            expenses = self.fixed_spending
+        elif self.spending_mode == SpendingMode.PROFIT:
+            # calculate profit
+            profit: float = 0.0 # TODO
+            expenses: float = profit * self.profit_spending
+
+            self.book_liabilaty(EQUITY, -expenses)
+            self.book_liabilaty(DEPOSITS, expenses)
+        elif self.spending_mode == SpendingMode.EQUITY:
+            expenses = self.liability(EQUITY) * self.equity_spending
+        elif self.spending_mode == SpendingMode.CAPITAL:
+            expenses = (self.liability(EQUITY) + self.liability(SEC_EQUITY)) * self.capital_spending
+
+            if expenses > self.liability(EQUITY):
+                securities_to_sell = expenses - self.liability(EQUITY)
+                self.book_liabilaty(DEPOSITS, -securities_to_sell)
+                self.book_asset(SECURITIES, -securities_to_sell)
+                self.book_liabilaty(SEC_EQUITY, -securities_to_sell)
+                self.book_liabilaty(EQUITY, securities_to_sell)
+
+        self.book_liabilaty(EQUITY, -expenses)
+        self.book_liabilaty(DEPOSITS, expenses)
 
     def borrow(self, amount: float):
         self.central_bank.book_loan(amount)

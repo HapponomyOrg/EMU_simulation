@@ -32,17 +32,18 @@ class PrivateActor(EconomicActor):
         self.bank.book_savings(amount)
 
     def borrow(self, amount: float):
-        self.book_asset(DEPOSITS, amount)
-        self.book_liabilaty(DEBT, amount)
-        self.bank.book_loan(amount)
+        if amount > 0:
+            self.book_asset(DEPOSITS, amount)
+            self.book_liabilaty(DEBT, amount)
+            self.bank.book_loan(amount)
 
-        installment = amount/self.bank.loan_duration
+            installment = amount/self.bank.loan_duration
 
-        for i in range(self.bank.loan_duration):
-            if len(self.__installments) < i + 1:
-                self.__installments.append(installment)
-            else:
-                self.__installments[i] += installment
+            for i in range(self.bank.loan_duration):
+                if len(self.__installments) < i + 1:
+                    self.__installments.append(installment)
+                else:
+                    self.__installments[i] += installment
 
     def pay_debt(self, ir: float) -> Tuple[bool, float, float]:
         """Pay interest on debt, then pay installment.
