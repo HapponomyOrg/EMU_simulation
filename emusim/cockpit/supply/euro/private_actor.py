@@ -27,7 +27,7 @@ class PrivateActor(EconomicActor):
 
     @property
     def liabilities(self) -> Set:
-        return {DEBT, EQUITY}
+        return {DEBT, EQUITY, SEC_EQUITY}
 
     @property
     def installment(self) -> float:
@@ -55,18 +55,30 @@ class PrivateActor(EconomicActor):
                 else:
                     self.__installments[i] += installment
 
-    def settle_debt(self):
-        """Eliminate the amount of debt from the balance sheet. Non paid debt is suprlus equity because the debt
-        could not be collected and can therefore never be settled."""
-
-        self.book_liability(DEBT, -self.installment)
-        self.book_liability(EQUITY, self.installment)
+    def pay_debt(self, amount: float):
+        self.__pay(amount, DEBT)
 
     def pay(self, amount: float):
         self.__pay(amount, EQUITY)
 
+    def trade_securities(self, amount: float):
+        """Attempt to trade the amount of securities, a positive amount indicating a sell, a negative amount
+        indicating a buy. When buying, no more than the available deposits + savings can be used."""
+
+        equity: float = self.liability(EQUITY)
+        self.__pay(-amount, EQUITY)
+
+        sold_securities: float = self.liability(EQUITY) - equity
+
+        # when selling, do not subtract more than what was on the balance sheet. The surplus is 'created'. These
+        # actually represent securities which were hidden from the books until now.
+        securities_delta: float = min(self.asset(SECURITIES), sold_securities)
+
+        self.book_asset(SECURITIES, -sold_securities)
+        self.book_liability(SEC_EQUITY, -sold_securities)
+
     def __pay(self, amount: float, liability_name: str):
-        """Attampt tp pay an amount. Use savings if needed."""
+        """Attempt to pay an amount. Use savings if needed."""
 
         deposits: float = self.asset(DEPOSITS)
         savings: float = self.asset(SAVINGS)

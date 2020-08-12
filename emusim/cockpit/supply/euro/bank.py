@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Set, Tuple, List
+from typing import Set, Tuple, List, Callable
 
 from emusim.cockpit.supply.euro.balance_entries import *
 from emusim.cockpit.supply.euro.balance_sheet import BALANCE, DELTA
@@ -131,9 +131,8 @@ class Bank(EconomicActor):
         for client in self.clients:
             # take defaults into account
             adjusted_installment: float = client.installment - client.installment * self.defaulting_rate
-            paid_installment: float = self.__process_client_payment(client, adjusted_installment)
+            paid_installment: float = self.__process_client_payment(client, adjusted_installment, client.pay_debt)
 
-            client.settle_debt()
             self.__client_installment += client.installment
             self.__client_installment_shortage += client.installment - paid_installment
 
@@ -142,11 +141,11 @@ class Bank(EconomicActor):
 
             # no interest is paid on defaulting loans
             adjusted_interest: float = expected_interest - expected_interest * self.defaulting_rate
-            paid_interest: float = self.__process_client_payment(client, adjusted_interest)
+            paid_interest: float = self.__process_client_payment(client, adjusted_interest, client.pay)
             income += paid_interest
 
             bank_costs: float = expected_interest / self.income_from_interest - expected_interest
-            income += self.__process_client_payment(client, bank_costs)
+            income += self.__process_client_payment(client, bank_costs, client.pay)
 
             self.__income += income
             self.__income_shortage += expected_interest + bank_costs - income
@@ -162,11 +161,11 @@ class Bank(EconomicActor):
         self.book_asset(LOANS, -self.client_installment * loans / total)
         self.book_asset(MBS, -self.client_installment * mbs / total)
 
-    def __process_client_payment(self, client: PrivateActor, amount: float) -> float:
+    def __process_client_payment(self, client: PrivateActor, amount: float, pay_method: Callable) -> float:
         client_deposits: float = client.asset(DEPOSITS)
         client_savings: float = client.asset(SAVINGS)
 
-        client.pay(amount)
+        pay_method(amount)
 
         paid_from_deposits: float = client_deposits - client.asset(DEPOSITS)
         paid_from_savings: float = client_savings - client.asset(SAVINGS)
@@ -262,19 +261,25 @@ class Bank(EconomicActor):
 
         max_securities: float = total_deposits * self.central_bank.securities_real_reserve
 
-        # when selling securities, enough money needs to be available in the economy to pay for them.
-        available_deposits: float = self.liability(DEPOSITS) + self.liability(SAVINGS)
-
-        self.__buy_securities(max(-available_deposits, max_securities - self.asset(SECURITIES)))
+        self.__trade_securities(max_securities - self.asset(SECURITIES))
 
         # invest a maximum in order to minimise surplus reserves
         max_nominal_reserve: float = self.max_reserve * total_deposits
 
         if self.asset(RESERVES) > max_nominal_reserve:
-            self.__buy_securities(max_nominal_reserve - self.asset(RESERVES))
+            self.__trade_securities(max_nominal_reserve - self.asset(RESERVES))
 
-    def __buy_securities(self, amount: float):
-        self.book_asset(SECURITIES, amount)
-        self.book_liability(DEPOSITS, amount)
-        self.book_liability(EQUITY, -amount)
-        self.book_liability(SEC_EQUITY, amount)
+    def __trade_securities(self, amount: float):
+        # trade securities proportionally with each client, if possible
+        total_deposits: float = self.liability(DEPOSITS) + self.liability(SAVINGS)
+        traded_securities: float = 0.0
+
+        for client in self.clients:
+            client_deposits = client.asset(DEPOSITS) + client.asset(SAVINGS)
+            fraction: float = client_deposits / total_deposits * amount
+
+            traded_securities += self.__process_client_payment(client, fraction, client.trade_securities)
+
+        self.book_liability(EQUITY, -traded_securities)
+        self.book_asset(SECURITIES, traded_securities)
+        self.book_liability(SEC_EQUITY, traded_securities)
