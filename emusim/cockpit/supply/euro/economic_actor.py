@@ -27,7 +27,7 @@ class EconomicActor:
         else:
             return False
 
-    def book_liabilaty(self, name: str, amount: float) -> bool:
+    def book_liability(self, name: str, amount: float) -> bool:
         if name in self.liabilities:
             self.balance.book_liability(name, amount)
             return True
@@ -46,7 +46,13 @@ class EconomicActor:
     def inflate_parameters(self, inflation: float):
         pass
 
-    def save_state(self):
-        self.balance.save_state()
+    def start_cycle(self):
+        """Call before performing any action on the economic actor."""
+        pass
+
+    def end_cycle(self) -> bool:
+        """Call after all actions for a cycle have been concluded.
+        Returns whether the cycle was successful."""
+        return self.balance.save_state()
 
     

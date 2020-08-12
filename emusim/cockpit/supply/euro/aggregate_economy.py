@@ -7,11 +7,6 @@ from emusim.cockpit.supply.euro.economic_actor import EconomicActor
 from emusim.cockpit.supply.euro.private_actor import PrivateActor
 
 
-class GrowthModel(Enum):
-    CURRENT = 0
-    INITIAL = 1
-
-
 class QEMode(Enum):
     NONE = 0
     FIXED = 1
@@ -25,26 +20,11 @@ class HelicopterMode(Enum):
 
 
 class AggregateEconomy():
-    __central_bank: CentralBank
-    __bank: Bank
-    __private_sector: PrivateActor
 
-    __growth_target: float
-    __growth_model: GrowthModel
-    __inflation: float
-
-    __desired_im: float = 0.0 # im if growth_target is maintained
-
-    __target_im = 0.0
-
-    nominal_growth: float = 0.0
-    real_growth: float = 0.0
-    growth_inflation_influence: float = 0.0
+    growth_rate: float
+    inflation: float
 
     lending_satisfaction_rate: float = 1.0
-    required_lending_percentage: float = 0.0    # required lending in order to reach growth target as % of start of
-                                                # cycle im
-    lending_percentage: float = 0.0             # lending which occurred as % of start of cycle im
 
     mbs_growth: float = 0.0                     # the growth_target of prices of MBS
     security_growth: float = 0.0                # the growth_target of security prices
@@ -57,38 +37,44 @@ class AggregateEconomy():
     helicopter_fixed: float = 0.0
     helicopter_debt_related: float = 0.0
 
+    __central_bank: CentralBank
+    __bank: Bank
+    __private_sector: PrivateActor
+
+    __desired_im: float = 0.0 # im if growth_target is maintained
+
+    # cycle attributes
+    __start_im: float = 0.0
+
+    __target_im = 0.0
+
+    __nominal_growth: float = 0.0
+    __real_growth: float = 0.0
+
+    __required_lending: float = 0.0
+    __lending: float = 0.0
+
+    __required_lending_percentage: float = 0.0
+    __lending_percentage: float = 0.0
+
     def __init__(self,
                  central_bank: CentralBank,
                  bank: Bank,
                  private_sector: PrivateActor,
                  inflation: float,
-                 growth_rate: float,
-                 growth_target: GrowthModel = GrowthModel.CURRENT):
+                 growth_rate: float):
         self.__central_bank = central_bank
         self.__bank = bank
         self.__private_sector = private_sector
 
-        self.__desired_im = self.im()
+        self.__desired_im = self.im
 
-        self.__growth_target = growth_rate
-        self.__growth_model = growth_target
-        self.__inflation = inflation
-
-    @property
-    def growth_target(self) -> float:
-        return self.__growth_target
-
-    @property
-    def growth_model(self) -> GrowthModel:
-        return self.__growth_model
+        self.growth_rate = growth_rate
+        self.inflation = inflation
 
     @property
     def desired_im(self) -> float:
         return self.__desired_im
-
-    @property
-    def inflation(self) -> float:
-        return self.__inflation
 
     @property
     def central_bank(self) -> CentralBank:
@@ -102,10 +88,44 @@ class AggregateEconomy():
     def private_sector(self) -> PrivateActor:
         return self.__private_sector
 
+    @property
+    def target_im(self) -> float:
+        return self.__target_im
+
+    @property
+    def nominal_growth(self) -> float:
+        """Returns growth without adjusting for inflation"""
+        return self.__nominal_growth
+
+    @property
+    def real_growth(self) -> float:
+        """Returns growth after adjustment for inflation."""
+        return self.__real_growth
+
+    @property
+    def required_lending(self) -> float:
+        """Returns required lending needed to satisfy growth, not adjusted for inflation."""
+        return self.__required_lending
+
+    @property
+    def lending(self) -> float:
+        """Returns executed lending, not adjusted for inflation."""
+        return  self.__lending
+
+    @property
+    def required_lending_percentage(self) -> float:
+        """Returns required lending needed to satisfy growth as percentage of IM."""
+        return self.__required_lending_percentage
+
+    @property
+    def lending_percentage(self) -> float:
+        """Returns executed lending as percentage of IM."""
+        return  self.__lending_percentage
+
+    @property
     def im(self) -> float:
         im = self.bank.liability(DEPOSITS)
         im += self.bank.liability(SAVINGS)
-        im += self.bank.liability(EQUITY)
 
         return im
 
@@ -126,17 +146,17 @@ class AggregateEconomy():
     def grow_mbs(self):
         mbs_growth = self.bank.asset(MBS) * self.mbs_growth
         self.bank.book_asset(MBS, mbs_growth)
-        self.bank.book_liabilaty(EQUITY, mbs_growth)
+        self.bank.book_liability(EQUITY, mbs_growth)
 
     def grow_securities(self, actor: EconomicActor):
         # grow central bank securities
         security_growth = actor.asset(SECURITIES) * self.security_growth
         actor.book_asset(SECURITIES, security_growth)
-        actor.book_liabilaty(EQUITY, security_growth)
+        actor.book_liability(EQUITY, security_growth)
 
     def process_qe(self, qe_amount: float):
         self.central_bank.book_asset(SECURITIES, qe_amount)
-        self.central_bank.book_liabilaty(RESERVES, qe_amount)
+        self.central_bank.book_liability(RESERVES, qe_amount)
 
         # first buy securities from banks
         qe_bank_securities = min(qe_amount, self.bank.asset(SECURITIES))
@@ -146,34 +166,39 @@ class AggregateEconomy():
         # get remainder from private sector
         qe_private_securities = qe_amount - qe_bank_securities
         self.bank.book_asset(RESERVES, qe_private_securities)
-        self.bank.book_liabilaty(DEPOSITS, qe_private_securities)
+        self.bank.book_liability(DEPOSITS, qe_private_securities)
 
     def process_helicopter_money(self, helicopter_amount: float):
         self.central_bank.book_asset(HELICOPTER_MONEY, helicopter_amount)
         self.bank.book_asset(RESERVES, helicopter_amount)
-        self.bank.book_liabilaty(DEPOSITS, helicopter_amount)
+        self.bank.book_liability(DEPOSITS, helicopter_amount)
         self.private_sector.book_asset(DEPOSITS, helicopter_amount)
-        self.private_sector.book_liabilaty(EQUITY, helicopter_amount)
+        self.private_sector.book_liability(EQUITY, helicopter_amount)
 
-    def process_cycle(self) -> bool:
-        crashed = False
-
-        start_im = self.im()
+    def start_cycle(self):
+        self.__start_im = self.im
 
         # grow im for optimal scenario where growth_target is always achieved
-        self.__desired_im += self.__desired_im * self.growth_target
+        self.__desired_im += self.desired_im * self.growth_rate
 
-        if self.growth_model == GrowthModel.CURRENT:
-            self.__target_im = self.im()
-            self.__target_im += self.__target_im * self.growth_target
-        else:
-            self.__target_im = self.desired_im
+        # set target im for end of cycle
+        self.__target_im = self.im
+        self.__target_im += self.target_im * self.growth_rate
 
+    def process_cycle(self) -> bool:
+        """Process a full cycle. Parameters need to be set before this is called. Cycle parameters can be read after
+        the cycle has completed.
+
+        Returns True if all balance sheets validate and IM > 0."""
+        self.start_cycle()
         self.inflate_parameters()
 
         # reflect impact of price changes in securities
         self.grow_securities(self.central_bank)
         self.grow_securities(self.bank)
+
+        # reflect impact of price changes in mbs
+        self.grow_mbs()
 
         if self.qe_mode == QEMode.FIXED:
             self.process_qe(self.qe_fixed)
@@ -189,26 +214,24 @@ class AggregateEconomy():
         self.bank.process_private_loans_and_income()
         self.bank.spend()
 
-        required_lending: float = self.__target_im - self.bank.liability(DEPOSITS) - self.bank.liability(SAVINGS)
-        lending: float = required_lending * self.lending_satisfaction_rate
-
-        self.private_sector.borrow(lending)
-        self.bank.update_reserves()
-
-        self.save_state()
-
-        # calculate nominal and real growth
-        end_im = self.im()
-        self.nominal_growth = (end_im - start_im) / start_im
-        self.real_growth = (end_im / (1 + self.inflation) - start_im) / start_im
+        self.__required_lending = self.target_im - self.bank.liability(DEPOSITS) - self.bank.liability(SAVINGS)
+        self.__lending = self.__required_lending * self.lending_satisfaction_rate
 
         # calculate required and real lending percentages
-        self.required_lending_percentage = required_lending / start_im
-        self.lending_percentage = lending / start_im
+        self.__required_lending_percentage = self.__required_lending_percentage / self.im
+        self.__lending_percentage = self.__lending_percentage / self.im
 
-        return crashed
+        self.private_sector.borrow(self.lending)
+        self.bank.update_reserves()
 
-    def save_state(self):
-        self.central_bank.save_state()
-        self.bank.save_state()
-        self.private_sector.save_state()
+        return self.end_cycle() and self.private_sector.asset(DEPOSITS) + self.private_sector.asset(SAVINGS) > 0
+
+    def end_cycle(self) -> bool:
+        sucess: bool = self.central_bank.end_cycle() and self.bank.end_cycle() and self.private_sector.end_cycle()
+
+        # calculate nominal and real growth
+        end_im = self.im
+        self.__nominal_growth = (end_im - self.__start_im) / self.__start_im
+        self.__real_growth = (end_im / (1 + self.inflation) - self.__start_im) / self.__start_im
+
+        return sucess

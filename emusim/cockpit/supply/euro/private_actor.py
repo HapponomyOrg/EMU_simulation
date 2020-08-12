@@ -1,4 +1,4 @@
-from typing import Set, List, Tuple
+from typing import Set, List
 
 from emusim.cockpit.supply.euro.balance_entries import *
 from emusim.cockpit.supply.euro.bank import Bank
@@ -10,6 +10,9 @@ class PrivateActor(EconomicActor):
 
     __bank: Bank
     __installments: List [float] = [0.0]
+
+    # cycle attributes
+    __installment: float
 
     def __init__(self, bank: Bank):
         self.bank.register(self)
@@ -26,6 +29,13 @@ class PrivateActor(EconomicActor):
     def liabilities(self) -> Set:
         return {DEBT, EQUITY}
 
+    @property
+    def installment(self) -> float:
+        return self.__installment
+
+    def start_cycle(self):
+        self.__installment = self.__installments.pop(0)
+
     def save(self, amount: float):
         self.book_asset(SAVINGS, amount)
         self.book_asset(DEPOSITS, -amount)
@@ -34,7 +44,7 @@ class PrivateActor(EconomicActor):
     def borrow(self, amount: float):
         if amount > 0:
             self.book_asset(DEPOSITS, amount)
-            self.book_liabilaty(DEBT, amount)
+            self.book_liability(DEBT, amount)
             self.bank.book_loan(amount)
 
             installment = amount/self.bank.loan_duration
@@ -45,26 +55,19 @@ class PrivateActor(EconomicActor):
                 else:
                     self.__installments[i] += installment
 
-    def pay_debt(self, ir: float) -> Tuple[bool, float, float]:
-        """Pay interest on debt, then pay installment.
-        Return a tuple which contains, in order:
-        * Bool: indicating whether all payments where successfully made.
-        * float: Amount of interest paid.
-        * float: Installment amount paid."""
+    def settle_debt(self):
+        """Eliminate the amount of debt from the balance sheet. Non paid debt is suprlus equity because the debt
+        could not be collected and can therefore never be settled."""
 
-        result: Tuple[bool, float] = self.__pay(self.liability(DEBT) * ir)
-        success: bool = result[0]
-        interest_paid: float = result[1]
-        self.book_liabilaty(EQUITY, -interest_paid)
+        self.book_liability(DEBT, -self.installment)
+        self.book_liability(EQUITY, self.installment)
 
-        result = self.__pay(self.__installments.pop(0))
-        success = success and result[0]
-        installment_paid: float = result[1]
-        self.book_liabilaty(DEBT, -installment_paid)
+    def pay(self, amount: float):
+        self.__pay(amount, EQUITY)
 
-        return tuple((success, installment_paid, installment_paid))
+    def __pay(self, amount: float, liability_name: str):
+        """Attampt tp pay an amount. Use savings if needed."""
 
-    def __pay(self, amount: float) -> Tuple[bool, float]:
         deposits: float = self.asset(DEPOSITS)
         savings: float = self.asset(SAVINGS)
 
@@ -73,7 +76,4 @@ class PrivateActor(EconomicActor):
 
         self.book_asset(DEPOSITS, -pay_from_deposits)
         self.book_asset(SAVINGS, -pay_from_savings)
-
-        paid: float = pay_from_deposits + pay_from_savings
-
-        return tuple((paid == amount, paid))
+        self.book_liability(liability_name, -(pay_from_deposits + pay_from_savings))

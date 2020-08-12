@@ -46,6 +46,12 @@ class BalanceSheet():
     def liabilities(self) -> Dict[str, float]:
         return self.__liabilities
 
+    def asset(self, name: str) -> float:
+        return self.assets[name]
+
+    def liability(self, name: str) -> float:
+        return self.liabilities[name]
+
 
 class BalanceSheetTimeline():
     """Balance sheet with history"""
@@ -112,7 +118,7 @@ class BalanceSheetTimeline():
         return self.__current_balance.liabilities
 
     def asset(self, name: str) -> float:
-        return self.assets[name]
+        return self.__current_balance.asset(name)
 
     def liability(self, name: str) -> float:
-        return self.liabilities[name]
+        return self.__current_balance.liability(name)

@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Set, Tuple, List
 
 from emusim.cockpit.supply.euro.balance_entries import *
+from emusim.cockpit.supply.euro.balance_sheet import BALANCE, DELTA
 from emusim.cockpit.supply.euro.central_bank import CentralBank
 from emusim.cockpit.supply.euro.economic_actor import EconomicActor
 from emusim.cockpit.supply.euro.private_actor import PrivateActor
@@ -21,9 +22,12 @@ class Bank(EconomicActor):
     loan_ir: float
     loan_duration: int
 
+    defaulting_rate: float = 0.0
+
     no_loss: bool = True
     income_from_interest: float = 1.0
-    min_profit: float = 0.2
+    retain_profit: bool = True
+    retain_profit_percentage: float = 0.2
 
     spending_mode: SpendingMode = SpendingMode.PROFIT
     fixed_spending: float = 0.0
@@ -35,6 +39,12 @@ class Bank(EconomicActor):
     __clients: Set[PrivateActor] = set()
 
     __installments: List[float] = [0.0]
+
+    # Cycle attributes
+    __client_installment: float = 0.0
+    __client_installment_shortage: float = 0.0
+    __income: float = 0.0
+    __income_shortage: float = 0.0
 
     def __init__(self, central_bank: CentralBank):
         self.__central_bank = central_bank
@@ -60,79 +70,156 @@ class Bank(EconomicActor):
     def liabilities(self) -> Set:
         return {DEPOSITS, SAVINGS, DEBT, EQUITY}
 
+    @property
+    def client_installment(self) -> float:
+        return self.__client_installment
+
+    @property
+    def client_installment_shortage(self) -> float:
+        return self.__client_installment_shortage
+
+    @property
+    def income(self) -> float:
+        return self.__income
+
+    @property
+    def income_shortage(self) -> float:
+        return self.__income_shortage
+
+    @property
+    def real_profit(self) -> float:
+        """Return the profit for this cycle. Has to be called after the state for the current cycle has been saved."""
+        return self.balance.history[-1][DELTA].liability(EQUITY)
+
+    @property
+    def financial_profit(self) -> float:
+        """Return the financial profit (from gains in security values) for this cycle. Has to be called after the state
+        for the current cycle has been saved."""
+        return self.balance.history[-1][DELTA].liability(SEC_EQUITY)
+
+    def start_cycle(self):
+        self.__client_installment = 0.0
+        self.__client_installment_shortage = 0.0
+        self.__income = 0.0
+        self.__income_shortage = 0.0
+
+    def inflate_parameters(self, inflation: float):
+         self.fixed_spending += self.fixed_spending * inflation
+
     def book_savings(self, amount: float):
-        self.book_liabilaty(SAVINGS, amount)
-        self.book_liabilaty(DEPOSITS, -amount)
+        self.book_liability(SAVINGS, amount)
+        self.book_liability(DEPOSITS, -amount)
 
     def process_savings(self):
         interest = self.liability(SAVINGS) * self.savings_ir
-        self.book_liabilaty(DEPOSITS, interest)
-        self.book_liabilaty(EQUITY, -interest)
+        self.book_liability(DEPOSITS, interest)
+        self.book_liability(EQUITY, -interest)
 
         for client in self.clients:
             interest = client.asset(SAVINGS) * self.savings_ir
             client.book_asset(DEPOSITS, interest)
-            client.book_liabilaty(EQUITY, interest)
+            client.book_liability(EQUITY, interest)
 
     def book_loan(self, amount: float):
         self.book_asset(LOANS, amount)
-        self.book_liabilaty(DEPOSITS, amount)
+        self.book_liability(DEPOSITS, amount)
 
-    def process_private_loans_and_income(self) -> bool:
-        success: bool = True
-        total_interest: float = 0.0
-        total_installment: float = 0.0
+    def process_private_loans_and_income(self):
+        """Collect interest, installments and other income.
+        Return True if all collections were successful."""
 
         for client in self.clients:
-            result: Tuple[bool, float, float] = client.pay_debt(self.loan_ir)
-            success = success and result[0]
-            total_interest += result[1]
-            total_installment += result[2]
+            # take defaults into account
+            adjusted_installment: float = client.installment - client.installment * self.defaulting_rate
+            paid_installment: float = self.__process_client_payment(client, adjusted_installment)
 
-        self.book_liabilaty(DEPOSITS, -total_interest)
-        self.book_liabilaty(EQUITY, total_interest)
+            client.settle_debt()
+            self.__client_installment += client.installment
+            self.__client_installment_shortage += client.installment - paid_installment
 
-        self.book_asset(LOANS, -total_installment)
-        self.book_liabilaty(DEPOSITS, -total_installment)
+            income: float = 0.0
+            expected_interest: float = client.liability(DEBT) * self.loan_ir
 
-        # calculate income from other sources than interest
-        income: float = total_interest / self.income_from_interest - total_interest
-        self.book_liabilaty(DEPOSITS, -income)
-        self.book_liabilaty(EQUITY, income)
+            # no interest is paid on defaulting loans
+            adjusted_interest: float = expected_interest - expected_interest * self.defaulting_rate
+            paid_interest: float = self.__process_client_payment(client, adjusted_interest)
+            income += paid_interest
 
-        return success
+            bank_costs: float = expected_interest / self.income_from_interest - expected_interest
+            income += self.__process_client_payment(client, bank_costs)
+
+            self.__income += income
+            self.__income_shortage += expected_interest + bank_costs - income
+
+        self.book_liability(DEPOSITS, -self.income)
+        self.book_liability(EQUITY, self.income)
+
+        # subtract installment proportionally from loans and mbs
+        loans: float = self.asset(LOANS)
+        mbs: float = self.asset(MBS)
+        total: float = loans + mbs
+
+        self.book_asset(LOANS, -self.client_installment * loans / total)
+        self.book_asset(MBS, -self.client_installment * mbs / total)
+
+    def __process_client_payment(self, client: PrivateActor, amount: float) -> float:
+        client_deposits: float = client.asset(DEPOSITS)
+        client_savings: float = client.asset(SAVINGS)
+
+        client.pay(amount)
+
+        paid_from_deposits: float = client_deposits - client.asset(DEPOSITS)
+        paid_from_savings: float = client_savings - client.asset(SAVINGS)
+
+        self.book_liability(DEPOSITS, -paid_from_deposits)
+        self.book_liability(SAVINGS, -paid_from_savings)
+
+        return paid_from_deposits + paid_from_savings
 
     def spend(self):
+        # calculate real_profit
+        profit: float = self.liability(EQUITY) - self.balance.history[-1][BALANCE].asset(EQUITY)
         expenses: float = 0.0
 
         if self.spending_mode == SpendingMode.FIXED:
             expenses = self.fixed_spending
         elif self.spending_mode == SpendingMode.PROFIT:
-            # calculate profit
-            profit: float = 0.0 # TODO
-            expenses: float = profit * self.profit_spending
+            expenses: float = max(0.0, profit * self.profit_spending)
 
-            self.book_liabilaty(EQUITY, -expenses)
-            self.book_liabilaty(DEPOSITS, expenses)
+            self.book_liability(EQUITY, -expenses)
+            self.book_liability(DEPOSITS, expenses)
         elif self.spending_mode == SpendingMode.EQUITY:
             expenses = self.liability(EQUITY) * self.equity_spending
         elif self.spending_mode == SpendingMode.CAPITAL:
             expenses = (self.liability(EQUITY) + self.liability(SEC_EQUITY)) * self.capital_spending
 
             if expenses > self.liability(EQUITY):
-                securities_to_sell = expenses - self.liability(EQUITY)
-                self.book_liabilaty(DEPOSITS, -securities_to_sell)
-                self.book_asset(SECURITIES, -securities_to_sell)
-                self.book_liabilaty(SEC_EQUITY, -securities_to_sell)
-                self.book_liabilaty(EQUITY, securities_to_sell)
+                available_deposits: float = self.liability(DEPOSITS) + self.liability(SAVINGS)
+                securities_to_sell: float = min(available_deposits, expenses - self.liability(EQUITY))
 
-        self.book_liabilaty(EQUITY, -expenses)
-        self.book_liabilaty(DEPOSITS, expenses)
+                for client in self.clients:
+                    fraction: float = (client.asset(DEPOSITS) + client.asset(SAVINGS)) / available_deposits
+
+                    client.pay(fraction * securities_to_sell)
+
+                self.book_liability(DEPOSITS, -securities_to_sell)
+                self.book_asset(SECURITIES, -securities_to_sell)
+                self.book_liability(SEC_EQUITY, -securities_to_sell)
+                self.book_liability(EQUITY, securities_to_sell)
+
+        if self.retain_profit:
+            expenses = min(expenses, max(0.0, profit - profit * self.retain_profit_percentage))
+
+        if self.no_loss:
+            expenses = min(expenses, max(0.0, profit))
+
+        self.book_liability(EQUITY, -expenses)
+        self.book_liability(DEPOSITS, expenses)
 
     def borrow(self, amount: float):
         self.central_bank.book_loan(amount)
         self.book_asset(RESERVES, amount)
-        self.book_liabilaty(DEBT, amount)
+        self.book_liability(DEBT, amount)
 
         installment: float = amount/self.central_bank.loan_duration
 
@@ -149,24 +236,45 @@ class Bank(EconomicActor):
 
         to_borrow: float = max(0.0, total - self.asset(RESERVES))
         self.borrow(to_borrow)
-        self.book_asset(RESERVES, -total)
-        self.book_liabilaty(DEBT, -installment)
-        self.book_liabilaty(EQUITY, -interest)
+        self.book_asset(RESERVES, -installment)
+        self.book_liability(DEBT, -installment)
+
+        # interest is used to fund central bank working costs and the rest is redistributed to member states,
+        # eventually resulting in deposits
+        self.book_liability(EQUITY, -interest)
+        self.book_liability(DEPOSITS, interest)
 
         return tuple((interest, installment))
 
     def update_reserves(self):
-        min_requirement: float = (self.liability(DEPOSITS) + self.liability(SAVINGS)) * self.central_bank.min_reserve
+        """Update reserves so that they are adequate for the current amount of deposits + savings on the balance
+        sheet of the bank. If this results in changes in deposits held on the balance sheet, these changes are
+        carried over to the next reserve calculations."""
+        total_deposits: float = self.liability(DEPOSITS) + self.liability(SAVINGS)
 
-        max_mbs: float = min_requirement * self.central_bank.mbs_reserve
+        min_reserves: float = total_deposits * self.central_bank.real_min_reserve
+        self.borrow(max(0.0, min_reserves - self.asset(RESERVES)))
+
+        max_mbs: float = total_deposits * self.central_bank.mbs_real_reserve
         new_mbs: float = min(self.asset(LOANS), max_mbs - self.asset(MBS))
         self.book_asset(LOANS, -new_mbs)
         self.book_asset(MBS, new_mbs)
 
-        max_securities: float = min_requirement * self.central_bank.securities_reserve
-        new_securities: float = max_securities - self.asset(SECURITIES)
-        # TODO securities balance sheet operations
+        max_securities: float = total_deposits * self.central_bank.securities_real_reserve
 
-        min_reserves: float = min_requirement\
-                              * (1 - self.central_bank.securities_reserve - self.central_bank.mbs_reserve)
-        self.borrow(max(0.0, min_reserves - self.asset(RESERVES)))
+        # when selling securities, enough money needs to be available in the economy to pay for them.
+        available_deposits: float = self.liability(DEPOSITS) + self.liability(SAVINGS)
+
+        self.__buy_securities(max(-available_deposits, max_securities - self.asset(SECURITIES)))
+
+        # invest a maximum in order to minimise surplus reserves
+        max_nominal_reserve: float = self.max_reserve * total_deposits
+
+        if self.asset(RESERVES) > max_nominal_reserve:
+            self.__buy_securities(max_nominal_reserve - self.asset(RESERVES))
+
+    def __buy_securities(self, amount: float):
+        self.book_asset(SECURITIES, amount)
+        self.book_liability(DEPOSITS, amount)
+        self.book_liability(EQUITY, -amount)
+        self.book_liability(SEC_EQUITY, amount)
