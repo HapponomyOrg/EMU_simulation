@@ -101,9 +101,9 @@ class AbstractAggregateSimulator(Simulator, AggregateEconomy):
         self.__collect_balance_sheet_data()
 
     def __collect_balance_sheet_data(self):
-        self.__collect_balance_data(CENTRAL_BANK_BS, self._aggregate_economy.central_bank)
-        self.__collect_balance_data(BANK_BS, self._aggregate_economy.bank)
-        self.__collect_balance_data(PRIVATE_SECTOR_BS, self._aggregate_economy.private_sector)
+        self.__collect_balance_data(CENTRAL_BANK_BS, self.central_bank)
+        self.__collect_balance_data(BANK_BS, self.bank)
+        self.__collect_balance_data(PRIVATE_SECTOR_BS, self.private_sector)
 
     def __collect_balance_data(self, category: str, actor: EconomicActor):
         for asset_name in actor.asset_names:
