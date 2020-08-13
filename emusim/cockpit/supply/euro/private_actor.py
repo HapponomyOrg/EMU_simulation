@@ -1,4 +1,4 @@
-from typing import Set, List
+from typing import List
 
 from emusim.cockpit.supply.euro.balance_entries import *
 from emusim.cockpit.supply.euro.bank import Bank
@@ -15,19 +15,13 @@ class PrivateActor(EconomicActor):
     __installment: float
 
     def __init__(self, bank: Bank):
+        self._init_asset_names([DEPOSITS, SECURITIES, SAVINGS])
+        self._init_liability_names([DEBT, EQUITY, SEC_EQUITY])
         self.bank.register(self)
 
     @property
     def bank(self) -> Bank:
         return self.__bank
-
-    @property
-    def assets(self) -> Set:
-        return {DEPOSITS, SECURITIES, SAVINGS}
-
-    @property
-    def liabilities(self) -> Set:
-        return {DEBT, EQUITY, SEC_EQUITY}
 
     @property
     def installment(self) -> float:

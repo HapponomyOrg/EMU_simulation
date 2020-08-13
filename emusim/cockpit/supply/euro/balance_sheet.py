@@ -106,6 +106,10 @@ class BalanceSheetTimeline():
             return False
 
     @property
+    def current_balance(self) -> BalanceSheet:
+        return deepcopy(self.__current_balance)
+
+    @property
     def history(self) -> List[Tuple[BalanceSheet, BalanceSheet]]:
         return self.__history
 

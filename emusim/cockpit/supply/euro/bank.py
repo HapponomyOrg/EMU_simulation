@@ -47,6 +47,8 @@ class Bank(EconomicActor):
     __income_shortage: float = 0.0
 
     def __init__(self, central_bank: CentralBank):
+        self._init_asset_names([RESERVES, LOANS, MBS, SECURITIES])
+        self._init_liability_names([DEPOSITS, SAVINGS, DEBT, EQUITY, SEC_EQUITY])
         self.__central_bank = central_bank
         self.central_bank.register(self)
         self.max_reserve = central_bank.min_reserve
@@ -61,14 +63,6 @@ class Bank(EconomicActor):
     @property
     def clients(self) -> Set[PrivateActor]:
         return self.__clients
-
-    @property
-    def assets(self) -> Set:
-        return {RESERVES, LOANS, SECURITIES, MBS}
-
-    @property
-    def liabilities(self) -> Set:
-        return {DEPOSITS, SAVINGS, DEBT, EQUITY}
 
     @property
     def client_installment(self) -> float:
@@ -261,16 +255,27 @@ class Bank(EconomicActor):
 
         max_securities: float = total_deposits * self.central_bank.securities_real_reserve
 
-        self.__trade_securities(max_securities - self.asset(SECURITIES))
+        self.__trade_client_securities(max_securities - self.asset(SECURITIES))
 
         # invest a maximum in order to minimise surplus reserves
         max_nominal_reserve: float = self.max_reserve * total_deposits
 
         if self.asset(RESERVES) > max_nominal_reserve:
-            self.__trade_securities(max_nominal_reserve - self.asset(RESERVES))
+            self.__trade_client_securities(max_nominal_reserve - self.asset(RESERVES))
 
-    def __trade_securities(self, amount: float):
-        # trade securities proportionally with each client, if possible
+    def trade_central_bank_securities(self, amount: float) -> float:
+        """Trade securities with the central bank. A positive amount indicates a sell to the central bank.
+        Returns the actual number of securities traded."""
+
+        traded_securities: float = min(amount, self.asset(SECURITIES))
+
+        self.book_asset(SECURITIES, -traded_securities)
+        self.book_asset(RESERVES, traded_securities)
+
+        return traded_securities
+
+    def __trade_client_securities(self, amount: float):
+        """Trade securities proportionally with each client, if possible."""
         total_deposits: float = self.liability(DEPOSITS) + self.liability(SAVINGS)
         traded_securities: float = 0.0
 
