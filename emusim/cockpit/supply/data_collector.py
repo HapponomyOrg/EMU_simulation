@@ -4,7 +4,9 @@ from typing import List, KeysView
 
 
 class DataCollector(ABC):
-    __data_dict: OrderedDict[str, OrderedDict[str, List[float]]] = OrderedDict()
+
+    def __init__(self):
+        self.__data_dict: OrderedDict[str, OrderedDict[str, List[float]]] = OrderedDict()
 
     @abstractmethod
     @property

@@ -1,23 +1,31 @@
-from typing import List
+from __future__ import annotations
 
-from emusim.cockpit.supply.euro.balance_entries import *
-from emusim.cockpit.supply.euro.bank import Bank
-from emusim.cockpit.supply.euro.economic_actor import EconomicActor
+from typing import TYPE_CHECKING, List
+
+from ordered_set import OrderedSet
+
+from . import EconomicActor
+from .balance_entries import *
+
+if TYPE_CHECKING:
+    from . import Bank
 
 
 class PrivateActor(EconomicActor):
-    savings_rate: float = 0.02
-
-    __bank: Bank
-    __installments: List [float] = [0.0]
-
-    # cycle attributes
-    __installment: float
 
     def __init__(self, bank: Bank):
-        self._init_asset_names([DEPOSITS, SECURITIES, SAVINGS])
-        self._init_liability_names([DEBT, EQUITY, SEC_EQUITY])
+        super().__init__(
+            OrderedSet([DEPOSITS, SECURITIES, SAVINGS]),
+            OrderedSet([DEBT, EQUITY, SEC_EQUITY]))
+        self.__bank: Bank = bank
         self.bank.register(self)
+
+        self.savings_rate: float = 0.02
+
+        self.__installments: List [float] = [0.0]
+
+        # cycle attributes
+        self.__installment: float = 0.0
 
     @property
     def bank(self) -> Bank:
@@ -27,7 +35,10 @@ class PrivateActor(EconomicActor):
     def installment(self) -> float:
         return self.__installment
 
-    def start_cycle(self):
+    def inflate(self, inflation: float):
+        pass
+
+    def start_transactions(self):
         self.__installment = self.__installments.pop(0)
 
     def save(self, amount: float):

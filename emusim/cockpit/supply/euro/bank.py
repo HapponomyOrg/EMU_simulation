@@ -1,11 +1,16 @@
-from enum import Enum
-from typing import Set, Tuple, List, Callable
+from __future__ import annotations
 
-from emusim.cockpit.supply.euro.balance_entries import *
-from emusim.cockpit.supply.euro.balance_sheet import BALANCE, DELTA
-from emusim.cockpit.supply.euro.central_bank import CentralBank
-from emusim.cockpit.supply.euro.economic_actor import EconomicActor
-from emusim.cockpit.supply.euro.private_actor import PrivateActor
+from enum import Enum
+from typing import TYPE_CHECKING, Set, Tuple, List, Callable
+
+from ordered_set import OrderedSet
+
+from . import EconomicActor
+from .balance_entries import *
+from .balance_sheet import BalanceSheet
+
+if TYPE_CHECKING:
+    from . import CentralBank, PrivateActor
 
 
 class SpendingMode(Enum):
@@ -16,42 +21,43 @@ class SpendingMode(Enum):
 
 
 class Bank(EconomicActor):
-    max_reserve: float
-
-    savings_ir: float
-    loan_ir: float
-    loan_duration: int
-
-    defaulting_rate: float = 0.0
-
-    no_loss: bool = True
-    income_from_interest: float = 1.0
-    retain_profit: bool = True
-    retain_profit_percentage: float = 0.2
-
-    spending_mode: SpendingMode = SpendingMode.PROFIT
-    fixed_spending: float = 0.0
-    profit_spending: float = 0.0
-    equity_spending: float = 0.0
-    capital_spending: float = 0.0
-
-    __central_bank: CentralBank
-    __clients: Set[PrivateActor] = set()
-
-    __installments: List[float] = [0.0]
-
-    # Cycle attributes
-    __client_installment: float = 0.0
-    __client_installment_shortage: float = 0.0
-    __income: float = 0.0
-    __income_shortage: float = 0.0
 
     def __init__(self, central_bank: CentralBank):
-        self._init_asset_names([RESERVES, LOANS, MBS, SECURITIES])
-        self._init_liability_names([DEPOSITS, SAVINGS, DEBT, EQUITY, SEC_EQUITY])
-        self.__central_bank = central_bank
+        super().__init__(
+            OrderedSet([RESERVES, LOANS, MBS, SECURITIES]),
+            OrderedSet([DEPOSITS, SAVINGS, DEBT, EQUITY, MBS_EQUITY, SEC_EQUITY]))
+        self.__central_bank: CentralBank = central_bank
+        self.__clients: Set[PrivateActor] = set()
+        self.__installments: List[float] = [0.0]
+
         self.central_bank.register(self)
         self.max_reserve = central_bank.min_reserve
+
+        self.min_liquidity: float = 0.05
+        self.max_reserve: float = 0.05
+
+        self.savings_ir: float = 0.02
+        self.loan_ir: float = 0.025
+        self.loan_duration: int = 20
+
+        self.defaulting_rate: float = 0.0
+
+        self.no_loss: bool = True
+        self.income_from_interest: float = 1.0
+        self.retain_profit: bool = True
+        self.retain_profit_percentage: float = 0.2
+
+        self.spending_mode: SpendingMode = SpendingMode.PROFIT
+        self.fixed_spending: float = 0.0
+        self.profit_spending: float = 0.0
+        self.equity_spending: float = 0.0
+        self.capital_spending: float = 0.0
+
+        # Cycle attributes
+        self.__client_installment: float = 0.0
+        self.__client_installment_shortage: float = 0.0
+        self.__income: float = 0.0
+        self.__income_shortage: float = 0.0
 
     def register(self, client: PrivateActor):
         self.__clients.add(client)
@@ -83,28 +89,43 @@ class Bank(EconomicActor):
     @property
     def real_profit(self) -> float:
         """Return the profit for this cycle. Has to be called after the state for the current cycle has been saved."""
-        return self.balance.history[-1][DELTA].liability(EQUITY)
+        return self.balance.delta_history[-1].liability(EQUITY)
 
     @property
     def financial_profit(self) -> float:
-        """Return the financial profit (from gains in security values) for this cycle. Has to be called after the state
-        for the current cycle has been saved."""
-        return self.balance.history[-1][DELTA].liability(SEC_EQUITY)
+        """Return the financial profit (from gains in security and MBS values) for this cycle. Has to be called after
+        the state for the current cycle has been saved."""
+        delta_balance: BalanceSheet = self.balance.delta_history[-1]
+        return delta_balance.liability(SEC_EQUITY) + delta_balance.liability(MBS_EQUITY)
 
-    def start_cycle(self):
+    def start_transactions(self):
         self.__client_installment = 0.0
         self.__client_installment_shortage = 0.0
         self.__income = 0.0
         self.__income_shortage = 0.0
 
-    def inflate_parameters(self, inflation: float):
-         self.fixed_spending += self.fixed_spending * inflation
+        for client in self.clients:
+            client.start_transactions()
+
+    def end_transactions(self) -> bool:
+        success: bool = True
+
+        for client in self.clients:
+            success = success and client.end_transactions()
+
+        return success
+
+    def inflate(self, inflation: float):
+        self.fixed_spending += self.fixed_spending * inflation
+
+        for client in self.clients:
+            client.inflate(inflation)
 
     def book_savings(self, amount: float):
         self.book_liability(SAVINGS, amount)
         self.book_liability(DEPOSITS, -amount)
 
-    def process_savings(self):
+    def process_client_savings(self):
         interest = self.liability(SAVINGS) * self.savings_ir
         self.book_liability(DEPOSITS, interest)
         self.book_liability(EQUITY, -interest)
@@ -118,9 +139,17 @@ class Bank(EconomicActor):
         self.book_asset(LOANS, amount)
         self.book_liability(DEPOSITS, amount)
 
-    def process_private_loans_and_income(self):
+    def process_interest(self, interest: float):
+        # It is possible that interest is negative
+        if self.asset(RESERVES) + interest < 0:
+            self.borrow(abs(self.asset((RESERVES) + interest)))
+
+        self.book_asset(RESERVES, interest)
+        self.book_liability(EQUITY, interest)
+
+    def process_income(self):
         """Collect interest, installments and other income.
-        Return True if all collections were successful."""
+        :return True if all collections were successful."""
 
         for client in self.clients:
             # take defaults into account
@@ -150,10 +179,12 @@ class Bank(EconomicActor):
         # subtract installment proportionally from loans and mbs
         loans: float = self.asset(LOANS)
         mbs: float = self.asset(MBS)
-        total: float = loans + mbs
+        mbs_equity: float = self.liability(MBS_EQUITY)
+        total: float = loans + mbs - mbs_equity # take market changes in MBS into account.
 
         self.book_asset(LOANS, -self.client_installment * loans / total)
         self.book_asset(MBS, -self.client_installment * mbs / total)
+        self.book_liability(MBS_EQUITY, -self.client_installment * mbs_equity / total)
 
     def __process_client_payment(self, client: PrivateActor, amount: float, pay_method: Callable) -> float:
         client_deposits: float = client.asset(DEPOSITS)
@@ -171,7 +202,7 @@ class Bank(EconomicActor):
 
     def spend(self):
         # calculate real_profit
-        profit: float = self.liability(EQUITY) - self.balance.history[-1][BALANCE].asset(EQUITY)
+        profit: float = self.balance.delta_history[-1].asset(EQUITY)
         expenses: float = 0.0
 
         if self.spending_mode == SpendingMode.FIXED:
@@ -288,3 +319,4 @@ class Bank(EconomicActor):
         self.book_liability(EQUITY, -traded_securities)
         self.book_asset(SECURITIES, traded_securities)
         self.book_liability(SEC_EQUITY, traded_securities)
+

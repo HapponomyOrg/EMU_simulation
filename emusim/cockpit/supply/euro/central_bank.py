@@ -1,9 +1,15 @@
-from enum import Enum
-from typing import Set
+from __future__ import annotations
 
-from emusim.cockpit.supply.euro.balance_entries import *
-from emusim.cockpit.supply.euro.bank import Bank
-from emusim.cockpit.supply.euro.economic_actor import EconomicActor
+from enum import Enum
+from typing import TYPE_CHECKING, Set
+
+from ordered_set import OrderedSet
+
+from . import EconomicActor
+from .balance_entries import *
+
+if TYPE_CHECKING:
+    from . import Bank
 
 
 class QEMode(Enum):
@@ -19,30 +25,29 @@ class HelicopterMode(Enum):
 
 
 class CentralBank(EconomicActor):
-    reserve_ir: float = 0.0
-    surplus_reserve_ir: float = -0.005
 
-    loan_ir: float = 0.01
-    loan_duration: int = 1
+    def __init__(self, min_reserve: float = 4.0):
+        super().__init__(OrderedSet([LOANS, SECURITIES, HELICOPTER_MONEY, INTEREST]),
+                         OrderedSet([RESERVES, EQUITY, SEC_EQUITY]))
+        self.__registered_banks: Set[Bank] = set()
 
-    qe_mode: QEMode = QEMode.NONE
-    qe_fixed: float = 0.0
-    qe_debt_related = 0.0
+        self.__min_reserve = min_reserve
+        self.__mbs_reserve: float = 0.0                # max % of 'reserve' in the form of MBS
+        self.__securities_reserve: float = 0.0         # max % of 'reserve' in the form of securities
 
-    helicopter_mode: HelicopterMode = HelicopterMode.NONE
-    helicopter_fixed: float = 0.0
-    helicopter_debt_related: float = 0.0
+        self.reserve_ir: float = 0.0
+        self.surplus_reserve_ir: float = -0.005
 
-    __min_reserve: float = 4.0
-    __mbs_reserve: float = 0.0                # max % of 'reserve' in the form of MBS
-    __securities_reserve: float = 0.0         # max % of 'reserve' in the form of securities
+        self.loan_ir: float = 0.01
+        self.loan_duration: int = 1
 
-    __registered_banks: Set[Bank] = set()
+        self.qe_mode: QEMode = QEMode.NONE
+        self.qe_fixed: float = 0.0
+        self.qe_debt_related = 0.0
 
-    def __init__(self, min_reserves: float = 4.0):
-        self._init_asset_names([LOANS, SECURITIES, HELICOPTER_MONEY])
-        self._init_liability_names([RESERVES, EQUITY, SEC_EQUITY])
-        self.__min_reserve = min_reserves
+        self.helicopter_mode: HelicopterMode = HelicopterMode.NONE
+        self.helicopter_fixed: float = 0.0
+        self.helicopter_debt_related: float = 0.0
 
     def register(self, bank: Bank):
         self.registered_banks.add(bank)
@@ -87,9 +92,39 @@ class CentralBank(EconomicActor):
     def registered_banks(self) -> Set[Bank]:
         return self.__registered_banks
 
-    def inflate_parameters(self, inflation: float):
+    def start_transactions(self):
+        for bank in self.registered_banks:
+            bank.start_transactions()
+
+    def end_transactions(self) -> bool:
+        # if there are interest assets on the books, spend them to the economy
+        success: bool = True
+
+        for bank in self.registered_banks:
+            success = success and bank.end_transactions()
+
+        return success
+
+    def inflate(self, inflation: float):
         self.qe_fixed += self.qe_fixed * inflation
         self.helicopter_fixed += self.helicopter_fixed * inflation
+
+        for bank in self.registered_banks:
+            bank.inflate(inflation)
+
+    def process_reserve_interests(self):
+        """Give/collect interest according to a bank's reserve accounts."""
+        for bank in self.registered_banks:
+            # Banks may hold part of their reserves in another form than the balance of their reserve accounts.
+            # Those reserves will always meet the minimum reserves due to the implementation of the Bank class.
+            reserves: float = bank.asset(RESERVES)
+            deposits: float = bank.liability(DEPOSITS) + bank.liability(SAVINGS)
+            required_reserve: float = min(reserves, deposits * self.min_reserve)
+            surplus_reserve: float = max (0.0, reserves - required_reserve)
+            interest: float = required_reserve * self.reserve_ir + surplus_reserve * self.surplus_reserve_ir
+            self.book_asset(INTEREST, interest)
+            self.book_liability(EQUITY, interest)
+            bank.process_interest(interest)
 
     def book_loan(self, amount: float):
         self.book_asset(LOANS, amount)

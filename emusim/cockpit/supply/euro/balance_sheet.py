@@ -1,21 +1,52 @@
-from copy import deepcopy
-from typing import List, Dict, Tuple, Set
+from __future__ import annotations
 
-BALANCE = 0
-DELTA = 1
+from typing import List, Dict, Set, Optional
+
 
 class BalanceSheet():
     """Balance sheet"""
 
-    __assets: Dict[str, float] = {}
-    __liabilities: Dict[str, float] = {}
+    def __init__(self, balance_sheet: Optional[BalanceSheet] = None):
+        self.__assets: Dict[str, float] = {}
+        self.__liabilities: Dict[str, float] = {}
+
+        if balance_sheet is not None:
+            for name in balance_sheet.assets.keys():
+                self.book_asset(name, balance_sheet.asset(name))
+
+            for name in balance_sheet.liabilities.keys():
+                self.book_liability(name, balance_sheet.liability(name))
+
+    @property
+    def assets(self) -> Dict[str, float]:
+        return self.__assets
+
+    @property
+    def liabilities(self) -> Dict[str, float]:
+        return self.__liabilities
+
+    @property
+    def assets_value(self) -> float:
+        return self.__value(self.assets)
+
+    @property
+    def liabilities_value(self) -> float:
+        return self.__value(self.liabilities)
+
+    @property
+    def total_balance(self) -> float:
+        """:return The total balance if the balance sheet validates (assets == liabilities). -1.0 otherwise."""
+        if self.validate():
+            return self.__value(self.assets)
+        else:
+            return -1.0
 
     def clear(self):
         self.assets.clear()
         self.liabilities.clear()
 
     def book_asset(self, asset_name: str, amount: float):
-        if asset_name in self.__assets:
+        if asset_name in self.assets:
             self.__assets[asset_name] += amount
         else:
             self.__assets[asset_name] = amount
@@ -27,102 +58,112 @@ class BalanceSheet():
             self.__liabilities[liability_name] = amount
 
     def validate(self) -> bool:
-        total_assets = 0.0
-        total_liabilities = 0.0
-
-        for value in self.assets.values():
-            total_assets += value
-
-        for value in self.liabilities.values():
-            total_liabilities += value
-
-        return total_assets - total_liabilities == 0
-
-    @property
-    def assets(self) -> Dict[str, float]:
-        return self.__assets
-
-    @property
-    def liabilities(self) -> Dict[str, float]:
-        return self.__liabilities
+        return self.__value(self.assets) - self.__value(self.liabilities) == 0
 
     def asset(self, name: str) -> float:
-        return self.assets[name]
+        if name in self.assets:
+            return self.assets[name]
+        else:
+            return 0.0
 
     def liability(self, name: str) -> float:
-        return self.liabilities[name]
+        if name in self.liabilities:
+            return self.liabilities[name]
+        else:
+            return 0.0
+
+    def __value(self, entries: Dict[str, float]) -> float:
+        total_value = 0.0
+
+        for value in entries.values():
+            total_value += value
+
+        return total_value
+
+    def __str__(self):
+        string: str = "== Assets ==\n"
+
+        for name in self.assets.keys():
+            string += name + ": " + str(self.asset(name)) + "\n"
+
+        string += "== Liabilities ==\n"
+
+        for name in self.liabilities.keys():
+            string += name + ": " + str(self.liability(name)) + "\n"
+
+        return string + "\n"
 
 
-class BalanceSheetTimeline():
+class BalanceSheetTimeline(BalanceSheet):
     """Balance sheet with history"""
 
-    __current_balance: BalanceSheet = BalanceSheet()
-    __history: List[Tuple[BalanceSheet, BalanceSheet]] = []
+    def __init__(self):
+        super().__init__()
+        self.__history: List[BalanceSheet] = []
 
     def clear(self):
-        self.__current_balance.clear()
-        self.history.clear()
-
-    def book_asset(self, name: str, amount: float):
-        self.__current_balance.book_asset(name, amount)
-
-    def book_liability(self, name: str, amount: float):
-        self.__current_balance.book_liability(name, amount)
-
-    def validate(self) -> bool:
-        return self.__current_balance.validate()
+        super().clear()
+        self.__history.clear()
 
     def save_state(self) -> bool:
         if self.validate():
-            balance_delta: BalanceSheet = BalanceSheet()
-            asset_names: Set = set(self.assets.keys())
-            liability_names: Set = set(self.liabilities.keys())
-
-            if self.history: # not empty
-                previous_balance: BalanceSheet = self.history[-1][BALANCE]
-
-                previous_assets: Dict = previous_balance.assets
-                asset_names.update(previous_assets.keys()) # collect all names
-
-                for name in asset_names:
-                    if name in previous_assets:
-                        balance_delta.book_asset(name, self.assets[name] - previous_assets[name])
-                    else:
-                        balance_delta.book_asset(name, self.assets[name])
-
-                previous_liabilities: Dict = previous_balance.liabilities
-                liability_names.update(previous_liabilities.keys()) # collect all names
-
-                for name in liability_names:
-                    if name in previous_liabilities:
-                        balance_delta.book_liability(name, self.liabilities[name] - previous_liabilities[name])
-                    else:
-                        balance_delta.book_liability(name, self.liabilities[name])
-
-            self.history.append((deepcopy(self.__current_balance), balance_delta))
+            self.__history.append(BalanceSheet(self))
 
             return True
         else:
             return False
+    
+    def balance_history(self, time_delta: int) -> BalanceSheet:
+        """Get a balance sheet from the history.
+        
+        :param time_delta: int how far back in history"""
 
-    @property
-    def current_balance(self) -> BalanceSheet:
-        return deepcopy(self.__current_balance)
+        if time_delta == 0:
+            return BalanceSheet(self)
+        else:
+            return self.__history[len(self.__history) - abs(time_delta)]
+    
+    def asset_history(self, name: str, time_delta: int) -> float:
+        return self.balance_history(time_delta).asset(name)
+    
+    def liability_history(self, name: str, time_delta: int) -> float:
+        return self.balance_history(time_delta).liability(name)
+    
+    def delta_history(self, time_delta: int = 0) -> BalanceSheet:
+        if time_delta == 0:
+            return self.__calculate_delta(self, self)
+        else:
+            return self.__calculate_delta(self, self.__history[len(self.__history) - abs(time_delta)])
+    
+    def __calculate_delta(self, current: BalanceSheet, previous: BalanceSheet) -> BalanceSheet:
+            delta: BalanceSheet = BalanceSheet()
+            asset_names: Set = set(current.assets.keys())
+            liability_names: Set = set(current.liabilities.keys())
 
-    @property
-    def history(self) -> List[Tuple[BalanceSheet, BalanceSheet]]:
-        return self.__history
+            previous_assets: Dict[str, float] = previous.assets
+            asset_names.update(previous_assets.keys()) # collect all names
 
-    @property
-    def assets(self) -> Dict[str, float]:
-        return self.__current_balance.assets
+            for name in asset_names:
+                if name in previous_assets:
+                    delta.book_asset(name, current.assets[name] - previous_assets[name])
+                else:
+                    delta.book_asset(name, current.assets[name])
 
-    @property
-    def liabilities(self) -> Dict[str, float]:
-        return self.__current_balance.liabilities
+            previous_liabilities: Dict[str, float] = previous.liabilities
+            liability_names.update(previous_liabilities.keys()) # collect all names
 
-    def asset(self, name: str) -> float:
-        return self.__current_balance.asset(name)
+            for name in liability_names:
+                if name in previous_liabilities:
+                    delta.book_liability(name, current.liabilities[name] - previous_liabilities[name])
+                else:
+                    delta.book_liability(name, current.liabilities[name])
 
-    def liability(self, name: str) -> float:
-        return self.__current_balance.liability(name)
+            return delta
+
+    def __str__(self):
+        string: str = super().__str__() + "History\n"
+
+        for balance in self.__history:
+            string += balance.__str__()
+
+        return string

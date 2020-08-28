@@ -1,25 +1,21 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 from ordered_set import OrderedSet
 
-from emusim.cockpit.supply.euro.balance_sheet import BalanceSheetTimeline
+from .balance_entries import *
+from .balance_sheet import BalanceSheetTimeline
 
 
 class EconomicActor(ABC):
-    __asset_names: OrderedSet[str]
-    __liability_names: OrderedSet[str]
-    __balance: BalanceSheetTimeline = BalanceSheetTimeline()
+
+    def __init__(self, asset_names: OrderedSet[str], liability_names: OrderedSet[str]):
+        self.__asset_names: OrderedSet[str] = asset_names
+        self.__liability_names: OrderedSet[str] = liability_names
+        self.__balance: BalanceSheetTimeline = BalanceSheetTimeline()
 
     @property
     def balance(self):
         return self.__balance
-
-    def _init_asset_names(self, asset_names: List[str]):
-        self.__asset_names = OrderedSet(asset_names)
-
-    def _init_liability_names(self, liability_names: List[str]):
-        self.__liability_names = OrderedSet(liability_names)
 
     @property
     def asset_names(self) -> OrderedSet[str]:
@@ -30,6 +26,16 @@ class EconomicActor(ABC):
     def liability_names(self) -> OrderedSet:
         """Returns the possible liability_names for this entity. Needs to be overridden by subclasses."""
         return self.__liability_names
+
+    def grow_securities(self, growth: float):
+        security_growth = self.asset(SECURITIES) * growth
+        self.book_asset(SECURITIES, security_growth)
+        self.book_liability(SEC_EQUITY, security_growth)
+
+    def grow_mbs(self, growth: float):
+        mbs_growth = self.asset(MBS) * growth
+        self.book_asset(MBS, mbs_growth)
+        self.book_liability(MBS_EQUITY, mbs_growth)
 
     def book_asset(self, name: str, amount: float) -> bool:
         if name in self.asset_names:
@@ -55,16 +61,16 @@ class EconomicActor(ABC):
         return self.balance.validate()
 
     @abstractmethod
-    def inflate_parameters(self, inflation: float):
+    def inflate(self, inflation: float):
         pass
 
-    def start_cycle(self):
-        """Call before performing any action on the economic actor."""
+    def start_transactions(self):
+        """Call before performing any transactions on the economic actor."""
         pass
 
-    def end_cycle(self) -> bool:
-        """Call after all actions for a cycle have been concluded.
-        Returns whether the cycle was successful."""
+    def end_transactions(self) -> bool:
+        """Call after all transactions have been concluded.
+        :return True if the state of the economic actor is validated."""
         return self.balance.save_state()
 
     

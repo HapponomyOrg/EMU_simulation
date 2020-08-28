@@ -2,8 +2,10 @@
 # percentages are represented as a fractional number between 0 and 1, 0 being 0%, 0.5 being 50% and 1 being 100%
 
 import os
+
 from emusim.cockpit.supply.constants import *
 from emusim.cockpit.supply.simulation import Simulation
+
 
 class Euro_MS_Simulation(Simulation):
 
