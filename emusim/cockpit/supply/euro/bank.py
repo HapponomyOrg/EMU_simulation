@@ -7,10 +7,9 @@ from ordered_set import OrderedSet
 
 from . import EconomicActor
 from .balance_entries import *
-from .balance_sheet import BalanceSheet
 
 if TYPE_CHECKING:
-    from . import CentralBank, PrivateActor
+    from . import CentralBank, PrivateActor, BalanceSheet
 
 
 class SpendingMode(Enum):

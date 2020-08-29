@@ -1,15 +1,15 @@
 from abc import ABC, abstractmethod
-from collections import OrderedDict
-from typing import List, KeysView
+from collections import OrderedDict as OrdDict
+from typing import List, KeysView, OrderedDict
 
 
 class DataCollector(ABC):
 
     def __init__(self):
-        self.__data_dict: OrderedDict[str, OrderedDict[str, List[float]]] = OrderedDict()
+        self.__data_dict: OrderedDict[str, OrderedDict[str, List[float]]] = OrdDict()
 
-    @abstractmethod
     @property
+    @abstractmethod
     def data_structure(self) -> OrderedDict[str, OrderedDict[str, bool]]:
         pass
 
@@ -18,11 +18,11 @@ class DataCollector(ABC):
 
     def add_category(self, category: str):
         if category not in self.__data_dict:
-            self.__data_dict[category] = OrderedDict()
+            self.__data_dict[category] = OrdDict()
 
     def add_data(self, category: str, data_field: str, data: float):
         if not category in self.__data_dict:
-            self.__data_dict[category] = OrderedDict([(data_field, [])])
+            self.__data_dict[category] = OrdDict([(data_field, [])])
 
         if not data_field in self.__data_dict[category]:
             self.__data_dict[category][data_field] = []

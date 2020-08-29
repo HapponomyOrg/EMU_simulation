@@ -1,5 +1,11 @@
-from .euro_economy import EuroEconomy
-from ..data_generator import DataGenerator
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from .. import DataGenerator
+
+if TYPE_CHECKING:
+    from . import EuroEconomy
 
 
 class SimpleDataGenerator(DataGenerator):

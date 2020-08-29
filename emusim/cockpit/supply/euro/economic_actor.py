@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 
 from ordered_set import OrderedSet
 
+from . import BalanceSheetTimeline
 from .balance_entries import *
-from .balance_sheet import BalanceSheetTimeline
 
 
 class EconomicActor(ABC):

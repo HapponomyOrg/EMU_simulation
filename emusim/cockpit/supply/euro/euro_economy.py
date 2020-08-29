@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Set
 
+from . import CentralBank
 from .balance_entries import *
-from .central_bank import CentralBank
 
 
 class EuroEconomy(ABC):
@@ -19,8 +19,8 @@ class EuroEconomy(ABC):
         self.security_growth: float = 0.0
         self.lending_satisfaction_rate = 1.0
 
-    @abstractmethod
     @property
+    @abstractmethod
     def central_banks(self) -> Set[CentralBank]:
         return self.__central_banks
 
@@ -116,13 +116,13 @@ class EuroEconomy(ABC):
 
         return debt
 
-    @abstractmethod
     @property
+    @abstractmethod
     def nominal_growth(self) -> float:
         pass
 
-    @abstractmethod
     @property
+    @abstractmethod
     def real_growth(self) -> float:
         pass
 

@@ -1,7 +1,7 @@
-from collections import OrderedDict
+from collections import OrderedDict as OrdDict
+from typing import OrderedDict
 
-from .economic_actor import EconomicActor
-from .euro_economy import EuroEconomy
+from . import EconomicActor, EuroEconomy
 from .. import Simulator, DataGenerator, DataCollector
 
 # System category
@@ -64,7 +64,7 @@ class AggregateSimulator(Simulator):
 
     def __init__(self, economy: EuroEconomy, generator: DataGenerator, collector: DataCollector):
         super().__init__(generator, collector)
-        self.__data_structure: OrderedDict[str, OrderedDict[str, bool]] = OrderedDict()
+        self.__data_structure: OrderedDict[str, OrderedDict[str, bool]] = OrdDict()
         self.__economy: EuroEconomy = economy
         self.__desired_im: float = 0.0 # im if growth_target is maintained
         self.__start_im: float = 0.0
