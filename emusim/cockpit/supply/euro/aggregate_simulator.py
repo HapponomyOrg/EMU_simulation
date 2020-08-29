@@ -1,8 +1,13 @@
-from collections import OrderedDict as OrdDict
-from typing import OrderedDict
+from __future__ import annotations
 
-from . import EconomicActor, EuroEconomy
-from .. import Simulator, DataGenerator, DataCollector
+from collections import OrderedDict as OrdDict
+from typing import OrderedDict, TYPE_CHECKING
+
+from .. import Simulator
+
+if TYPE_CHECKING:
+    from . import EconomicActor, EuroEconomy
+    from .. import DataGenerator, DataCollector
 
 # System category
 SYSTEM: str = "System"
