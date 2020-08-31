@@ -33,22 +33,19 @@ class Bank(EconomicActor):
         self.max_reserve = central_bank.min_reserve
 
         self.min_liquidity: float = 0.05
-        self.max_reserve: float = 0.05
 
         self.savings_ir: float = 0.02
         self.loan_ir: float = 0.025
         self.loan_duration: int = 20
 
-        self.defaulting_rate: float = 0.0
-
         self.no_loss: bool = True
-        self.income_from_interest: float = 1.0
+        self.income_from_interest: float = 0.8
         self.retain_profit: bool = True
         self.retain_profit_percentage: float = 0.2
 
         self.spending_mode: SpendingMode = SpendingMode.PROFIT
         self.fixed_spending: float = 0.0
-        self.profit_spending: float = 0.0
+        self.profit_spending: float = 0.8
         self.equity_spending: float = 0.0
         self.capital_spending: float = 0.0
 
@@ -152,7 +149,7 @@ class Bank(EconomicActor):
 
         for client in self.clients:
             # take defaults into account
-            adjusted_installment: float = client.installment - client.installment * self.defaulting_rate
+            adjusted_installment: float = client.installment - client.installment * client.defaulting_rate
             paid_installment: float = self.__process_client_payment(client, adjusted_installment, client.pay_debt)
 
             self.__client_installment += client.installment
@@ -162,7 +159,7 @@ class Bank(EconomicActor):
             expected_interest: float = client.liability(DEBT) * self.loan_ir
 
             # no interest is paid on defaulting loans
-            adjusted_interest: float = expected_interest - expected_interest * self.defaulting_rate
+            adjusted_interest: float = expected_interest - expected_interest * client.defaulting_rate
             paid_interest: float = self.__process_client_payment(client, adjusted_interest, client.pay)
             income += paid_interest
 
@@ -319,3 +316,9 @@ class Bank(EconomicActor):
         self.book_asset(SECURITIES, traded_securities)
         self.book_liability(SEC_EQUITY, traded_securities)
 
+
+    def clear(self):
+        super().clear()
+
+        for client in self.clients:
+            client.clear()

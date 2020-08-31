@@ -26,7 +26,7 @@ class HelicopterMode(Enum):
 
 class CentralBank(EconomicActor):
 
-    def __init__(self, min_reserve: float = 4.0):
+    def __init__(self, min_reserve: float = 0.04):
         super().__init__(OrderedSet([LOANS, SECURITIES, HELICOPTER_MONEY, INTEREST]),
                          OrderedSet([RESERVES, EQUITY, SEC_EQUITY]))
         self.__registered_banks: Set[Bank] = set()
@@ -194,3 +194,9 @@ class CentralBank(EconomicActor):
             debt += bank.asset(MBS)
 
         return debt
+
+    def clear(self):
+        super().clear()
+
+        for bank in self.registered_banks:
+            bank.clear()

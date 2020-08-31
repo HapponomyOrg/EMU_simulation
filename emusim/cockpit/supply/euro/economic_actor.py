@@ -75,4 +75,5 @@ class EconomicActor(ABC):
         :return True if the state of the economic actor is validated."""
         return self.balance.save_state()
 
-    
+    def clear(self):
+        self.balance.clear()

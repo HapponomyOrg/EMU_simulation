@@ -148,6 +148,7 @@ class AggregateSimulator(Simulator):
         self.__target_im += self.__target_im * self.economy.growth_rate
 
         # process inflation
+        self.economy.start_transactions()
         self.economy.inflate()
         self.__desired_im += self.__desired_im * self.economy.inflation
         self.__target_im += self.__target_im * self.economy.inflation

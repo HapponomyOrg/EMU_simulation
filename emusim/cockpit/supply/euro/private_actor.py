@@ -21,6 +21,7 @@ class PrivateActor(EconomicActor):
         self.bank.register(self)
 
         self.savings_rate: float = 0.02
+        self.defaulting_rate = 0.0
 
         self.__installments: List [float] = [0.0]
 
@@ -39,7 +40,8 @@ class PrivateActor(EconomicActor):
         pass
 
     def start_transactions(self):
-        self.__installment = self.__installments.pop(0)
+        if len(self.__installments) > 0:
+            self.__installment = self.__installments.pop(0)
 
     def save(self, amount: float):
         self.book_asset(SAVINGS, amount)
@@ -79,8 +81,8 @@ class PrivateActor(EconomicActor):
         # actually represent securities which were hidden from the books until now.
         securities_delta: float = min(self.asset(SECURITIES), sold_securities)
 
-        self.book_asset(SECURITIES, -sold_securities)
-        self.book_liability(SEC_EQUITY, -sold_securities)
+        self.book_asset(SECURITIES, -securities_delta)
+        self.book_liability(SEC_EQUITY, -securities_delta)
 
     def __pay(self, amount: float, liability_name: str):
         """Attempt to pay an amount. Use savings if needed."""

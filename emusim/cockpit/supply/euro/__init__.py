@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from .balance_sheet import BalanceSheet, BalanceSheetTimeline
 from .economic_actor import EconomicActor
-from .central_bank import CentralBank
-from .bank import Bank
+from .central_bank import CentralBank, QEMode, HelicopterMode
+from .bank import Bank, SpendingMode
 from .private_actor import PrivateActor
 from .euro_economy import EuroEconomy
 from .simple_data_generator import SimpleDataGenerator
