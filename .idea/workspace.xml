@@ -53,6 +53,7 @@
   </component>
   <component name="ProjectId" id="1aaMAexdmgoQhbWFPY7m3cDiWTb" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <OptionsSetting value="false" id="Update" />
     <ConfirmationsSetting value="1" id="Add" />
   </component>
   <component name="ProjectViewState">
@@ -104,6 +105,9 @@
       <module name="Money System Simulations" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/emusim" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -229,6 +233,13 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <list>
+      <item itemvalue="Python.__dbinit__" />
+      <item itemvalue="Python.initdb" />
+      <item itemvalue="Python.serverViz" />
+      <item itemvalue="Python.test" />
+      <item itemvalue="Python.__main__" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.__main__" />
@@ -715,10 +726,11 @@
       <screen x="0" y="0" width="1536" height="834" />
     </state>
     <state x="361" y="75" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.834@0.0.1536.834" timestamp="1597653418346" />
-    <state x="517" y="219" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1597655650196">
-      <screen x="0" y="0" width="1536" height="834" />
+    <state x="1106" y="490" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1599232223133">
+      <screen x="44" y="23" width="3156" height="1777" />
     </state>
     <state x="517" y="219" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1536.834@0.0.1536.834" timestamp="1597655650196" />
+    <state x="1106" y="490" key="#com.intellij.fileTypes.FileTypeChooser/44.23.3156.1777/3200.23.1440.877@44.23.3156.1777" timestamp="1599232223133" />
     <state x="927" y="41" width="528" height="594" key="#xdebugger.evaluate" timestamp="1598968162778">
       <screen x="96" y="0" width="1440" height="864" />
     </state>
@@ -859,8 +871,5 @@
         <watch expression="request" language="Python" />
       </configuration>
     </watches-manager>
-  </component>
-  <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Money_System_Simulations$__main__.coverage" NAME="__main__ Coverage Results" MODIFIED="1599205678454" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/emusim" />
   </component>
 </project>
