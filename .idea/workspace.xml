@@ -22,7 +22,10 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="79ae4c6e-6885-4f9a-98ae-2ed692ecd8f6" name="Default Changelist" comment="implementation of user management (including mailing), and user's model management" />
+    <list default="true" id="79ae4c6e-6885-4f9a-98ae-2ed692ecd8f6" name="Default Changelist" comment="implementation of user management (including mailing), and user's model management">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/emusim/cockpit/abm/views/abm_d.py" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/cockpit/abm/views/abm_d.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -275,14 +278,7 @@
       <workItem from="1597653292987" duration="3500000" />
       <workItem from="1597656888724" duration="10522000" />
       <workItem from="1597825724380" duration="2824000" />
-      <workItem from="1598627186103" duration="15781000" />
-    </task>
-    <task id="LOCAL-00026" summary="Added Heroku specific files">
-      <created>1554113705169</created>
-      <option name="number" value="00026" />
-      <option name="presentableId" value="LOCAL-00026" />
-      <option name="project" value="LOCAL" />
-      <updated>1554113705169</updated>
+      <workItem from="1598627186103" duration="16199000" />
     </task>
     <task id="LOCAL-00027" summary="Added Heroku specific files">
       <created>1554114104464</created>
@@ -620,7 +616,14 @@
       <option name="project" value="LOCAL" />
       <updated>1599203744530</updated>
     </task>
-    <option name="localTasksCounter" value="75" />
+    <task id="LOCAL-00075" summary="implementation of user management (including mailing), and user's model management">
+      <created>1599204264745</created>
+      <option name="number" value="00075" />
+      <option name="presentableId" value="LOCAL-00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1599204264745</updated>
+    </task>
+    <option name="localTasksCounter" value="76" />
     <servers />
   </component>
   <component name="TodoView">
@@ -808,10 +811,10 @@
       <screen x="0" y="0" width="1536" height="834" />
     </state>
     <state x="249" y="0" key="SettingsEditor/0.0.1536.834@0.0.1536.834" timestamp="1593446560983" />
-    <state x="125" y="256" key="Vcs.Push.Dialog.v2" timestamp="1599203746927">
+    <state x="125" y="256" key="Vcs.Push.Dialog.v2" timestamp="1599204310505">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
-    <state x="125" y="256" key="Vcs.Push.Dialog.v2/0.0.1536.802@0.0.1536.802" timestamp="1599203746927" />
+    <state x="125" y="256" key="Vcs.Push.Dialog.v2/0.0.1536.802@0.0.1536.802" timestamp="1599204310505" />
     <state x="125" y="266" key="Vcs.Push.Dialog.v2/0.0.1536.834@0.0.1536.834" timestamp="1593164523055" />
     <state x="93" y="93" width="1350" height="648" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1593163345927">
       <screen x="0" y="0" width="1536" height="834" />
@@ -861,6 +864,6 @@
     </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Money_System_Simulations$__main__.coverage" NAME="__main__ Coverage Results" MODIFIED="1599203019227" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/emusim" />
+    <SUITE FILE_PATH="coverage/Money_System_Simulations$__main__.coverage" NAME="__main__ Coverage Results" MODIFIED="1599204643394" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/emusim" />
   </component>
 </project>
