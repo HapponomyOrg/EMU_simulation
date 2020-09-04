@@ -90,7 +90,7 @@ def test_fixed_qe():
     central_bank.qe_fixed = 100.0
 
     central_bank.start_transactions()
-    client.trade_securities(10.0)
+    client.trade_securities_with_bank(10.0)
     print(client.balance)
     assert client.balance.asset(DEPOSITS) == 10.0
     assert client.balance.asset(SECURITIES) == 0.0

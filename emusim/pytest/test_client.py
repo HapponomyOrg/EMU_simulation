@@ -44,7 +44,7 @@ def test_sell_securities():
     central_bank.start_transactions()
     client.book_asset(SECURITIES, 100.0)
     client.book_liability(SEC_EQUITY, 100.0)
-    client.trade_securities(150.0)
+    client.trade_securities_with_bank(150.0)
     assert central_bank.end_transactions()
 
     assert client.asset(SECURITIES) == 0.0
@@ -59,7 +59,7 @@ def test_buy_securities():
     central_bank.start_transactions()
     client.book_asset(DEPOSITS, 100.0)
     client.book_liability(EQUITY, 100.0)
-    client.trade_securities(-150.0)
+    client.trade_securities_with_bank(-150.0)
     assert central_bank.end_transactions()
 
     assert client.asset(SECURITIES) == 100.0
