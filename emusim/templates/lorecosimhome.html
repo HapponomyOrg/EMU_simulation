@@ -21,7 +21,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.0/js/mdb.min.js"
             type="text/javascript"></script>
 
-    <link href="favicon.ico" rel="icon" type="image/x-icon">
+    <link href="{{ url_for('static', filename='logo_Loreco_csmall.png') }}" rel="icon" type="image/png">
     <link href="../static/loreco.css" rel="stylesheet">
     <title>LoREco project</title>
 </head>
@@ -37,9 +37,36 @@
                     <div class="row ">
                         <div class="container text-center white-text bgcolor success-color-dark  wow fadeInUp">
                             <br>
-                            <h2 class="text-center">The LoREco Simulation Environment</h2>
-                            <div class="row mt-5">
-                                <div class="col-lg-4 col-md-12">
+                            <div class="row">
+                                <div class="col-lg-11">
+                                <h2 class="text-center">The LoREco Simulation Environment</h2></div>
+                                <div class="col-lg-1">
+                                <div class="float-right">
+                                    {% if current_user.is_authenticated %}
+                                    <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink"
+                                       data-toggle="dropdown"
+                                       aria-haspopup="true" aria-expanded="false"><i class="fas fa-user fa-lg"></i></a>
+                                    <div class="dropdown-menu dropdown-menu-right dropdown-default"
+                                         aria-labelledby="navbarDropdownMenuLink">
+                                        {{ current_user.first_name or current_user.username or
+                                        current_user.email }}
+                                        <hr>
+                                        <a class="dropdown-item nav-link waves-effect text-dark"
+                                            href="{{ url_for('main.models_page') }}">Models</a>
+                                        <a class="dropdown-item nav-link waves-effect text-dark"
+                                           href="{{ url_for('main.user_profile_page') }}">User profile</a>
+                                        <a class="dropdown-item nav-link waves-effect text-dark"
+                                           href="{{ url_for('user.logout') }}">Sign out</a>
+
+                                    </div>
+                                    {% else %}
+                                    <a class="nav-link" href="{{ url_for('user.login') }}"><i
+                                            class="fas fa-user fa-lg"></i></a>
+                                    {% endif %}
+                                </div></div>
+                            </div>
+                            <div class="row my-5">
+                                <div class="col-lg-3 col-md-12">
                                     <div class="col-12 text-center d-flex justify-content-center">
                                         <img alt="partners logo"
                                              height="160"
@@ -48,19 +75,21 @@
                                 </div>
                                 <div class="col-lg-8 col-md-12">
 
-                                    <a type="button" class="btn btn-blue-grey"
+                                    <a type="button" class="btn btn-info"
                                        href="{{url_for('abm_in_flask.moneymodel')}}">Start
                                         your
                                         simulation here</a>
-                                    <a type="button" class="btn btn-blue-grey" href="{{url_for('home_d.lorecotool')}}">Read
+                                    <a type="button" class="btn btn-info" href="{{url_for('home_d.lorecotool')}}">Read
                                         more
                                         about this tool</a>
                                     <a type="button" class="btn btn-blue-grey" href="{{ url_for('home_d.loreco') }}"
-                                       target="_blank">Info
-                                        on the LoREco project</a>
+                                       target="_blank"><i
+                            class="fas fa-angle-double-right"></i> Go to the LoREco project</a>
 
                                 </div>
+
                             </div>
+
                         </div>
                         <br>
                     </div>

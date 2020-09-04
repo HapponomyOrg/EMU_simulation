@@ -1,0 +1,91 @@
+{% extends "main/models_base.html" %}
+
+{% block content %}
+{% from "flask_user/_macros.html" import render_field, render_checkbox_field, render_submit_field %}
+<h1>{%trans%}Edit model{%endtrans%}</h1>
+<div class="row">
+    <div class="col-lg-8 col-md-12">
+        <form action="" method="post">
+            {{ parameter_form.csrf_token }}
+            <div class="card  d-inline-flex mb-2">
+                <h5 class="card-header success-color-dark white-text text-center py-4">
+                    <strong>Parameter configuration</strong>
+                </h5>
+                <div class="card-body px-lg-5 pt-0">
+                    <table class="outertable">
+                        <tr>
+                            <td class="tabledata">
+                                <table>
+                                    <tr>
+                                        <td>Provide a model name:</td>
+                                        <td>{{ parameter_form.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="divider">
+                                            <hr/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Model parameters</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="divider">
+                                            <hr/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>{{ parameter_form.initial_wealth.label }}</td>
+                                        <td>{{ parameter_form.initial_wealth }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>{{ parameter_form.wealth_transfer.label }}</td>
+                                        <td>{{ parameter_form.wealth_transfer }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="divider">
+                                            <hr/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Simulation parameters</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="divider">
+                                            <hr/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>{{ parameter_form.num_agents.label }}</td>
+                                        <td>{{ parameter_form.num_agents }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>{{ parameter_form.iterations.label }}</td>
+                                        <td>{{ parameter_form.iterations }}</td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <hr>
+                    <div class="input submit">
+                        <input class=" btn success-color-dark text-white btn-sm button float-right" type="submit"
+                               value="Confirm">
+                    </div>
+                </div>
+            </div>
+            {% if parameter_form.id.data %}
+                <div class="card d-inline-flex mb-2">
+                    <div class="card-body">
+                        <strong>Delete this model?</strong>
+                        <p>Be careful, this deletion is permanent.</p>
+                        <a href="{{url_for('main.delete_model', modelID = parameter_form.id.data)}}"
+                           class="btn success-color-dark text-white btn-sm button float-right">
+                            <i class="fas fa-folder-minus"></i>
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}

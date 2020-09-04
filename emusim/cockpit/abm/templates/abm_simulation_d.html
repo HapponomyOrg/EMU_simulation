@@ -1,69 +1,169 @@
-{% extends "lorecosim.html" %}
+{% extends "lorecosim_base.html" %}
 
 {% block content %}
 <div class="row d-flex justify-content-center">
-    <h2>ABM Simulation</h2>
+    <h2 class="text-success">ABM Simulation</h2>
 </div>
 {% if not render_graphs %}
-<form action="" method="post">
-    {{ parameter_form.csrf_token }}
-    <div class="card  d-inline-flex mb-2">
-        <h5 class="card-header success-color-dark white-text text-center py-4">
-            <strong>Simulation parameters</strong>
-        </h5>
-        <div class="card-body px-lg-5 pt-0">
-
-            <table class="outertable">
-                <tr>
-                    <td class="tabledata">
-                        <table>
-                            <tr>
-                                <td>{{ parameter_form.num_agents.label }}</td>
-                                <td>{{ parameter_form.num_agents }}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="divider">
-                                    <hr/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>{{ parameter_form.iterations.label }}</td>
-                                <td>{{ parameter_form.iterations }}</td>
-                            </tr>
-
-                        </table>
-                    </td>
-                </tr>
-            </table>
-            <hr>
-            <div class="input submit">
-                <input class=" btn success-color-dark text-white btn-sm button" type="submit" value="Run">
+<div class="row">
+    <div class="col-lg-5 col-md-12">
+        <form action="" method="post">
+            {{ parameter_form.csrf_token }}
+            <div class="card  d-inline-flex mb-2">
+                <h5 class="card-header success-color-dark white-text text-center py-4">
+                    <strong>Parameter configuration</strong>
+                </h5>
+                <div class="card-body px-lg-5 pt-0">
+                    <table class="outertable">
+                        <tr>
+                            <td class="tabledata">
+                                <table>
+                                    <tr>
+                                        <td colspan="3" class="divider">
+                                            <hr/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Model parameters</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="divider">
+                                            <hr/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>{{ parameter_form.initial_wealth.label }}</td>
+                                        <td>{{ parameter_form.initial_wealth }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>{{ parameter_form.wealth_transfer.label }}</td>
+                                        <td>{{ parameter_form.wealth_transfer }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="divider">
+                                            <hr/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Simulation parameters</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="divider">
+                                            <hr/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>{{ parameter_form.num_agents.label }}</td>
+                                        <td>{{ parameter_form.num_agents }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>{{ parameter_form.iterations.label }}</td>
+                                        <td>{{ parameter_form.iterations }}</td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <hr>
+                    <div class="input submit">
+                        <input class=" btn success-color-dark text-white btn-sm button float-right" type="submit"
+                               value="Run">
+                    </div>
+                </div>
             </div>
-        </div>
+            </form>
     </div>
-</form>
+    <div class="col-lg-7 col-md-12 my-auto">
+        <h4>Model description</h4>
+        <p>This is a simple economic model to test the implementation of the <a
+                href="https://mesa.readthedocs.io/en/master/"
+                target="_blank">Mesa Framework</a>.</p>
+        <p>The model's economic agents are randomly placed on a cell grid (not shown) and start out with an initial
+            wealth.
+            Each simulation step (iteration) they randomly move either to an adjacent cell or remain on their
+            current location.</p>
+        <p>After each move, the agent, if still endowed with enough money (at least the transfer amount), monitors
+            if on his current cell other agents are present.
+            If so, he randomly picks one agent to which he transfers money.</p>
+        <p></p>
+    </div>
+</div>
+
 {% endif %}
 {% if render_graphs %}
 <div class="row">
-    <div class="col ">
-        <a class="btn success-color-dark text-white btn-sm float-right" type="button"
-           href="{{url_for('abm_in_flask.moneymodel')}}">New simulation</a></div>
+    <div class="col">
+        <h5>Simulation results
+            {#<a class="badge badge-success btn success-color-dark text-white btn-sm " type="button"
+                 href="{{url_for('abm_in_flask.get_report')}}">Download as report</a> #}
+            <a class="badge success-color-dark text-white btn btn-sm float-right" type="button"
+               href="{{url_for('abm_in_flask.moneymodel')}}">New simulation</a>
+            {% if current_user.is_authenticated %}
+            <!-- Button trigger modal
+            <a class="badge success-color-dark text-white btn btn-sm float-right" data-toggle="modal" data-target="#exampleModal"
+               >Save model</a>
+            <-- Modal
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+
+                            {{ parameter_form.name.label }}
+                            {{ parameter_form.name }}
+                        </div>
+                        <div class="modal-footer">
+                            <a type="button" class="badge success-color-dark text-white btn btn-sm float-right"
+                               data-dismiss="modal">Close</a>
+                            <a class="badge success-color-dark text-white btn btn-sm float-right"
+                            href="{{ url_for('main.edit_model', name=parameter_form) }}">Save</a>
+                            <input class=" btn success-color-dark text-white btn-sm button float-right" type="submit"
+                               value="Run">
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            -->
+                {% if parameter_form.id.data is none %}
+                <a class="badge success-color-dark text-white btn btn-sm float-right"
+                                href="{{ url_for('main.edit_model') }}">Save model</a>
+                {% else %}
+                <a class="badge success-color-dark text-white btn btn-sm float-right"
+                                href="{{ url_for('main.edit_model', modelID=parameter_form.id.data)}}">Edit model</a>
+                {% endif %}
+            {% endif %}
+        </h5>
+    </div>
 </div>
 <div class="container">
     <div class="row">
-
-        {% for graphs in graph_data %}
-        {% for graph in graphs %}
-        <figure class="figure">
-            <embed type="image/svg+xml" src="{{graph|safe}}"  class="figure-img img-fluid z-depth-1" style="width: 500px"/>
-        <!--    <figcaption class="figure-caption text-right">GINI coef</figcaption> -->
-        </figure>
-        {% endfor %}
-        {% endfor %}
-
-
+        <div class="col">
+            <p>Selected model parameters: {{ parameter_form.num_agents.label }}: {{ parameter_form.num_agents.data }},
+                {{ parameter_form.iterations.label }}: {{ parameter_form.iterations.data }},
+                {{ parameter_form.initial_wealth.label }}: {{ parameter_form.initial_wealth.data }},
+                {{ parameter_form.wealth_transfer.label }}: {{ parameter_form.wealth_transfer.data }}</p>
+        </div>
     </div>
-
+    <div class="row">
+        <div class="col">
+            {% for graphs in graph_data %}
+            {% for graph in graphs %}
+            <figure class="figure">
+                <embed type="image/svg+xml" src="{{graph|safe}}" class="figure-img img-fluid z-depth-1"
+                       style="width: 500px"/>
+                <!--    <figcaption class="figure-caption text-right">GINI coef</figcaption> -->
+            </figure>
+            {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
 </div>
 {% endif %}
 {% endblock %}

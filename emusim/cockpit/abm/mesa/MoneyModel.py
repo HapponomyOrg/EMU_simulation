@@ -12,9 +12,11 @@ def compute_gini(model):
 
 class MoneyAgent(Agent):
     """ An agent with fixed initial wealth."""
-    def __init__(self, unique_id, model):
+    transfer_amount = 1
+    def __init__(self, unique_id, initial_wealth, wealth_transfer, model):
         super().__init__(unique_id, model)
-        self.wealth = 1
+        self.wealth = initial_wealth
+        self.transfer_amount = wealth_transfer
 
     def move(self):
         possible_steps = self.model.grid.get_neighborhood(
@@ -28,24 +30,24 @@ class MoneyAgent(Agent):
         cellmates = self.model.grid.get_cell_list_contents([self.pos])
         if len(cellmates) > 1:
             other = self.random.choice(cellmates)
-            other.wealth += 1
-            self.wealth -= 1
+            other.wealth += self.transfer_amount
+            self.wealth -= self.transfer_amount
 
     def step(self):
         self.move()
-        if self.wealth > 0:
+        if self.wealth >= self.transfer_amount:
             self.give_money()
 
 class MoneyModel(Model):
     """A model with some number of agents."""
-    def __init__(self, N, width, height):
+    def __init__(self, N, width, height, initial_wealth, wealth_transfer):
         super().__init__()  # this fixes the problem
         self.num_agents = N
         self.grid = MultiGrid(width, height, True)
         self.schedule = RandomActivation(self)
         # Create agents
         for i in range(self.num_agents):
-            a = MoneyAgent(i, self)
+            a = MoneyAgent(i, initial_wealth, wealth_transfer, self)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = self.random.randrange(self.grid.width)

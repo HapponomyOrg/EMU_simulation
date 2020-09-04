@@ -40,10 +40,6 @@ def loreco():
 def lorecosimhome():
     return render_template('lorecosimhome.html')
 
-@home_d.route('/lorecosim')
-def lorecosim():
-    return render_template('lorecosim.html')
-
 
 @home_d.route('/lorecotool')
 def lorecotool():
