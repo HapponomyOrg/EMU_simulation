@@ -24,7 +24,7 @@
   <component name="ChangeListManager">
     <list default="true" id="79ae4c6e-6885-4f9a-98ae-2ed692ecd8f6" name="Default Changelist" comment="implementation of user management (including mailing), and user's model management">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emusim/cockpit/abm/views/abm_d.py" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/cockpit/abm/views/abm_d.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/emusim/__main__.py" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/__main__.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,8 +34,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="HTML File" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -278,14 +278,7 @@
       <workItem from="1597653292987" duration="3500000" />
       <workItem from="1597656888724" duration="10522000" />
       <workItem from="1597825724380" duration="2824000" />
-      <workItem from="1598627186103" duration="16199000" />
-    </task>
-    <task id="LOCAL-00027" summary="Added Heroku specific files">
-      <created>1554114104464</created>
-      <option name="number" value="00027" />
-      <option name="presentableId" value="LOCAL-00027" />
-      <option name="project" value="LOCAL" />
-      <updated>1554114104464</updated>
+      <workItem from="1598627186103" duration="17231000" />
     </task>
     <task id="LOCAL-00028" summary="Removed test line">
       <created>1554114155380</created>
@@ -623,7 +616,14 @@
       <option name="project" value="LOCAL" />
       <updated>1599204264745</updated>
     </task>
-    <option name="localTasksCounter" value="76" />
+    <task id="LOCAL-00076" summary="implementation of user management (including mailing), and user's model management">
+      <created>1599204684239</created>
+      <option name="number" value="00076" />
+      <option name="presentableId" value="LOCAL-00076" />
+      <option name="project" value="LOCAL" />
+      <updated>1599204684239</updated>
+    </task>
+    <option name="localTasksCounter" value="77" />
     <servers />
   </component>
   <component name="TodoView">
@@ -739,59 +739,59 @@
       <screen x="0" y="0" width="1536" height="834" />
     </state>
     <state x="549" y="172" key="FileChooserDialogImpl/0.0.1536.834@0.0.1536.834" timestamp="1597658245104" />
-    <state width="1493" height="404" key="GridCell.Tab.0.bottom" timestamp="1599203019282">
+    <state width="1493" height="199" key="GridCell.Tab.0.bottom" timestamp="1599205595624">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
-    <state width="1493" height="404" key="GridCell.Tab.0.bottom/0.0.1536.802@0.0.1536.802" timestamp="1599203019282" />
+    <state width="1493" height="199" key="GridCell.Tab.0.bottom/0.0.1536.802@0.0.1536.802" timestamp="1599205595624" />
     <state width="1493" height="196" key="GridCell.Tab.0.bottom/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593255064133" />
     <state width="1493" height="320" key="GridCell.Tab.0.bottom/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="1397" height="253" key="GridCell.Tab.0.bottom/96.0.1440.864@96.0.1440.864" timestamp="1598968191644" />
-    <state width="1493" height="404" key="GridCell.Tab.0.center" timestamp="1599203019282">
+    <state width="1493" height="199" key="GridCell.Tab.0.center" timestamp="1599205595624">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
-    <state width="1493" height="404" key="GridCell.Tab.0.center/0.0.1536.802@0.0.1536.802" timestamp="1599203019282" />
+    <state width="1493" height="199" key="GridCell.Tab.0.center/0.0.1536.802@0.0.1536.802" timestamp="1599205595624" />
     <state width="1493" height="196" key="GridCell.Tab.0.center/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593255064133" />
     <state width="1493" height="320" key="GridCell.Tab.0.center/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="1397" height="253" key="GridCell.Tab.0.center/96.0.1440.864@96.0.1440.864" timestamp="1598968191644" />
-    <state width="1493" height="404" key="GridCell.Tab.0.left" timestamp="1599203019282">
+    <state width="1493" height="199" key="GridCell.Tab.0.left" timestamp="1599205595623">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
-    <state width="1493" height="404" key="GridCell.Tab.0.left/0.0.1536.802@0.0.1536.802" timestamp="1599203019282" />
+    <state width="1493" height="199" key="GridCell.Tab.0.left/0.0.1536.802@0.0.1536.802" timestamp="1599205595623" />
     <state width="1493" height="196" key="GridCell.Tab.0.left/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593255064132" />
     <state width="1493" height="320" key="GridCell.Tab.0.left/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="1397" height="253" key="GridCell.Tab.0.left/96.0.1440.864@96.0.1440.864" timestamp="1598968191644" />
-    <state width="1493" height="404" key="GridCell.Tab.0.right" timestamp="1599203019282">
+    <state width="1493" height="199" key="GridCell.Tab.0.right" timestamp="1599205595624">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
-    <state width="1493" height="404" key="GridCell.Tab.0.right/0.0.1536.802@0.0.1536.802" timestamp="1599203019282" />
+    <state width="1493" height="199" key="GridCell.Tab.0.right/0.0.1536.802@0.0.1536.802" timestamp="1599205595624" />
     <state width="1493" height="196" key="GridCell.Tab.0.right/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593255064133" />
     <state width="1493" height="320" key="GridCell.Tab.0.right/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="1397" height="253" key="GridCell.Tab.0.right/96.0.1440.864@96.0.1440.864" timestamp="1598968191644" />
-    <state width="1493" height="404" key="GridCell.Tab.1.bottom" timestamp="1599203019282">
+    <state width="746" height="258" key="GridCell.Tab.1.bottom" timestamp="1599204647443">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
-    <state width="1493" height="404" key="GridCell.Tab.1.bottom/0.0.1536.802@0.0.1536.802" timestamp="1599203019282" />
+    <state width="746" height="258" key="GridCell.Tab.1.bottom/0.0.1536.802@0.0.1536.802" timestamp="1599204647443" />
     <state width="1493" height="367" key="GridCell.Tab.1.bottom/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593254730762" />
     <state width="1493" height="320" key="GridCell.Tab.1.bottom/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="1397" height="253" key="GridCell.Tab.1.bottom/96.0.1440.864@96.0.1440.864" timestamp="1598968176644" />
-    <state width="1493" height="404" key="GridCell.Tab.1.center" timestamp="1599203019282">
+    <state width="746" height="258" key="GridCell.Tab.1.center" timestamp="1599204647443">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
-    <state width="1493" height="404" key="GridCell.Tab.1.center/0.0.1536.802@0.0.1536.802" timestamp="1599203019282" />
+    <state width="746" height="258" key="GridCell.Tab.1.center/0.0.1536.802@0.0.1536.802" timestamp="1599204647443" />
     <state width="1493" height="367" key="GridCell.Tab.1.center/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593254730762" />
     <state width="1493" height="320" key="GridCell.Tab.1.center/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="1397" height="253" key="GridCell.Tab.1.center/96.0.1440.864@96.0.1440.864" timestamp="1598968176644" />
-    <state width="1493" height="404" key="GridCell.Tab.1.left" timestamp="1599203019282">
+    <state width="746" height="258" key="GridCell.Tab.1.left" timestamp="1599204647443">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
-    <state width="1493" height="404" key="GridCell.Tab.1.left/0.0.1536.802@0.0.1536.802" timestamp="1599203019282" />
+    <state width="746" height="258" key="GridCell.Tab.1.left/0.0.1536.802@0.0.1536.802" timestamp="1599204647443" />
     <state width="1493" height="367" key="GridCell.Tab.1.left/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593254730762" />
     <state width="1493" height="320" key="GridCell.Tab.1.left/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="1397" height="253" key="GridCell.Tab.1.left/96.0.1440.864@96.0.1440.864" timestamp="1598968176644" />
-    <state width="1493" height="404" key="GridCell.Tab.1.right" timestamp="1599203019282">
+    <state width="746" height="258" key="GridCell.Tab.1.right" timestamp="1599204647443">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
-    <state width="1493" height="404" key="GridCell.Tab.1.right/0.0.1536.802@0.0.1536.802" timestamp="1599203019282" />
+    <state width="746" height="258" key="GridCell.Tab.1.right/0.0.1536.802@0.0.1536.802" timestamp="1599204647443" />
     <state width="1493" height="367" key="GridCell.Tab.1.right/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593254730762" />
     <state width="1493" height="320" key="GridCell.Tab.1.right/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="1397" height="253" key="GridCell.Tab.1.right/96.0.1440.864@96.0.1440.864" timestamp="1598968176644" />
@@ -811,10 +811,10 @@
       <screen x="0" y="0" width="1536" height="834" />
     </state>
     <state x="249" y="0" key="SettingsEditor/0.0.1536.834@0.0.1536.834" timestamp="1593446560983" />
-    <state x="125" y="256" key="Vcs.Push.Dialog.v2" timestamp="1599204310505">
+    <state x="125" y="256" key="Vcs.Push.Dialog.v2" timestamp="1599204686488">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
-    <state x="125" y="256" key="Vcs.Push.Dialog.v2/0.0.1536.802@0.0.1536.802" timestamp="1599204310505" />
+    <state x="125" y="256" key="Vcs.Push.Dialog.v2/0.0.1536.802@0.0.1536.802" timestamp="1599204686488" />
     <state x="125" y="266" key="Vcs.Push.Dialog.v2/0.0.1536.834@0.0.1536.834" timestamp="1593164523055" />
     <state x="93" y="93" width="1350" height="648" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1593163345927">
       <screen x="0" y="0" width="1536" height="834" />
@@ -864,6 +864,6 @@
     </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Money_System_Simulations$__main__.coverage" NAME="__main__ Coverage Results" MODIFIED="1599204643394" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/emusim" />
+    <SUITE FILE_PATH="coverage/Money_System_Simulations$__main__.coverage" NAME="__main__ Coverage Results" MODIFIED="1599205678454" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/emusim" />
   </component>
 </project>

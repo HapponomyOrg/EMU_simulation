@@ -1,0 +1,40 @@
+{% extends "main/models_base.html" %}
+
+{% block content %}
+{% from "flask_user/_macros.html" import render_field, render_checkbox_field, render_submit_field %}
+<h1>{%trans%}Your models{%endtrans%}</h1>
+{% if models %}
+<table class="table table-sm table-striped">
+    <thead>
+    <tr>
+        <th scope="col">Model name</th>
+        <th scope="col">Initial wealth</th>
+        <th scope="col">Wealth transfer</th>
+        <th scope="col">Agent count</th>
+        <th scope="col">Iterations</th>
+        <th scope="col">Actions</th>
+    </tr>
+  </thead>
+    <tbody>
+
+    {% for model in models %}
+    <tr>
+        <td>{{ model.name }}</td>
+        <td>{{ model.initial_wealth }}</td>
+        <td>{{ model.wealth_transfer }}</td>
+        <td>{{ model.num_agents }}</td>
+        <td>{{ model.iterations }}</td>
+        <td><a href="{{ url_for('main.models_run', modelID=model.id) }}"
+                           class="btn success-color-dark text-white btn-sm"><i class="fas fa-running"></i></a>
+        <a href="{{ url_for('main.edit_model', modelID=model.id) }}"
+                           class="btn success-color-dark text-white btn-sm"><i class="fas fa-edit"></i></a></td>
+
+
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<h6>{%trans%}You have no saved models yet.{%endtrans%}</h6>
+{% endif %}
+{% endblock %}
