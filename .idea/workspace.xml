@@ -275,14 +275,7 @@
       <workItem from="1597653292987" duration="3500000" />
       <workItem from="1597656888724" duration="10522000" />
       <workItem from="1597825724380" duration="2824000" />
-      <workItem from="1598627186103" duration="15206000" />
-    </task>
-    <task id="LOCAL-00025" summary="Fixed typo in euroforms.py">
-      <created>1554108309428</created>
-      <option name="number" value="00025" />
-      <option name="presentableId" value="LOCAL-00025" />
-      <option name="project" value="LOCAL" />
-      <updated>1554108309428</updated>
+      <workItem from="1598627186103" duration="15781000" />
     </task>
     <task id="LOCAL-00026" summary="Added Heroku specific files">
       <created>1554113705169</created>
@@ -620,7 +613,14 @@
       <option name="project" value="LOCAL" />
       <updated>1599203408836</updated>
     </task>
-    <option name="localTasksCounter" value="74" />
+    <task id="LOCAL-00074" summary="implementation of user management (including mailing), and user's model management">
+      <created>1599203744530</created>
+      <option name="number" value="00074" />
+      <option name="presentableId" value="LOCAL-00074" />
+      <option name="project" value="LOCAL" />
+      <updated>1599203744530</updated>
+    </task>
+    <option name="localTasksCounter" value="75" />
     <servers />
   </component>
   <component name="TodoView">
@@ -808,10 +808,10 @@
       <screen x="0" y="0" width="1536" height="834" />
     </state>
     <state x="249" y="0" key="SettingsEditor/0.0.1536.834@0.0.1536.834" timestamp="1593446560983" />
-    <state x="125" y="256" key="Vcs.Push.Dialog.v2" timestamp="1599203459701">
+    <state x="125" y="256" key="Vcs.Push.Dialog.v2" timestamp="1599203746927">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
-    <state x="125" y="256" key="Vcs.Push.Dialog.v2/0.0.1536.802@0.0.1536.802" timestamp="1599203459701" />
+    <state x="125" y="256" key="Vcs.Push.Dialog.v2/0.0.1536.802@0.0.1536.802" timestamp="1599203746927" />
     <state x="125" y="266" key="Vcs.Push.Dialog.v2/0.0.1536.834@0.0.1536.834" timestamp="1593164523055" />
     <state x="93" y="93" width="1350" height="648" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1593163345927">
       <screen x="0" y="0" width="1536" height="834" />
