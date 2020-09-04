@@ -22,22 +22,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="79ae4c6e-6885-4f9a-98ae-2ed692ecd8f6" name="Default Changelist" comment="delete import matplotlib">
-      <change beforePath="$PROJECT_DIR$/.idea/Money System Simulations.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Money System Simulations.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emusim/__main__.py" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/__main__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emusim/cockpit/abm/forms/abm_forms_d.py" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/cockpit/abm/forms/abm_forms_d.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emusim/cockpit/abm/mesa/MoneyModel.py" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/cockpit/abm/mesa/MoneyModel.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emusim/cockpit/abm/mesa/test.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/emusim/cockpit/abm/templates/abm_simulation_d.html" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/cockpit/abm/templates/abm_simulation_d.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emusim/cockpit/abm/views/abm_d.py" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/cockpit/abm/views/abm_d.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emusim/cockpit/supply/views/home_d.py" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/cockpit/supply/views/home_d.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emusim/templates/lorecosim.html" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/templates/lorecosim_base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emusim/templates/lorecosimhome.html" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/templates/lorecosimhome.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emusim/templates/lorecotool.html" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/templates/lorecotool.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-    </list>
+    <list default="true" id="79ae4c6e-6885-4f9a-98ae-2ed692ecd8f6" name="Default Changelist" comment="implementation of user management (including mailing), and user's model management" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -290,14 +275,7 @@
       <workItem from="1597653292987" duration="3500000" />
       <workItem from="1597656888724" duration="10522000" />
       <workItem from="1597825724380" duration="2824000" />
-      <workItem from="1598627186103" duration="14873000" />
-    </task>
-    <task id="LOCAL-00024" summary="Commented out desired IM on output chart">
-      <created>1553619045295</created>
-      <option name="number" value="00024" />
-      <option name="presentableId" value="LOCAL-00024" />
-      <option name="project" value="LOCAL" />
-      <updated>1553619045295</updated>
+      <workItem from="1598627186103" duration="15206000" />
     </task>
     <task id="LOCAL-00025" summary="Fixed typo in euroforms.py">
       <created>1554108309428</created>
@@ -635,7 +613,14 @@
       <option name="project" value="LOCAL" />
       <updated>1593164521367</updated>
     </task>
-    <option name="localTasksCounter" value="73" />
+    <task id="LOCAL-00073" summary="implementation of user management (including mailing), and user's model management">
+      <created>1599203408836</created>
+      <option name="number" value="00073" />
+      <option name="presentableId" value="LOCAL-00073" />
+      <option name="project" value="LOCAL" />
+      <updated>1599203408836</updated>
+    </task>
+    <option name="localTasksCounter" value="74" />
     <servers />
   </component>
   <component name="TodoView">
@@ -690,7 +675,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
-    <MESSAGE value="Changed payback rate into payback cycles to better reflect reality&#10;Fixed growth - inflation link bug&#10;Rearranged order on Euro sim page" />
     <MESSAGE value="Adjusted defaults for Euro sim" />
     <MESSAGE value="Fixed QE Fixed bug" />
     <MESSAGE value="Updated Python version to new release 3.7.3" />
@@ -715,7 +699,8 @@
     <MESSAGE value="Revert &quot;Added table with raw data&quot;&#10;&#10;This reverts commit f2d6b979" />
     <MESSAGE value="initial commit" />
     <MESSAGE value="delete import matplotlib" />
-    <option name="LAST_COMMIT_MESSAGE" value="delete import matplotlib" />
+    <MESSAGE value="implementation of user management (including mailing), and user's model management" />
+    <option name="LAST_COMMIT_MESSAGE" value="implementation of user management (including mailing), and user's model management" />
   </component>
   <component name="WindowStateProjectService">
     <state x="249" y="0" key="#Project_Structure" timestamp="1593010740163">
@@ -823,9 +808,10 @@
       <screen x="0" y="0" width="1536" height="834" />
     </state>
     <state x="249" y="0" key="SettingsEditor/0.0.1536.834@0.0.1536.834" timestamp="1593446560983" />
-    <state x="125" y="266" key="Vcs.Push.Dialog.v2" timestamp="1593164523055">
-      <screen x="0" y="0" width="1536" height="834" />
+    <state x="125" y="256" key="Vcs.Push.Dialog.v2" timestamp="1599203459701">
+      <screen x="0" y="0" width="1536" height="802" />
     </state>
+    <state x="125" y="256" key="Vcs.Push.Dialog.v2/0.0.1536.802@0.0.1536.802" timestamp="1599203459701" />
     <state x="125" y="266" key="Vcs.Push.Dialog.v2/0.0.1536.834@0.0.1536.834" timestamp="1593164523055" />
     <state x="93" y="93" width="1350" height="648" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1593163345927">
       <screen x="0" y="0" width="1536" height="834" />
