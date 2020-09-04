@@ -13,6 +13,8 @@ entrypoints~=0.3
 Flask~=1.1.2
 Flask-PyMongo==2.3.0
 Flask-WTF==0.14.3
+Flask-SQLAlchemy==2.4.4
+Flask-User==1.0.2.2
 future~=0.18.2
 gunicorn~=20.0.4
 idna~=2.10
@@ -56,6 +58,7 @@ pyzmq~=19.0.2
 qtconsole~=4.7.7
 requests~=2.24.0
 Send2Trash==1.5.0
+sendgrid==6.4.6
 six~=1.15.0
 terminado~=0.8.3
 testpath~=0.4.4
