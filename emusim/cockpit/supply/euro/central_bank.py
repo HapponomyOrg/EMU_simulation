@@ -93,12 +93,14 @@ class CentralBank(EconomicActor):
         return self.__registered_banks
 
     def start_transactions(self):
+        super().start_transactions()
+
         for bank in self.registered_banks:
             bank.start_transactions()
 
     def end_transactions(self) -> bool:
         # if there are interest assets on the books, spend them to the economy
-        success: bool = True
+        success: bool = super().end_transactions()
 
         for bank in self.registered_banks:
             success = success and bank.end_transactions()
@@ -157,9 +159,8 @@ class CentralBank(EconomicActor):
 
         for bank in self.registered_banks:
             for client in bank.clients:
-                bank.book_asset(RESERVES, client_qe)
-                bank.book_liability(DEPOSITS, client_qe)
-                client.trade_securities(client_qe)
+                client.trade_securities_with_bank(client_qe)
+                bank.trade_central_bank_securities(client_qe)
 
     def process_helicopter_money(self):
         helicopter_money: float = 0.0

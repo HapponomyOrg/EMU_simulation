@@ -400,7 +400,7 @@ class Euro_MS_Simulation(Simulation):
 
                 self.bank_interest[i] = self.bank_debt[i] * self.ecb_ir
 
-                # pay non bank debts, interests and banking costs. First clear newly created money
+                # pay_bank non bank debts, interests and banking costs. First clear newly created money
                 if self.created_im[i] > self.private_payoff[i]:
                     self.created_im[i] -= self.private_payoff[i]
                 else:
@@ -434,7 +434,7 @@ class Euro_MS_Simulation(Simulation):
                 else:
                     self.im[i] -= create_interest # interest paid by banks goes to real economy
 
-                # pay bank debts and interests. If insufficient, sell financial assets (first) or get a new loan
+                # pay_bank bank debts and interests. If insufficient, sell financial assets (first) or get a new loan
                 if self.bank_reserve[i] >= self.bank_payoff[i] + self.bank_interest[i]:
                     self.bank_reserve[i] -= self.bank_payoff[i] + self.bank_interest[i]
                 else:

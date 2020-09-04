@@ -15,6 +15,12 @@ class EconomicActor(ABC):
         self.__liability_names: OrderedSet[str] = liability_names
         self.__balance: BalanceSheetTimeline = BalanceSheetTimeline()
 
+        # Cycle flags. Operations can not be executed before transactiosn have started. Some operations can only be
+        # executed once per cycle.
+        self.__transactions_started: bool = False
+        self.__security_growth_processed = False
+        self.__mbs_growth_processed = False
+
     @property
     def balance(self):
         return self.__balance
@@ -29,15 +35,23 @@ class EconomicActor(ABC):
         """Returns the possible liability_names for this entity. Needs to be overridden by subclasses."""
         return self.__liability_names
 
+    @property
+    def _transactions_started(self) -> bool:
+        return self.__transactions_started
+
     def grow_securities(self, growth: float):
-        security_growth = self.asset(SECURITIES) * growth
-        self.book_asset(SECURITIES, security_growth)
-        self.book_liability(SEC_EQUITY, security_growth)
+        if self._transactions_started and not self.__security_growth_processed:
+            security_growth = self.asset(SECURITIES) * growth
+            self.book_asset(SECURITIES, security_growth)
+            self.book_liability(SEC_EQUITY, security_growth)
+            self.__security_growth_processed = True
 
     def grow_mbs(self, growth: float):
-        mbs_growth = self.asset(MBS) * growth
-        self.book_asset(MBS, mbs_growth)
-        self.book_liability(MBS_EQUITY, mbs_growth)
+        if self._transactions_started and not self.__mbs_growth_processed:
+            mbs_growth = self.asset(MBS) * growth
+            self.book_asset(MBS, mbs_growth)
+            self.book_liability(MBS_EQUITY, mbs_growth)
+            self.__mbs_growth_processed = True
 
     def book_asset(self, name: str, amount: float) -> bool:
         if name in self.asset_names:
@@ -68,11 +82,16 @@ class EconomicActor(ABC):
 
     def start_transactions(self):
         """Call before performing any transactions on the economic actor."""
-        pass
+
+        self.__transactions_started = True
+        self.__security_growth_processed = False
+        self.__mbs_growth_processed = False
 
     def end_transactions(self) -> bool:
         """Call after all transactions have been concluded.
         :return True if the state of the economic actor is validated."""
+
+        self.__transactions_started = False
         return self.balance.save_state()
 
     def clear(self):
