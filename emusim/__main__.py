@@ -1,6 +1,4 @@
 # cockpit/__init__.py
-
-
 from pathlib import Path
 import sys
 
