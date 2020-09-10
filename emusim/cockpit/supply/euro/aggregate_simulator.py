@@ -174,5 +174,6 @@ class AggregateSimulator(Simulator):
 
         self.economy.process_borrowing(self.__lending)
         self.economy.update_reserves()
+        self.economy.update_risk_assets()
 
         return self.economy.end_transactions() and self.economy.im > 0

@@ -5,8 +5,7 @@ from typing import TYPE_CHECKING, Set
 
 from ordered_set import OrderedSet
 
-from . import EconomicActor
-from .balance_entries import *
+from . import EconomicActor, BalanceEntries
 
 if TYPE_CHECKING:
     from . import Bank
@@ -27,8 +26,9 @@ class HelicopterMode(Enum):
 class CentralBank(EconomicActor):
 
     def __init__(self, min_reserve: float = 0.04):
-        super().__init__(OrderedSet([LOANS, SECURITIES, HELICOPTER_MONEY, INTEREST]),
-                         OrderedSet([RESERVES, EQUITY, SEC_EQUITY]))
+        super().__init__(OrderedSet([BalanceEntries.LOANS, BalanceEntries.SECURITIES, BalanceEntries.HELICOPTER_MONEY,
+                                     BalanceEntries.INTEREST]),
+                         OrderedSet([BalanceEntries.RESERVES, BalanceEntries.EQUITY, BalanceEntries.SEC_EQUITY]))
         self.__registered_banks: Set[Bank] = set()
 
         self.__min_reserve = min_reserve
@@ -66,11 +66,11 @@ class CentralBank(EconomicActor):
 
     @property
     def mbs_relative_reserve(self) -> float:
-        return self.__mbs_reserve / self.min_reserve
+        return round(self.__mbs_reserve / self.min_reserve, 4)
 
     @mbs_relative_reserve.setter
     def mbs_relative_reserve(self, percentage: float):
-        self.__mbs_reserve = percentage * self.min_reserve
+        self.__mbs_reserve = round(percentage * self.min_reserve, 4)
 
     @property
     def mbs_real_reserve(self) -> float:
@@ -78,11 +78,11 @@ class CentralBank(EconomicActor):
 
     @property
     def securities_relative_reserve(self) -> float:
-        return self.__securities_reserve / self.min_reserve
+        return round(self.__securities_reserve / self.min_reserve, 4)
 
     @securities_relative_reserve.setter
     def securities_relative_reserve(self, percentage: float):
-        self.__securities_reserve = percentage * self.min_reserve
+        self.__securities_reserve = round(percentage * self.min_reserve, 4)
 
     @property
     def securities_real_reserve(self) -> float:
@@ -114,23 +114,35 @@ class CentralBank(EconomicActor):
         for bank in self.registered_banks:
             bank.inflate(inflation)
 
+    def grow_mbs(self, growth: float):
+        super().grow_mbs(growth)
+
+        for bank in self.registered_banks:
+            bank.grow_mbs(growth)
+
+    def grow_securities(self, growth: float):
+        super().grow_securities(growth)
+
+        for bank in self.registered_banks:
+            bank.grow_securities(growth)
+
     def process_reserve_interests(self):
         """Give/collect interest according to a bank's reserve accounts."""
         for bank in self.registered_banks:
             # Banks may hold part of their reserves in another form than the balance of their reserve accounts.
             # Those reserves will always meet the minimum reserves due to the implementation of the Bank class.
-            reserves: float = bank.asset(RESERVES)
-            deposits: float = bank.liability(DEPOSITS) + bank.liability(SAVINGS)
+            reserves: float = bank.asset(BalanceEntries.RESERVES)
+            deposits: float = bank.liability(BalanceEntries.DEPOSITS) + bank.liability(BalanceEntries.SAVINGS)
             required_reserve: float = min(reserves, deposits * self.min_reserve)
             surplus_reserve: float = max (0.0, reserves - required_reserve)
             interest: float = required_reserve * self.reserve_ir + surplus_reserve * self.surplus_reserve_ir
-            self.book_asset(INTEREST, interest)
-            self.book_liability(EQUITY, interest)
+            self.book_asset(BalanceEntries.INTEREST, interest)
+            self.book_liability(BalanceEntries.EQUITY, interest)
             bank.process_interest(interest)
 
     def book_loan(self, amount: float):
-        self.book_asset(LOANS, amount)
-        self.book_liability(RESERVES, amount)
+        self.book_asset(BalanceEntries.LOANS, amount)
+        self.book_liability(BalanceEntries.RESERVES, amount)
 
     def process_bank_loans(self):
         for bank in self.registered_banks:
@@ -144,8 +156,8 @@ class CentralBank(EconomicActor):
         elif self.qe_mode == QEMode.DEBT_RELATED:
             qe_amount = self.__calculate_private_debt() * self.qe_debt_related
 
-        self.book_asset(SECURITIES, qe_amount)
-        self.book_liability(RESERVES, qe_amount)
+        self.book_asset(BalanceEntries.SECURITIES, qe_amount)
+        self.book_liability(BalanceEntries.RESERVES, qe_amount)
 
         client_count: int = 0
 
@@ -170,8 +182,8 @@ class CentralBank(EconomicActor):
         elif self.helicopter_mode == HelicopterMode.DEBT_RELATED:
             helicopter_money = self.__calculate_private_debt() * self.helicopter_debt_related
 
-        self.book_asset(HELICOPTER_MONEY, helicopter_money)
-        self.book_liability(RESERVES, helicopter_money)
+        self.book_asset(BalanceEntries.HELICOPTER_MONEY, helicopter_money)
+        self.book_liability(BalanceEntries.RESERVES, helicopter_money)
 
         client_count: int = 0
 
@@ -182,17 +194,17 @@ class CentralBank(EconomicActor):
 
         for bank in self.registered_banks:
             for client in bank.clients:
-                client.book_asset(DEPOSITS, helicopter_fraction)
-                client.book_liability(EQUITY, helicopter_fraction)
-                bank.book_asset(RESERVES, helicopter_fraction)
-                bank.book_liability(DEPOSITS, helicopter_fraction)
+                client.book_asset(BalanceEntries.DEPOSITS, helicopter_fraction)
+                client.book_liability(BalanceEntries.EQUITY, helicopter_fraction)
+                bank.book_asset(BalanceEntries.RESERVES, helicopter_fraction)
+                bank.book_liability(BalanceEntries.DEPOSITS, helicopter_fraction)
 
     def __calculate_private_debt(self) -> float:
         debt: float = 0.0
 
         for bank in self.registered_banks:
-            debt += bank.asset(LOANS)
-            debt += bank.asset(MBS)
+            debt += bank.asset(BalanceEntries.LOANS)
+            debt += bank.asset(BalanceEntries.MBS)
 
         return debt
 

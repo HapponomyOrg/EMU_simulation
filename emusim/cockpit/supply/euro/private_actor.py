@@ -6,8 +6,7 @@ from enum import Enum
 from ordered_set import OrderedSet
 from random import random, uniform
 
-from . import EconomicActor, DebtPayment
-from .balance_entries import *
+from . import EconomicActor, DebtPayment, BalanceEntries
 
 if TYPE_CHECKING:
     from . import Bank
@@ -22,18 +21,25 @@ class PrivateActor(EconomicActor):
 
     def __init__(self, bank: Bank):
         super().__init__(
-            OrderedSet([DEPOSITS, SECURITIES, SAVINGS]),
-            OrderedSet([DEBT, UNRESOLVED_DEBT, EQUITY, SEC_EQUITY]))
+            OrderedSet([BalanceEntries.DEPOSITS, BalanceEntries.UNRESOLVED_DEBT, BalanceEntries.SECURITIES,
+                        BalanceEntries.SAVINGS, BalanceEntries.MBS]),
+            OrderedSet([BalanceEntries.DEBT, BalanceEntries.UNRESOLVED_DEBT, BalanceEntries.EQUITY,
+                        BalanceEntries.SEC_EQUITY, BalanceEntries.MBS_EQUITY]))
         self.__bank: Bank = bank
         self.bank.register(self)
 
         self.savings_rate: float = 0.02
+
+        self.borrow_for_securities: float = 0.0
 
         self.defaulting_mode: DefaultingMode = DefaultingMode.FIXED
         self.fixed_defaulting_rate = 0.0
         self.defaulting_probability = 0.0
         self.defaulting_min = 0.0 # minimum defaulting percentage for probabilistic mode
         self.defaulting_max = 0.0 # maximum defaulting percentage for probabilistic mode
+
+        self.defaults_bought_by_debt_collectors: float = 0.0 # In %
+        self.unresolved_debt_growth: float = 0.0 # Net growth of unresolved debt. Can be negative.
 
         self.__installments: List [float] = [0.0]
 
@@ -52,7 +58,7 @@ class PrivateActor(EconomicActor):
 
     @property
     def debt(self) -> float:
-        return self.liability(DEBT)
+        return self.liability(BalanceEntries.DEBT)
 
     @property
     def serviceable_debt(self) -> float:
@@ -68,14 +74,14 @@ class PrivateActor(EconomicActor):
             self.__installment = self.__installments.pop(0)
 
     def save(self, amount: float):
-        self.book_asset(SAVINGS, amount)
-        self.book_asset(DEPOSITS, -amount)
+        self.book_asset(BalanceEntries.SAVINGS, amount)
+        self.book_asset(BalanceEntries.DEPOSITS, -amount)
         self.bank.book_savings(amount)
 
     def borrow(self, amount: float):
         if amount > 0:
-            self.book_asset(DEPOSITS, amount)
-            self.book_liability(DEBT, amount)
+            self.book_asset(BalanceEntries.DEPOSITS, amount)
+            self.book_liability(BalanceEntries.DEBT, amount)
 
             installment = amount/self.bank.loan_duration
 
@@ -93,6 +99,11 @@ class PrivateActor(EconomicActor):
 
         :param debt_payment the debt payment object to record payments in."""
 
+        # Deal with existing unresolved debt.
+
+        self.book_asset(BalanceEntries.UNRESOLVED_DEBT, self.asset(BalanceEntries.UNRESOLVED_DEBT) * self.unresolved_debt_growth)
+        self.book_liability(BalanceEntries.UNRESOLVED_DEBT, self.liability(BalanceEntries.UNRESOLVED_DEBT) * self.unresolved_debt_growth)
+
         unresolved_debt: float = 0.0
         debt_payment.debt = self.debt
         debt_payment.full_installment = self.installment
@@ -102,53 +113,66 @@ class PrivateActor(EconomicActor):
         elif self.defaulting_mode == DefaultingMode.FIXED:
             unresolved_debt = debt_payment.full_installment * self.fixed_defaulting_rate
 
-        debt_payment.installment_paid = self.__pay_bank(self.installment - unresolved_debt, DEBT)
-        debt_payment.interest_paid = self.__pay_bank(debt_payment.adjusted_interest, EQUITY)
+        debt_payment.installment_paid = self.__pay_bank(self.installment - unresolved_debt, BalanceEntries.DEBT)
+        debt_payment.interest_paid = self.__pay_bank(debt_payment.adjusted_interest, BalanceEntries.EQUITY)
 
         # Defaults and liquidity shortages do not cancel debt but it won't be owed to the banks anymore.
         # Liquidity shortages are systemic defaults in the context of this simulation.
-        self.book_liability(DEBT, -unresolved_debt)
-        self.book_liability(UNRESOLVED_DEBT, unresolved_debt)
+        self.book_liability(BalanceEntries.DEBT, -unresolved_debt)
+        self.book_liability(BalanceEntries.EQUITY, unresolved_debt)
+
+        # Unresolved debt can be bought from the banks by private debt collectors. The price which is paid for that
+        # debt is included in the paid off debt since the remaining debt is usually bought at a discount.
+        unresolved_debt *= self.defaults_bought_by_debt_collectors
+        self.book_asset(BalanceEntries.UNRESOLVED_DEBT, unresolved_debt)
+        self.book_liability(BalanceEntries.UNRESOLVED_DEBT, unresolved_debt)
 
     def pay_bank(self, amount: float) -> float:
-        return self.__pay_bank(amount, EQUITY)
+        return self.__pay_bank(amount, BalanceEntries.EQUITY)
 
-    def trade_securities_with_bank(self, amount: float):
+    def trade_securities_with_bank(self, amount: float, security_type: str = BalanceEntries.SECURITIES):
         """Attempt to trade the amount of securities, a positive amount indicating a sell, a negative amount
         indicating a buy. When buying, no more than the available deposits + savings can be used."""
 
-        equity: float = self.liability(EQUITY)
-        self.__pay_bank(-amount, EQUITY)
+        equity: float = self.liability(BalanceEntries.EQUITY)
+        self.__pay_bank(-amount, BalanceEntries.EQUITY, True)
 
-        sold_securities: float = self.liability(EQUITY) - equity
+        traded_securities: float = self.liability(BalanceEntries.EQUITY) - equity
 
-        self.bank.receive_client_securities(sold_securities)
+        self.bank.receive_client_securities(traded_securities, security_type)
 
         # when selling, do not subtract more than what was on the balance sheet. The surplus is 'created'. These
         # actually represent securities which were hidden from the books until now.
-        securities_delta: float = min(self.asset(SECURITIES), sold_securities)
+        securities_delta: float = min(self.asset(security_type), traded_securities)
 
-        self.book_asset(SECURITIES, -securities_delta)
-        self.book_liability(SEC_EQUITY, -securities_delta)
+        self.book_asset(security_type, -securities_delta)
+        self.book_liability(BalanceEntries.equity_type(security_type), -securities_delta)
 
-    def __pay_bank(self, amount: float, liability_name: str) -> float:
+    def __pay_bank(self, amount: float, liability_name: str, borrow: bool = False) -> float:
         """Attempt to pay_bank an amount. Use savings if needed.
 
         :param amount the amount to pay_bank.
         :param liability_name the name of the liability that needs to be diminished."""
 
-        deposits: float = self.asset(DEPOSITS)
-        savings: float = self.asset(SAVINGS)
+        deposits: float = self.asset(BalanceEntries.DEPOSITS)
+        savings: float = self.asset(BalanceEntries.SAVINGS)
 
         pay_from_deposits: float = min(amount, deposits)
         pay_from_savings: float = min(savings, amount - pay_from_deposits)
 
-        self.book_asset(DEPOSITS, -pay_from_deposits)
-        self.book_asset(SAVINGS, -pay_from_savings)
+        # borrowing can only happen when paying for securities
+        if pay_from_deposits + pay_from_savings < amount and borrow:
+            to_borrow: float = round((amount - pay_from_deposits - pay_from_savings) * self.borrow_for_securities, 4)
+
+            self.bank.borrow(to_borrow)
+            pay_from_deposits += to_borrow
+
+        self.book_asset(BalanceEntries.DEPOSITS, -pay_from_deposits)
+        self.book_asset(BalanceEntries.SAVINGS, -pay_from_savings)
         self.book_liability(liability_name, -(pay_from_deposits + pay_from_savings))
 
-        self.bank.pay_bank(pay_from_deposits, DEPOSITS)
-        self.bank.pay_bank(pay_from_savings, SAVINGS)
+        self.bank.pay_bank(pay_from_deposits, BalanceEntries.DEPOSITS)
+        self.bank.pay_bank(pay_from_savings, BalanceEntries.SAVINGS)
 
         return pay_from_deposits + pay_from_savings
 

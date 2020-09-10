@@ -4,8 +4,7 @@ from abc import ABC, abstractmethod
 
 from ordered_set import OrderedSet
 
-from . import BalanceSheetTimeline
-from .balance_entries import *
+from . import BalanceSheetTimeline, BalanceEntries
 
 
 class EconomicActor(ABC):
@@ -41,16 +40,16 @@ class EconomicActor(ABC):
 
     def grow_securities(self, growth: float):
         if self._transactions_started and not self.__security_growth_processed:
-            security_growth = self.asset(SECURITIES) * growth
-            self.book_asset(SECURITIES, security_growth)
-            self.book_liability(SEC_EQUITY, security_growth)
+            security_growth = self.asset(BalanceEntries.SECURITIES) * growth
+            self.book_asset(BalanceEntries.SECURITIES, security_growth)
+            self.book_liability(BalanceEntries.SEC_EQUITY, security_growth)
             self.__security_growth_processed = True
 
     def grow_mbs(self, growth: float):
         if self._transactions_started and not self.__mbs_growth_processed:
-            mbs_growth = self.asset(MBS) * growth
-            self.book_asset(MBS, mbs_growth)
-            self.book_liability(MBS_EQUITY, mbs_growth)
+            mbs_growth = self.asset(BalanceEntries.MBS) * growth
+            self.book_asset(BalanceEntries.MBS, mbs_growth)
+            self.book_liability(BalanceEntries.MBS_EQUITY, mbs_growth)
             self.__mbs_growth_processed = True
 
     def book_asset(self, name: str, amount: float) -> bool:

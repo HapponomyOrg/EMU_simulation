@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Set
 
-from . import CentralBank
-from .balance_entries import *
+from . import CentralBank, BalanceEntries
 
 
 class EuroEconomy(ABC):
@@ -84,14 +83,19 @@ class EuroEconomy(ABC):
             for bank in central_bank.registered_banks:
                 bank.update_reserves()
 
+    def update_risk_assets(self):
+        for central_bank in self.central_banks:
+            for bank in central_bank.registered_banks:
+                bank.update_risk_assets()
+
     @property
     def im(self) -> float:
         im: float = 0.0
 
         for central_bank in self.central_banks:
             for bank in central_bank.registered_banks:
-                im += bank.liability(DEPOSITS)
-                im += bank.liability(SAVINGS)
+                im += bank.liability(BalanceEntries.DEPOSITS)
+                im += bank.liability(BalanceEntries.SAVINGS)
 
         return im
 
@@ -102,7 +106,7 @@ class EuroEconomy(ABC):
         for central_bank in self.central_banks:
             for bank in central_bank.registered_banks:
                 for client in bank.clients:
-                    debt += client.liability(DEBT)
+                    debt += client.liability(BalanceEntries.DEBT)
 
         return debt
 
@@ -112,7 +116,7 @@ class EuroEconomy(ABC):
 
         for central_bank in self.central_banks:
             for bank in central_bank.registered_banks:
-                debt += bank.liability(DEBT)
+                debt += bank.liability(BalanceEntries.DEBT)
 
         return debt
 
