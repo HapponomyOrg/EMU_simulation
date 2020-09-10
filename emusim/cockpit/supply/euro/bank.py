@@ -126,8 +126,7 @@ class Bank(EconomicActor):
         self.__savings_processed: bool = False
         self.__debt_paid: bool = False
         self.__spending_processed: bool = False
-        self.__reserves_updated: bool = False
-        self.__risk_assets_updated: bool = False
+        self.__reserves_and_risk_assets_updated: bool = False
 
         # Cycle attributes
         self.__client_installment: float = 0.0
@@ -241,8 +240,7 @@ class Bank(EconomicActor):
         self.__savings_processed = False
         self.__debt_paid = False
         self.__spending_processed = False
-        self.__reserves_updated = False
-        self.__risk_assets_updated = False
+        self.__reserves_and_risk_assets_updated = False
 
         for client in self.clients:
             client.start_transactions()
@@ -286,7 +284,6 @@ class Bank(EconomicActor):
 
         self.book_liability(source, -amount)
         self.book_liability(BalanceEntries.EQUITY, amount)
-
 
     def process_client_savings(self):
         """Pay interest on client savings."""
@@ -432,12 +429,12 @@ class Bank(EconomicActor):
 
         return tuple((interest, installment))
 
-    def update_reserves(self):
+    def update_reserves_and_risk_assets(self):
         """Update reserves so that they are adequate for the current amount of deposits + savings on the balance
         sheet of the bank. If this results in changes in deposits held on the balance sheet, these changes are
         carried over to the next reserve calculations."""
 
-        if self._transactions_started and not self.__reserves_updated:
+        if self._transactions_started and not self.__reserves_and_risk_assets_updated:
             total_deposits: float = self.liability(BalanceEntries.DEPOSITS) + self.liability(BalanceEntries.SAVINGS)
 
             min_reserves: float = round(total_deposits * self.central_bank.real_min_reserve, 4)
@@ -474,13 +471,6 @@ class Bank(EconomicActor):
                 self.borrow(round(total_deposits * self.central_bank.min_reserve, 4)
                             - (self.asset(BalanceEntries.RESERVES) + self.risk_assets))
 
-            self.__reserves_updated = True
-
-    def update_risk_assets(self):
-        """Buy or sell risk assets in order to match the risk asset parameters of the bank."""
-
-        # MAke sure reserves are updated before risk assets get updated.
-        if self._transactions_started and not self.__risk_assets_updated and self.__reserves_updated:
             min_total_risk_assets: float = self.safe_assets * self.min_risk_assets
             max_total_risk_assets: float = float('inf')
 
@@ -490,7 +480,7 @@ class Bank(EconomicActor):
             max_mbs: float = max_total_risk_assets * self.max_mbs_assets
             max_securities: float = max_total_risk_assets * self.max_security_assets
 
-            self.__risk_assets_updated = True
+            self.__reserves_and_risk_assets_updated = True
 
     def trade_central_bank_securities(self, amount: float) -> float:
         """Trade securities with the central bank. A positive amount indicates a sell to the central bank.
