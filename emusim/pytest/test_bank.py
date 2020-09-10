@@ -211,14 +211,9 @@ def test_risk_assets_mbs():
 
     central_bank.start_transactions()
     client.borrow(2000.0)
-    assert central_bank.end_transactions()
-    central_bank.start_transactions()
-    bank.update_reserves_and_risk_assets()
-    assert central_bank.end_transactions()
-    central_bank.start_transactions()
     bank.book_asset(BalanceEntries.MBS, 2090.0)
     bank.book_liability(BalanceEntries.MBS_EQUITY, 2090.0)
-    bank.update_risk_assets()
+    bank.update_reserves_and_risk_assets()
     assert central_bank.end_transactions()
 
     assert bank.asset(BalanceEntries.MBS) == 2080.0
