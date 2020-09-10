@@ -1,5 +1,5 @@
 from emusim.cockpit.supply.euro import CentralBank, QEMode, HelicopterMode, Bank, SpendingMode, PrivateActor
-from emusim.cockpit.supply.euro.balance_entries import *
+from emusim.cockpit.supply.euro.balance_entries import BalanceEntries
 
 central_bank = CentralBank()
 bank = Bank(central_bank)
@@ -57,16 +57,16 @@ def test_borrowing():
 
     central_bank.start_transactions()
     bank.borrow(100.0)
-    assert central_bank.asset(LOANS) == 100.0
-    assert central_bank.liability(RESERVES) == 100.0
-    assert bank.asset(RESERVES) == 100.0
-    assert bank.liability(DEBT) == 100.0
+    assert central_bank.asset(BalanceEntries.LOANS) == 100.0
+    assert central_bank.liability(BalanceEntries.RESERVES) == 100.0
+    assert bank.asset(BalanceEntries.RESERVES) == 100.0
+    assert bank.liability(BalanceEntries.DEBT) == 100.0
 
     client.borrow(1000.0)
-    assert bank.asset(LOANS) == 1000.0
-    assert bank.liability(DEPOSITS) == 1000.0
-    assert client.asset(DEPOSITS) == 1000.0
-    assert client.liability(DEBT) == 1000.0
+    assert bank.asset(BalanceEntries.LOANS) == 1000.0
+    assert bank.liability(BalanceEntries.DEPOSITS) == 1000.0
+    assert client.asset(BalanceEntries.DEPOSITS) == 1000.0
+    assert client.liability(BalanceEntries.DEBT) == 1000.0
 
     assert central_bank.end_transactions()
 
@@ -91,22 +91,21 @@ def test_fixed_qe():
 
     central_bank.start_transactions()
     client.trade_securities_with_bank(10.0)
-    print(client.balance)
-    assert client.balance.asset(DEPOSITS) == 10.0
-    assert client.balance.asset(SECURITIES) == 0.0
-    assert client.balance.liability(SEC_EQUITY) == 0.0
-    assert client.balance.liability(EQUITY) == 10.0
-    bank.book_asset(SECURITIES, 50.0)
-    bank.book_liability(EQUITY, 50.0)
+    assert client.balance.asset(BalanceEntries.DEPOSITS) == 10.0
+    assert client.balance.asset(BalanceEntries.SECURITIES) == 0.0
+    assert client.balance.liability(BalanceEntries.SEC_EQUITY) == 0.0
+    assert client.balance.liability(BalanceEntries.EQUITY) == 10.0
+    bank.book_asset(BalanceEntries.SECURITIES, 50.0)
+    bank.book_liability(BalanceEntries.SEC_EQUITY, 50.0)
     central_bank.process_qe()
     central_bank.end_transactions()
 
-    assert central_bank.asset(SECURITIES) == 100.0
-    assert central_bank.liability(RESERVES) == 100.0
+    assert central_bank.asset(BalanceEntries.SECURITIES) == 100.0
+    assert central_bank.liability(BalanceEntries.RESERVES) == 100.0
+    assert bank.asset(BalanceEntries.RESERVES) == 100.0
+    assert bank.liability(BalanceEntries.DEPOSITS) == 50.0
     print(bank.balance)
-    assert bank.asset(RESERVES) == 100.0
-    assert bank.liability(DEPOSITS) == 50.0
-    assert bank.liability(EQUITY) == 50.0
+    assert bank.liability(BalanceEntries.EQUITY) == 50.0
 
 
 def test_debt_related_qe():
@@ -116,3 +115,4 @@ def test_debt_related_qe():
 
     central_bank.start_transactions()
     client.borrow(100.0)
+    # TODO
