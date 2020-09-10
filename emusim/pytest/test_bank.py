@@ -101,7 +101,7 @@ def test_reserves_no_securities():
     assert central_bank.end_transactions()
     central_bank.start_transactions()
     bank.process_income()
-    bank.update_reserves()
+    bank.update_reserves_and_risk_assets()
     assert central_bank.end_transactions()
 
     assert central_bank.asset(BalanceEntries.LOANS) == 83.75
@@ -138,7 +138,7 @@ def test_reserves_mbs():
     client.borrow(2000.0)
     assert central_bank.end_transactions()
     central_bank.start_transactions()
-    bank.update_reserves()
+    bank.update_reserves_and_risk_assets()
     assert central_bank.end_transactions()
 
     assert central_bank.asset(BalanceEntries.LOANS) == 90.0
@@ -179,11 +179,11 @@ def test_reserve_mbs_growth():
     client.borrow(2000.0)
     assert central_bank.end_transactions()
     central_bank.start_transactions()
-    bank.update_reserves()
+    bank.update_reserves_and_risk_assets()
     assert central_bank.end_transactions()
     central_bank.start_transactions()
     central_bank.grow_mbs(0.1)
-    bank.update_reserves()
+    bank.update_reserves_and_risk_assets()
     assert central_bank.end_transactions()
 
     assert bank.asset(BalanceEntries.MBS) == 11.0
@@ -213,7 +213,7 @@ def test_risk_assets_mbs():
     client.borrow(2000.0)
     assert central_bank.end_transactions()
     central_bank.start_transactions()
-    bank.update_reserves()
+    bank.update_reserves_and_risk_assets()
     assert central_bank.end_transactions()
     central_bank.start_transactions()
     bank.book_asset(BalanceEntries.MBS, 2090.0)
