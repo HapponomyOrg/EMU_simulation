@@ -147,7 +147,7 @@ def test_reserves_mbs():
 
     assert client.asset(BalanceEntries.DEPOSITS) == 2000.0
     assert client.liability(BalanceEntries.DEBT) == 2000.0
-    assert client.liability(BalanceEntries.EQUITY) == -0.0
+    assert client.liability(BalanceEntries.EQUITY) == 0.0
     assert client.balance.total_balance == 2000.0
 
     assert bank.asset(BalanceEntries.RESERVES) == 90.0
@@ -195,13 +195,12 @@ def test_reserve_mbs_growth():
     assert bank.balance.total_balance == 2091.0
 
 
-def test_risk_assets_mbs():
+def test_reserve_securities():
     central_bank.clear()
     central_bank.min_reserve = 0.05
-    central_bank.mbs_relative_reserve = 0.1
-    central_bank.securities_relative_reserve = 0.0
+    central_bank.securities_relative_reserve = 0.1
+    central_bank.mbs_relative_reserve = 0.0
     bank.max_reserve = 0.05
-    bank.max_mbs_assets = 0.5
     bank.loan_ir = 0.05
     bank.loan_duration = 10
     bank.income_from_interest = 0.8
@@ -211,16 +210,28 @@ def test_risk_assets_mbs():
 
     central_bank.start_transactions()
     client.borrow(2000.0)
-    bank.book_asset(BalanceEntries.MBS, 2090.0)
-    bank.book_liability(BalanceEntries.MBS_EQUITY, 2090.0)
+    assert central_bank.end_transactions()
+    central_bank.start_transactions()
     bank.update_reserves_and_risk_assets()
     assert central_bank.end_transactions()
 
-    assert bank.asset(BalanceEntries.MBS) == 2080.0
-    assert bank.asset(BalanceEntries.LOANS) == 1990.0
+    assert central_bank.asset(BalanceEntries.LOANS) == 90.0
+    assert central_bank.liability(BalanceEntries.RESERVES) == 90.0
+    assert central_bank.balance.total_balance == 90.0
+
+    assert client.asset(BalanceEntries.DEPOSITS) == 2010.0
+    assert client.liability(BalanceEntries.DEBT) == 2000.0
+    assert client.liability(BalanceEntries.EQUITY) == 10.0
+    assert client.balance.total_balance == 2010.0
+
     assert bank.asset(BalanceEntries.RESERVES) == 90.0
-    assert bank.liability(BalanceEntries.MBS_EQUITY) == 2080.0
-    assert bank.liability(BalanceEntries.DEPOSITS) == 2000.0
+    assert bank.asset(BalanceEntries.LOANS) == 2000.0
+    assert bank.asset(BalanceEntries.MBS) == 0.0
+    assert bank.asset(BalanceEntries.SECURITIES) == 10.0
+    assert bank.liability(BalanceEntries.DEPOSITS) == 2010.0
+    assert bank.liability(BalanceEntries.DEBT) == 90.0
+    assert bank.liability(BalanceEntries.MBS_EQUITY) == 0.0
+    assert bank.liability(BalanceEntries.SEC_EQUITY) == 10.0
     assert bank.liability(BalanceEntries.EQUITY) == -10.0
-    assert bank.balance.total_balance == 4160.0
+    assert bank.balance.total_balance == 2100.0
     

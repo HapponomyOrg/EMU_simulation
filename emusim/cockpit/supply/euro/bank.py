@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import numpy
+
 from enum import Enum
 from typing import TYPE_CHECKING, Set, Tuple, List, Callable
 
@@ -359,6 +361,21 @@ class Bank(EconomicActor):
 
         return paid_from_deposits + paid_from_savings
 
+    def __trade_client_securities(self, amount: float, security_type: str):
+        """Trade securities proportionally with each client, if possible."""
+        total_deposits: float = self.liability(BalanceEntries.DEPOSITS) + self.liability(BalanceEntries.SAVINGS)
+        traded_securities: float = 0.0
+
+        for client in self.clients:
+            client_deposits = client.asset(BalanceEntries.DEPOSITS) + client.asset(BalanceEntries.SAVINGS)
+            fraction: float = client_deposits / total_deposits * amount
+
+            traded_securities += self.__trade_securities_with_client(client, fraction, security_type)
+
+        self.book_liability(BalanceEntries.EQUITY, -traded_securities)
+        self.book_asset(security_type, traded_securities)
+        self.book_liability(BalanceEntries.equity_type(security_type), traded_securities)
+
     def spend(self):
         # calculate real_profit
         profit: float = self.balance.delta_history[-1].asset(BalanceEntries.EQUITY)
@@ -435,50 +452,70 @@ class Bank(EconomicActor):
         carried over to the next reserve calculations."""
 
         if self._transactions_started and not self.__reserves_and_risk_assets_updated:
-            total_deposits: float = self.liability(BalanceEntries.DEPOSITS) + self.liability(BalanceEntries.SAVINGS)
+            total_dep_sav: float = self.liability(BalanceEntries.DEPOSITS) + self.liability(BalanceEntries.SAVINGS)
+            min_composite_reserve: float =  round(total_dep_sav * self.central_bank.min_reserve, 4)
 
-            min_reserves: float = round(total_deposits * self.central_bank.real_min_reserve, 4)
-            self.borrow(max(0.0, min_reserves - self.asset(BalanceEntries.RESERVES)))
+            if self.risk_assets + self.balance.asset(BalanceEntries.RESERVES) < min_composite_reserve:
+                param_matrix: List[List] = [] # 4 x n matrix, row for delta_res, delta_mbs, delta_sec, delta_dep_sav
+                const_vector: List[List] = [] # 1 x n matrix
+                min_reserve: float = round(total_dep_sav * self.central_bank.real_min_reserve, 4)
+                min_mbs: float = round(total_dep_sav * self.central_bank.mbs_real_reserve, 4)
+                min_securities: float = round(total_dep_sav * self.central_bank.securities_real_reserve, 4)
+                cur_reserve: float = min(min_reserve, self.balance.asset(BalanceEntries.RESERVES))
+                cur_mbs: float = min(min_mbs, self.balance.asset(BalanceEntries.MBS))
+                cur_securities = min(min_securities, self.balance.asset(BalanceEntries.SECURITIES))
 
-            # Calculate min mbs, taking into account max % of risk assets in relation to safe assets and max % of mbs in
-            # relation to risk assets.
-            min_mbs: float = min(total_deposits * self.central_bank.mbs_real_reserve,
-                                 (self.risk_assets + self.safe_assets) / (1 + self.max_mbs_assets)
-                                 * self.max_risk_assets * self.max_mbs_assets)
+                # Equation for composite reserve
+                param_matrix.append([1, 1, 1, -self.central_bank.min_reserve])
+                const_vector.append([total_dep_sav * self.central_bank.min_reserve
+                                     - cur_reserve - cur_mbs - cur_securities])
 
-            new_mbs: float = min(self.asset(BalanceEntries.LOANS), min_mbs - self.asset(BalanceEntries.MBS))
+                # Equation for reserves
+                param_matrix.append([1, 0, 0, 0])
+                const_vector.append([total_dep_sav * self.central_bank.real_min_reserve - cur_reserve])
 
-            if new_mbs > 0:
-                self.book_asset(BalanceEntries.LOANS, -new_mbs)
-                self.book_liability(BalanceEntries.EQUITY, -new_mbs)
-                self.book_asset(BalanceEntries.MBS, new_mbs)
-                self.book_liability(BalanceEntries.MBS_EQUITY, new_mbs)
+                # Equation for MBS
+                param_matrix.append([0, 1, 0, 0])
+                const_vector.append([total_dep_sav * self.central_bank.mbs_real_reserve - cur_mbs])
 
-            min_securities: float = total_deposits * self.central_bank.securities_real_reserve
+                # Equations for securities
+                param_matrix.append([0, 0, 1, 0])
+                const_vector.append([total_dep_sav * self.central_bank.securities_real_reserve - cur_securities])
 
-            self.__trade_client_securities(min_securities - self.asset(BalanceEntries.SECURITIES),
-                                           BalanceEntries.SECURITIES)
+                param_matrix.append(([0, 0, 1, -1]))
+                const_vector.append([0])
 
-            # invest a maximum in order to minimise surplus reserves
-            max_nominal_reserve: float = self.max_reserve * total_deposits
+                matrix = numpy.array(param_matrix)
+                vector = numpy.array(const_vector)
+                result = numpy.linalg.pinv(matrix).dot(vector)
 
-            if self.asset(BalanceEntries.RESERVES) > max_nominal_reserve:
-                self.__trade_client_securities(max_nominal_reserve - self.asset(BalanceEntries.RESERVES),
-                                               BalanceEntries.SECURITIES)
+                delta_res: float = round(result[0][0], 4)
+                delta_mbs: float = round(result[1][0], 4)
+                delta_sec: float = round(result[2][0], 4)
+                delta_dep_sav: float = round(result[3][0], 4)
 
-            # if reserves are lacking, due to bank risk parameters, borrow extra reserves
-            if self.asset(BalanceEntries.RESERVES) + self.risk_assets < total_deposits * self.central_bank.min_reserve:
-                self.borrow(round(total_deposits * self.central_bank.min_reserve, 4)
-                            - (self.asset(BalanceEntries.RESERVES) + self.risk_assets))
+                # Update MBS
+                if delta_mbs > self.asset(BalanceEntries.LOANS):
+                    delta_res += delta_mbs - self.asset(BalanceEntries.LOANS)
+                    delta_mbs = self.asset(BalanceEntries.LOANS)
 
-            min_total_risk_assets: float = self.safe_assets * self.min_risk_assets
-            max_total_risk_assets: float = float('inf')
+                self.book_asset(BalanceEntries.MBS, delta_mbs)
+                self.book_asset(BalanceEntries.LOANS, -delta_mbs)
+                self.book_liability(BalanceEntries.MBS_EQUITY, delta_mbs)
+                self.book_liability(BalanceEntries.EQUITY, -delta_mbs)
 
-            if 1 - self.max_risk_assets > 0.0:
-                max_total_risk_assets = self.safe_assets / (1 - self.max_risk_assets) * self.max_risk_assets
+                self.__trade_client_securities(delta_sec, BalanceEntries.SECURITIES)
 
-            max_mbs: float = max_total_risk_assets * self.max_mbs_assets
-            max_securities: float = max_total_risk_assets * self.max_security_assets
+                # Update reserves
+                self.borrow(delta_res)
+
+            if self.risk_assets < self.__min_risk_assets * (self.safe_assets + self.risk_assets):
+                # TODO
+                pass
+
+            if self.risk_assets > self.__max_risk_assets * (self.safe_assets + self.risk_assets):
+                # TODO
+                pass
 
             self.__reserves_and_risk_assets_updated = True
 
@@ -503,21 +540,6 @@ class Bank(EconomicActor):
         :param security_type the type of security that needs to be booked. Either MBS or SECURITIES."""
         self.book_asset(security_type, amount)
         self.book_liability(BalanceEntries.equity_type(security_type), amount)
-
-    def __trade_client_securities(self, amount: float, security_type: str):
-        """Trade securities proportionally with each client, if possible."""
-        total_deposits: float = self.liability(BalanceEntries.DEPOSITS) + self.liability(BalanceEntries.SAVINGS)
-        traded_securities: float = 0.0
-
-        for client in self.clients:
-            client_deposits = client.asset(BalanceEntries.DEPOSITS) + client.asset(BalanceEntries.SAVINGS)
-            fraction: float = client_deposits / total_deposits * amount
-
-            traded_securities += self.__trade_securities_with_client(client, fraction, security_type)
-
-        self.book_liability(BalanceEntries.EQUITY, -traded_securities)
-        self.book_asset(security_type, traded_securities)
-        self.book_liability(BalanceEntries.equity_type(security_type), traded_securities)
 
     def clear(self):
         super().clear()
