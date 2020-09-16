@@ -100,7 +100,6 @@ class Bank(EconomicActor):
         self.central_bank.register(self)
         self.max_reserve = central_bank.min_reserve
 
-        self.min_liquidity: float = 0.05
         self.__min_risk_assets: float = 0.0
         self.__max_risk_assets: float = 1.0 # Maximum % of assets being MBS and/or Securities
 
@@ -226,6 +225,12 @@ class Bank(EconomicActor):
 
         if self.max_mbs_assets < 1 - max_percentage:
             self.max_mbs_assets = 1 - max_percentage
+
+    @property
+    def lcr(self) -> float:
+        """Return the Liquidity Coverage Ratio of the bank. Must be called before transactions are started or after
+        transactions are ended. Results during transactions are not accurate."""
+        return 1.0 # TODO
 
     def register(self, client: PrivateActor):
         self.__clients.add(client)
