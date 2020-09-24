@@ -27,7 +27,8 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False    # Avoids a SQLAlchemy Warning
 #MAIL_PASSWORD = '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'
 
 # Sendgrid settings
-SENDGRID_API_KEY='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'
+#SENDGRID_API_KEY=''
+#api key not hardcoded, but loaded from the os environment
 
 # Flask-User settings
 USER_APP_NAME = 'LoREco'

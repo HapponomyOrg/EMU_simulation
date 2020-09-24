@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
@@ -30,7 +32,7 @@ def create_app():
     app.config.from_object('emusim.settings')
     # Load environment specific settings
     app.config.from_object('emusim.local_settings')
-
+    app.config['SENDGRID_API_KEY'] = os.environ.get('SENDGRID_API_KEY')
     # Setup Flask-SQLAlchemy
     db.init_app(app)
     # Setup Flask-Mail-SendGrid
