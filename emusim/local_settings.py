@@ -13,7 +13,8 @@ DEBUG = True
 #SECRET_KEY = 'This is an UNSECURE Secret. CHANGE THIS for production environments.'
 
 # SQLAlchemy settings
-SQLALCHEMY_DATABASE_URI = 'sqlite:///app.sqlite'
+#SQLALCHEMY_DATABASE_URI =
+#database uri key not hardcoded, but loaded from the os environment
 SQLALCHEMY_TRACK_MODIFICATIONS = False    # Avoids a SQLAlchemy Warning
 
 # Flask-Mail settings

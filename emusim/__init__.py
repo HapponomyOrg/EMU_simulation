@@ -33,6 +33,7 @@ def create_app():
     # Load environment specific settings
     app.config.from_object('emusim.local_settings')
     app.config['SENDGRID_API_KEY'] = os.environ.get('SENDGRID_API_KEY')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
     # Setup Flask-SQLAlchemy
     db.init_app(app)
     # Setup Flask-Mail-SendGrid
