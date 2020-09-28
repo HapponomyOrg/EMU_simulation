@@ -25,7 +25,7 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False    # Avoids a SQLAlchemy Warning
 #MAIL_USE_SSL = False
 #MAIL_USE_TLS = True
 #MAIL_USERNAME = 'apikey'
-#MAIL_PASSWORD = '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'
+#MAIL_PASSWORD = ''
 
 # Sendgrid settings
 #SENDGRID_API_KEY=''
