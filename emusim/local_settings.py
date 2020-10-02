@@ -13,7 +13,8 @@ DEBUG = True
 #SECRET_KEY = 'This is an UNSECURE Secret. CHANGE THIS for production environments.'
 
 # SQLAlchemy settings
-SQLALCHEMY_DATABASE_URI = 'sqlite:///app.sqlite'
+#SQLALCHEMY_DATABASE_URI =
+#database uri key not hardcoded, but loaded from the os environment
 SQLALCHEMY_TRACK_MODIFICATIONS = False    # Avoids a SQLAlchemy Warning
 
 # Flask-Mail settings
@@ -24,10 +25,11 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False    # Avoids a SQLAlchemy Warning
 #MAIL_USE_SSL = False
 #MAIL_USE_TLS = True
 #MAIL_USERNAME = 'apikey'
-#MAIL_PASSWORD = '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'
+#MAIL_PASSWORD = ''
 
 # Sendgrid settings
-SENDGRID_API_KEY='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'
+#SENDGRID_API_KEY=''
+#api key not hardcoded, but loaded from the os environment
 
 # Flask-User settings
 USER_APP_NAME = 'LoREco'

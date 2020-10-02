@@ -5,15 +5,18 @@
 # Authors: Ling Thio <ling.thio@gmail.com>
 
 import datetime
+import os
 
 from flask import current_app
 
-from emusim.__main__ import db, create_app
+from emusim import db
+from emusim.__main__ import create_app
 from emusim.cockpit.abm.db.user_models import User, Role, ModelParameters
 
 
 
 def init_db():
+   # app.config['SENDGRID_API_KEY'] = os.environ.get('SENDGRID_API_KEY')
     """ Initialize the database."""
     db.drop_all()
     db.create_all()
@@ -34,7 +37,7 @@ def create_users():
     user = find_or_create_user(u'Admin', u'Example', u'admin@example.com', 'Password1', admin_role)
     user = find_or_create_user(u'Member', u'Example', u'member@example.com', 'Password1')
     user = find_or_create_user(u'Lansen', u'Puttemans', u'lansen.puttemans@howest.be', 'Password1')
-    user = find_or_create_user(u'Jonas', u'Van Lancker', u'jonas.vanlancker@howest.be', 'Password1')
+    user = find_or_create_user(u'Jonas', u'Van Lancker', u'jonas.van.lancker@howest.be', 'Password1')
     user = find_or_create_user(u'Geert', u'Hofman', u'geert.hofman@howest.be', 'Password1')
     user = find_or_create_user(u'Stef', u'Kuypers', u'stef@happonomy.org', 'Password1')
     user = find_or_create_user(u'Bruno', u'Delepierre', u'bruno@happonomy.org', 'Password1')
