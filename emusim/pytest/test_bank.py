@@ -231,7 +231,7 @@ def test_reserve_securities():
     assert bank.liability(BalanceEntries.DEPOSITS) == 2010.0
     assert bank.liability(BalanceEntries.DEBT) == 90.0
     assert bank.liability(BalanceEntries.MBS_EQUITY) == 0.0
-    assert bank.liability(BalanceEntries.SEC_EQUITY) == 10.0
+    assert bank.liability(BalanceEntries.EQUITY) == 10.0
     assert bank.liability(BalanceEntries.EQUITY) == -10.0
     assert bank.balance.total_balance == 2100.0
     

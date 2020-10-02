@@ -42,7 +42,7 @@ class EconomicActor(ABC):
         if self._transactions_started and not self.__security_growth_processed:
             security_growth = self.asset(BalanceEntries.SECURITIES) * growth
             self.book_asset(BalanceEntries.SECURITIES, security_growth)
-            self.book_liability(BalanceEntries.SEC_EQUITY, security_growth)
+            self.book_liability(BalanceEntries.EQUITY, security_growth)
             self.__security_growth_processed = True
 
     def grow_mbs(self, growth: float):

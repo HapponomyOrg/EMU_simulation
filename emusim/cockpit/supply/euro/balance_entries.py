@@ -10,7 +10,6 @@ class BalanceEntries:
     UNRESOLVED_DEBT = "Unresolved debt"
     SAVINGS = "Savings"
     EQUITY = "Equity"
-    SEC_EQUITY = "Securities equity"
     MBS_EQUITY = "MBS equity"
     HELICOPTER_MONEY = "Helicopter money"
     RESERVES = "Reserves"
@@ -18,9 +17,7 @@ class BalanceEntries:
 
     @staticmethod
     def equity_type(asset: str) -> str:
-        if asset == BalanceEntries.SECURITIES:
-            return BalanceEntries.SEC_EQUITY
-        elif asset == BalanceEntries.MBS:
+        if asset == BalanceEntries.MBS:
             return BalanceEntries.MBS_EQUITY
         else:
             return BalanceEntries.EQUITY

@@ -43,13 +43,12 @@ def test_sell_securities():
     central_bank.clear()
     central_bank.start_transactions()
     client.book_asset(BalanceEntries.SECURITIES, 100.0)
-    client.book_liability(BalanceEntries.SEC_EQUITY, 100.0)
+    client.book_liability(BalanceEntries.EQUITY, 100.0)
     client.trade_securities_with_bank(150.0, BalanceEntries.SECURITIES)
     assert central_bank.end_transactions()
 
     assert client.asset(BalanceEntries.SECURITIES) == 0.0
     assert client.asset(BalanceEntries.DEPOSITS) == 150.0
-    assert client.liability(BalanceEntries.SEC_EQUITY) == 0.0
     assert client.liability(BalanceEntries.EQUITY) == 150.0
     assert client.balance.total_balance == 150.0
 
@@ -63,5 +62,6 @@ def test_buy_securities():
     assert central_bank.end_transactions()
 
     assert client.asset(BalanceEntries.SECURITIES) == 100.0
-    assert client.liability(BalanceEntries.SEC_EQUITY) == 100.0
+    assert client.liability(BalanceEntries.EQUITY) == 100.0
     assert client.balance.total_balance == 100.0
+

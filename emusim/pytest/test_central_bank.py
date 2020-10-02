@@ -93,10 +93,9 @@ def test_fixed_qe():
     client.trade_securities_with_bank(10.0)
     assert client.balance.asset(BalanceEntries.DEPOSITS) == 10.0
     assert client.balance.asset(BalanceEntries.SECURITIES) == 0.0
-    assert client.balance.liability(BalanceEntries.SEC_EQUITY) == 0.0
     assert client.balance.liability(BalanceEntries.EQUITY) == 10.0
     bank.book_asset(BalanceEntries.SECURITIES, 50.0)
-    bank.book_liability(BalanceEntries.SEC_EQUITY, 50.0)
+    bank.book_liability(BalanceEntries.EQUITY, 50.0)
     central_bank.process_qe()
     central_bank.end_transactions()
 
@@ -104,7 +103,6 @@ def test_fixed_qe():
     assert central_bank.liability(BalanceEntries.RESERVES) == 100.0
     assert bank.asset(BalanceEntries.RESERVES) == 100.0
     assert bank.liability(BalanceEntries.DEPOSITS) == 50.0
-    print(bank.balance)
     assert bank.liability(BalanceEntries.EQUITY) == 50.0
 
 

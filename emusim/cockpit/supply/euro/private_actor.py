@@ -24,7 +24,7 @@ class PrivateActor(EconomicActor):
             OrderedSet([BalanceEntries.DEPOSITS, BalanceEntries.UNRESOLVED_DEBT, BalanceEntries.SECURITIES,
                         BalanceEntries.SAVINGS, BalanceEntries.MBS]),
             OrderedSet([BalanceEntries.DEBT, BalanceEntries.UNRESOLVED_DEBT, BalanceEntries.EQUITY,
-                        BalanceEntries.SEC_EQUITY, BalanceEntries.MBS_EQUITY]))
+                        BalanceEntries.MBS_EQUITY]))
         self.__bank: Bank = bank
         self.bank.register(self)
 

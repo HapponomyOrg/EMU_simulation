@@ -28,7 +28,7 @@ class CentralBank(EconomicActor):
     def __init__(self, min_reserve: float = 0.04):
         super().__init__(OrderedSet([BalanceEntries.LOANS, BalanceEntries.SECURITIES, BalanceEntries.HELICOPTER_MONEY,
                                      BalanceEntries.INTEREST]),
-                         OrderedSet([BalanceEntries.RESERVES, BalanceEntries.EQUITY, BalanceEntries.SEC_EQUITY]))
+                         OrderedSet([BalanceEntries.RESERVES, BalanceEntries.EQUITY]))
         self.__registered_banks: Set[Bank] = set()
 
         self.__min_reserve = min_reserve

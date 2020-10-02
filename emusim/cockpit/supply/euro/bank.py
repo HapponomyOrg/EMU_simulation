@@ -92,7 +92,7 @@ class Bank(EconomicActor):
         super().__init__(
             OrderedSet([BalanceEntries.RESERVES, BalanceEntries.LOANS, BalanceEntries.MBS, BalanceEntries.SECURITIES]),
             OrderedSet([BalanceEntries.DEPOSITS, BalanceEntries.SAVINGS, BalanceEntries.DEBT, BalanceEntries.EQUITY,
-                        BalanceEntries.MBS_EQUITY, BalanceEntries.SEC_EQUITY]))
+                        BalanceEntries.MBS_EQUITY]))
         self.__central_bank: CentralBank = central_bank
         self.__clients: Set[PrivateActor] = set()
         self.__installments: List[float] = [0.0]
@@ -162,14 +162,9 @@ class Bank(EconomicActor):
     @property
     def real_profit(self) -> float:
         """Return the profit for this cycle. Has to be called after the state for the current cycle has been saved."""
-        return self.balance.delta_history[-1].liability(BalanceEntries.EQUITY)
-
-    @property
-    def financial_profit(self) -> float:
-        """Return the financial profit (from gains in security and MBS values) for this cycle. Has to be called after
-        the state for the current cycle has been saved."""
         delta_balance: BalanceSheet = self.balance.delta_history[-1]
-        return delta_balance.liability(BalanceEntries.SEC_EQUITY) + delta_balance.liability(BalanceEntries.MBS_EQUITY)
+
+        return delta_balance.liability(BalanceEntries.EQUITY) + delta_balance.liability(BalanceEntries.MBS_EQUITY)
 
     @property
     def client_liabilities(self) -> float:
@@ -396,21 +391,24 @@ class Bank(EconomicActor):
         elif self.spending_mode == SpendingMode.EQUITY:
             expenses = self.liability(BalanceEntries.EQUITY) * self.equity_spending
         elif self.spending_mode == SpendingMode.CAPITAL:
-            expenses = (self.liability(BalanceEntries.EQUITY) + self.liability(BalanceEntries.SEC_EQUITY)) * self.capital_spending
+            expenses = (self.liability(BalanceEntries.EQUITY) + self.liability(BalanceEntries.MBS_EQUITY))\
+                       * self.capital_spending
 
             if expenses > self.liability(BalanceEntries.EQUITY):
                 available_deposits: float = self.liability(BalanceEntries.DEPOSITS) + self.liability(BalanceEntries.SAVINGS)
-                securities_to_sell: float = min(available_deposits, expenses - self.liability(BalanceEntries.EQUITY))
+                mbs_to_sell: float = min(available_deposits, expenses - self.liability(BalanceEntries.EQUITY))
 
+                # TODO review and implement correct sale of MBS
                 for client in self.clients:
-                    fraction: float = (client.asset(BalanceEntries.DEPOSITS) + client.asset(BalanceEntries.SAVINGS)) / available_deposits
+                    fraction: float = (client.asset(BalanceEntries.DEPOSITS) + client.asset(BalanceEntries.SAVINGS))\
+                                      / available_deposits
 
-                    client.pay_bank(fraction * securities_to_sell)
+                    client.pay_bank(fraction * mbs_to_sell)
 
-                self.book_liability(BalanceEntries.DEPOSITS, -securities_to_sell)
-                self.book_asset(BalanceEntries.SECURITIES, -securities_to_sell)
-                self.book_liability(BalanceEntries.SEC_EQUITY, -securities_to_sell)
-                self.book_liability(BalanceEntries.EQUITY, securities_to_sell)
+                self.book_liability(BalanceEntries.DEPOSITS, -mbs_to_sell)
+                self.book_asset(BalanceEntries.MBS, -mbs_to_sell)
+                self.book_liability(BalanceEntries.MBS_EQUITY, -mbs_to_sell)
+                self.book_liability(BalanceEntries.EQUITY, mbs_to_sell)
 
         if self.retain_profit:
             expenses = min(expenses, max(0.0, profit - profit * self.retain_profit_percentage))
@@ -531,9 +529,7 @@ class Bank(EconomicActor):
         traded_securities: float = min(amount, self.asset(BalanceEntries.SECURITIES))
 
         self.book_asset(BalanceEntries.SECURITIES, -traded_securities)
-        self.book_liability(BalanceEntries.SEC_EQUITY, -traded_securities)
         self.book_asset(BalanceEntries.RESERVES, traded_securities)
-        self.book_liability(BalanceEntries.EQUITY, traded_securities)
 
         return traded_securities
 
