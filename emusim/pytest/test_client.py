@@ -64,4 +64,3 @@ def test_buy_securities():
     assert client.asset(BalanceEntries.SECURITIES) == 100.0
     assert client.liability(BalanceEntries.EQUITY) == 100.0
     assert client.balance.total_balance == 100.0
-

@@ -234,4 +234,16 @@ def test_reserve_securities():
     assert bank.liability(BalanceEntries.EQUITY) == 10.0
     assert bank.liability(BalanceEntries.EQUITY) == -10.0
     assert bank.balance.total_balance == 2100.0
-    
+
+
+def test_full_reserve_test():
+    central_bank.clear()
+    central_bank.min_reserve = 0.04
+    central_bank.mbs_relative_reserve = 0.1
+    central_bank.securities_relative_reserve = 0.05
+    bank.max_reserve = 0.05
+    bank.min_risk_assets = 0.1
+    bank.max_risk_assets = 0.5
+    bank.max_mbs_assets = 0.7
+    bank.max_security_assets = 0.6
+
