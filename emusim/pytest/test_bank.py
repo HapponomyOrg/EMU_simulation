@@ -236,7 +236,7 @@ def test_reserve_securities():
     assert bank.balance.total_balance == 2100.0
 
 
-def test_full_reserve_test():
+def test_full_reserve_functionality():
     central_bank.clear()
     central_bank.min_reserve = 0.04
     central_bank.mbs_relative_reserve = 0.1
