@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request
 from emusim.cockpit.supply.forms.sumsy_forms import ParameterForm, DataSelectionForm
 
 from emusim.cockpit.supply.constants import *
-from emusim.cockpit.utilities import create_chart
+from emusim.cockpit.utilities.utilities import create_chart
 from emusim.cockpit.supply.sumsy_simulation import SumSy_MS_Simulation
 
 sumsy_supply = Blueprint('sumsy_supply', __name__,

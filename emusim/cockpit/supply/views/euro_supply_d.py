@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request
 from emusim.cockpit.supply.constants import *
 from emusim.cockpit.supply.forms.euro_forms_d import ParameterForm, DataSelectionForm
 
-from emusim.cockpit.utilities import create_chart
+from emusim.cockpit.utilities.utilities import create_chart
 
 from emusim.cockpit.supply.euro_simulation import Euro_MS_Simulation
 

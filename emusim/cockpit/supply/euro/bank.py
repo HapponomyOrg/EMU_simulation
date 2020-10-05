@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy
 
+from emusim.cockpit.utilities.simplex import simplex
 from enum import Enum
 from typing import TYPE_CHECKING, Set, Tuple, List, Callable
 
@@ -458,67 +459,57 @@ class Bank(EconomicActor):
             total_dep_sav: float = self.liability(BalanceEntries.DEPOSITS) + self.liability(BalanceEntries.SAVINGS)
             min_composite_reserve: float =  round(total_dep_sav * self.central_bank.min_reserve, 4)
 
-            if self.risk_assets + self.balance.asset(BalanceEntries.RESERVES) < min_composite_reserve:
-                param_matrix: List[List] = [] # 4 x n matrix, row for delta_res, delta_mbs, delta_sec, delta_dep_sav
-                const_vector: List[List] = [] # 1 x n matrix
-                min_reserve: float = round(total_dep_sav * self.central_bank.real_min_reserve, 4)
-                min_mbs: float = round(total_dep_sav * self.central_bank.mbs_real_reserve, 4)
-                min_securities: float = round(total_dep_sav * self.central_bank.securities_real_reserve, 4)
-                cur_reserve: float = min(min_reserve, self.balance.asset(BalanceEntries.RESERVES))
-                cur_mbs: float = min(min_mbs, self.balance.asset(BalanceEntries.MBS))
-                cur_securities = min(min_securities, self.balance.asset(BalanceEntries.SECURITIES))
+            if self.risk_assets + self.balance.asset(BalanceEntries.RESERVES) < min_composite_reserve\
+                    or self.risk_assets < self.__min_risk_assets * (self.safe_assets + self.risk_assets)\
+                    or self.risk_assets > self.__max_risk_assets * (self.safe_assets + self.risk_assets):
+                c = [1, 1, 1, 0, 0, 0, 0]  # (to maximize)
 
-                # Equation for composite reserve
-                param_matrix.append([1, 1, 1, -self.central_bank.min_reserve])
-                const_vector.append([total_dep_sav * self.central_bank.min_reserve
-                                     - cur_reserve - cur_mbs - cur_securities])
+                # inequalities, number of rows equal to number of equations
+                # Sequence: [RES SEC MBS LOAN DEBT DEP SAV]
+                A = [[-1, -1, -1, 0, 0, self.central_bank.min_reserve, self.central_bank.min_reserve],
+                     [1, 0, 0, 0, 0, -self.max_reserve, -self.max_reserve],
+                     [self.min_risk_assets, self.min_risk_assets - 1, self.min_risk_assets - 1, self.min_risk_assets, 0, 0, 0],
+                     [-self.max_risk_assets, 1 - self.max_risk_assets, 1 - self.max_risk_assets, -self.max_risk_assets, 0, 0, 0],
+                     [0, self.max_mbs_assets, 1 - self.max_mbs_assets, 0, 0, 0, 0],
+                     [0, 1 - self.max_security_assets, -self.max_security_assets, 0, 0, 0, 0],
+                     [self.central_bank.mbs_relative_reserve, self.central_bank.mbs_relative_reserve, self.central_bank.mbs_relative_reserve - 1, 0, 0, 0, 0],
+                     [self.central_bank.securities_relative_reserve, self.central_bank.securities_relative_reserve - 1, self.central_bank.securities_relative_reserve, 0, 0, 0, 0],
+                     [0, 0, 0, 0, 0, 0, 1]]
+                # right-hand values, in this case all 0
+                b = [0, 0, 0, 0, 0, 0, 0, 0, self.liability(BalanceEntries.SAVINGS)]
 
-                # Equation for reserves
-                param_matrix.append([1, 0, 0, 0])
-                const_vector.append([total_dep_sav * self.central_bank.real_min_reserve - cur_reserve])
+                # add slack variables by hand
+                A[0] += [1, 0, 0, 0, 0, 0, 0, 0]
+                A[1] += [0, 1, 0, 0, 0, 0, 0, 0]
+                A[2] += [0, 0, 1, 0, 0, 0, 0, 0]
+                A[3] += [0, 0, 0, 1, 0, 0, 0, 0]
+                A[4] += [0, 0, 0, 0, 1, 0, 0, 0]
+                A[5] += [0, 0, 0, 0, 0, 1, 0, 0]
+                A[6] += [0, 0, 0, 0, 0, 0, 1, 0]
+                A[7] += [0, 0, 0, 0, 0, 0, 0, 1]
+                A[8] += [0, 0, 0, 0, 0, 0, 0, 0]
+                c += [0, 0, 0, 0, 0, 0, 0, 0]
 
-                # Equation for MBS
-                param_matrix.append([0, 1, 0, 0])
-                const_vector.append([total_dep_sav * self.central_bank.mbs_real_reserve - cur_mbs])
-
-                # Equations for securities
-                param_matrix.append([0, 0, 1, 0])
-                const_vector.append([total_dep_sav * self.central_bank.securities_real_reserve - cur_securities])
-
-                param_matrix.append(([0, 0, 1, -1]))
-                const_vector.append([0])
-
-                matrix = numpy.array(param_matrix)
-                vector = numpy.array(const_vector)
-                result = numpy.linalg.pinv(matrix).dot(vector)
-
-                delta_res: float = round(result[0][0], 4)
-                delta_mbs: float = round(result[1][0], 4)
-                delta_sec: float = round(result[2][0], 4)
-                delta_dep_sav: float = round(result[3][0], 4)
+                t, s, v = simplex(c, A, b)
+                print(t)
+                print(s)
+                print(v)
+                print('done')
 
                 # Update MBS
-                if delta_mbs > self.asset(BalanceEntries.LOANS):
-                    delta_res += delta_mbs - self.asset(BalanceEntries.LOANS)
-                    delta_mbs = self.asset(BalanceEntries.LOANS)
-
-                self.book_asset(BalanceEntries.MBS, delta_mbs)
-                self.book_asset(BalanceEntries.LOANS, -delta_mbs)
-                self.book_liability(BalanceEntries.MBS_EQUITY, delta_mbs)
-                self.book_liability(BalanceEntries.EQUITY, -delta_mbs)
-
-                self.__trade_client_securities(delta_sec, BalanceEntries.SECURITIES)
-
-                # Update reserves
-                self.borrow(delta_res)
-
-            if self.risk_assets < self.__min_risk_assets * (self.safe_assets + self.risk_assets):
-                # TODO
-                pass
-
-            if self.risk_assets > self.__max_risk_assets * (self.safe_assets + self.risk_assets):
-                # TODO
-                pass
+                # if delta_mbs > self.asset(BalanceEntries.LOANS):
+                #     delta_res += delta_mbs - self.asset(BalanceEntries.LOANS)
+                #     delta_mbs = self.asset(BalanceEntries.LOANS)
+                #
+                # self.book_asset(BalanceEntries.MBS, delta_mbs)
+                # self.book_asset(BalanceEntries.LOANS, -delta_mbs)
+                # self.book_liability(BalanceEntries.MBS_EQUITY, delta_mbs)
+                # self.book_liability(BalanceEntries.EQUITY, -delta_mbs)
+                #
+                # self.__trade_client_securities(delta_sec, BalanceEntries.SECURITIES)
+                #
+                # # Update reserves
+                # self.borrow(delta_res)
 
             self.__reserves_and_risk_assets_updated = True
 
