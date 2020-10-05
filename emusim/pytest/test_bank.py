@@ -247,3 +247,16 @@ def test_full_reserve_functionality():
     bank.max_mbs_assets = 0.7
     bank.max_security_assets = 0.6
 
+    bank.loan_ir = 0.05
+    bank.loan_duration = 10
+    bank.income_from_interest = 0.8
+    client.defaulting_mode = DefaultingMode.FIXED
+    client.fixed_defaulting_rate = 0.0
+    client.defaults_bought_by_debt_collectors = 0.0
+
+    central_bank.start_transactions()
+    client.borrow(2000.0)
+    assert central_bank.end_transactions()
+    central_bank.start_transactions()
+    bank.update_reserves_and_risk_assets()
+    assert central_bank.end_transactions()
