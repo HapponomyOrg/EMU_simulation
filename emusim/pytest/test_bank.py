@@ -88,7 +88,7 @@ def test_reserves_no_securities():
     central_bank.min_reserve = 0.05
     central_bank.mbs_relative_reserve = 0.0
     central_bank.securities_relative_reserve = 0.0
-    bank.max_reserve = 0.05
+    bank.min_reserve = 0.05
     bank.loan_ir = 0.05
     bank.loan_duration = 10
     bank.income_from_interest = 0.8
@@ -101,7 +101,7 @@ def test_reserves_no_securities():
     assert central_bank.end_transactions()
     central_bank.start_transactions()
     bank.process_income()
-    bank.update_reserves_and_risk_assets()
+    bank.update_reserves()
     assert central_bank.end_transactions()
 
     assert central_bank.asset(BalanceEntries.LOANS) == 83.75
@@ -126,7 +126,7 @@ def test_reserves_mbs():
     central_bank.min_reserve = 0.05
     central_bank.mbs_relative_reserve = 0.1
     central_bank.securities_relative_reserve = 0.0
-    bank.max_reserve = 0.05
+    bank.min_reserve = 0.05
     bank.loan_ir = 0.05
     bank.loan_duration = 10
     bank.income_from_interest = 0.8
@@ -138,7 +138,7 @@ def test_reserves_mbs():
     client.borrow(2000.0)
     assert central_bank.end_transactions()
     central_bank.start_transactions()
-    bank.update_reserves_and_risk_assets()
+    bank.update_reserves()
     assert central_bank.end_transactions()
 
     assert central_bank.asset(BalanceEntries.LOANS) == 90.0
@@ -165,7 +165,7 @@ def test_reserve_mbs_growth():
     central_bank.min_reserve = 0.05
     central_bank.mbs_relative_reserve = 0.1
     central_bank.securities_relative_reserve = 0.0
-    bank.max_reserve = 0.05
+    bank.min_reserve = 0.05
     bank.max_mbs_assets = 1.0
     bank.max_security_assets = 1.0
     bank.loan_ir = 0.05
@@ -179,11 +179,11 @@ def test_reserve_mbs_growth():
     client.borrow(2000.0)
     assert central_bank.end_transactions()
     central_bank.start_transactions()
-    bank.update_reserves_and_risk_assets()
+    bank.update_reserves()
     assert central_bank.end_transactions()
     central_bank.start_transactions()
     central_bank.grow_mbs(0.1)
-    bank.update_reserves_and_risk_assets()
+    bank.update_reserves()
     assert central_bank.end_transactions()
 
     assert bank.asset(BalanceEntries.MBS) == 11.0
@@ -200,7 +200,7 @@ def test_reserve_securities():
     central_bank.min_reserve = 0.05
     central_bank.securities_relative_reserve = 0.1
     central_bank.mbs_relative_reserve = 0.0
-    bank.max_reserve = 0.05
+    bank.min_reserve = 0.05
     bank.loan_ir = 0.05
     bank.loan_duration = 10
     bank.income_from_interest = 0.8
@@ -209,30 +209,31 @@ def test_reserve_securities():
     client.defaults_bought_by_debt_collectors = 0.0
 
     central_bank.start_transactions()
+    bank.book_asset(BalanceEntries.SECURITIES, 10.0)
+    bank.book_liability(BalanceEntries.EQUITY, 10.0)
     client.borrow(2000.0)
     assert central_bank.end_transactions()
     central_bank.start_transactions()
-    bank.update_reserves_and_risk_assets()
+    bank.update_reserves()
     assert central_bank.end_transactions()
 
     assert central_bank.asset(BalanceEntries.LOANS) == 90.0
     assert central_bank.liability(BalanceEntries.RESERVES) == 90.0
     assert central_bank.balance.total_balance == 90.0
 
-    assert client.asset(BalanceEntries.DEPOSITS) == 2010.0
+    assert client.asset(BalanceEntries.DEPOSITS) == 2000.0
     assert client.liability(BalanceEntries.DEBT) == 2000.0
-    assert client.liability(BalanceEntries.EQUITY) == 10.0
-    assert client.balance.total_balance == 2010.0
+    assert client.liability(BalanceEntries.EQUITY) == 0.0
+    assert client.balance.total_balance == 2000.0
 
     assert bank.asset(BalanceEntries.RESERVES) == 90.0
     assert bank.asset(BalanceEntries.LOANS) == 2000.0
     assert bank.asset(BalanceEntries.MBS) == 0.0
     assert bank.asset(BalanceEntries.SECURITIES) == 10.0
-    assert bank.liability(BalanceEntries.DEPOSITS) == 2010.0
+    assert bank.liability(BalanceEntries.DEPOSITS) == 2000.0
     assert bank.liability(BalanceEntries.DEBT) == 90.0
     assert bank.liability(BalanceEntries.MBS_EQUITY) == 0.0
     assert bank.liability(BalanceEntries.EQUITY) == 10.0
-    assert bank.liability(BalanceEntries.EQUITY) == -10.0
     assert bank.balance.total_balance == 2100.0
 
 
@@ -241,7 +242,7 @@ def test_full_reserve_functionality():
     central_bank.min_reserve = 0.04
     central_bank.mbs_relative_reserve = 0.1
     central_bank.securities_relative_reserve = 0.05
-    bank.max_reserve = 0.05
+    bank.min_reserve = 0.04
     bank.min_risk_assets = 0.1
     bank.max_risk_assets = 0.5
     bank.max_mbs_assets = 0.7
@@ -255,8 +256,17 @@ def test_full_reserve_functionality():
     client.defaults_bought_by_debt_collectors = 0.0
 
     central_bank.start_transactions()
+    bank.book_asset(BalanceEntries.SECURITIES, 10.0)
+    bank.book_liability(BalanceEntries.EQUITY, 10.0)
     client.borrow(2000.0)
     assert central_bank.end_transactions()
     central_bank.start_transactions()
-    bank.update_reserves_and_risk_assets()
+    bank.update_reserves()
     assert central_bank.end_transactions()
+
+    assert bank.asset(BalanceEntries.RESERVES)\
+           + bank.asset(BalanceEntries.MBS)\
+           + bank.asset(BalanceEntries.SECURITIES) > 80
+    assert bank.asset(BalanceEntries.SECURITIES) == 10.0
+    assert bank.asset(BalanceEntries.LOANS) + bank.asset(BalanceEntries.MBS) == 2000.0
+    assert bank.asset(BalanceEntries.MBS) == 8.0

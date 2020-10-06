@@ -156,6 +156,7 @@ class AggregateSimulator(Simulator):
         # reflect impact of price changes in securities
         self.economy.grow_securities()
         self.economy.grow_mbs()
+        self.economy.update_risk_assets()
 
         # process QE and helicopter money
         self.economy.process_qe()
@@ -174,6 +175,5 @@ class AggregateSimulator(Simulator):
 
         self.economy.process_borrowing(self.__lending)
         self.economy.update_reserves()
-        self.economy.update_risk_assets()
 
         return self.economy.end_transactions() and self.economy.im > 0

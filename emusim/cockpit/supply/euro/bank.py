@@ -99,7 +99,7 @@ class Bank(EconomicActor):
         self.__installments: List[float] = [0.0]
 
         self.central_bank.register(self)
-        self.max_reserve = central_bank.min_reserve
+        self.__min_reserve = central_bank.min_reserve
 
         self.__min_risk_assets: float = 0.0
         self.__max_risk_assets: float = 1.0 # Maximum % of assets being MBS and/or Securities
@@ -124,11 +124,12 @@ class Bank(EconomicActor):
         self.capital_spending: float = 0.0
 
         # Cycle flags. Some actions can only be executed once per cycle.
+        self.__risk_assets_updated: bool = False
         self.__income_processed: bool = False
         self.__savings_processed: bool = False
         self.__debt_paid: bool = False
         self.__spending_processed: bool = False
-        self.__reserves_and_risk_assets_updated: bool = False
+        self.__reserves_updated: bool = False
 
         # Cycle attributes
         self.__client_installment: float = 0.0
@@ -139,6 +140,14 @@ class Bank(EconomicActor):
     @property
     def central_bank(self) -> CentralBank:
         return self.__central_bank
+
+    @property
+    def min_reserve(self) -> float:
+        return self.__min_reserve
+
+    @min_reserve.setter
+    def min_reserve(self, percentage: float):
+        self.__min_reserve = max(self.central_bank.min_reserve, percentage)
 
     @property
     def clients(self) -> Set[PrivateActor]:
@@ -239,11 +248,12 @@ class Bank(EconomicActor):
         self.__income = 0.0
         self.__income_shortage = 0.0
 
+        self.__risk_assets_updated = False
         self.__income_processed = False
         self.__savings_processed = False
         self.__debt_paid = False
         self.__spending_processed = False
-        self.__reserves_and_risk_assets_updated = False
+        self.__reserves_updated = False
 
         for client in self.clients:
             client.start_transactions()
@@ -379,7 +389,8 @@ class Bank(EconomicActor):
 
     def spend(self):
         # calculate real_profit
-        profit: float = self.balance.delta_history[-1].asset(BalanceEntries.EQUITY)
+        profit: float = self.balance.delta_history[-1].asset(BalanceEntries.EQUITY)\
+                        + self.balance.delta_history[-1].asset(BalanceEntries.MBS_EQUITY)
         expenses: float = 0.0
 
         if self.spending_mode == SpendingMode.FIXED:
@@ -450,51 +461,61 @@ class Bank(EconomicActor):
 
         return tuple((interest, installment))
 
-    def update_reserves_and_risk_assets(self):
+    def update_reserves(self):
         """Update reserves so that they are adequate for the current amount of deposits + savings on the balance
-        sheet of the bank. If this results in changes in deposits held on the balance sheet, these changes are
-        carried over to the next reserve calculations."""
+        sheet of the bank. Loans might be converted to MBS if needed but no securities will be purchased. Instead
+        extra reserves are borrowed from the central bank if needed."""
 
-        if self._transactions_started and not self.__reserves_and_risk_assets_updated:
+        if self._transactions_started and not self.__reserves_updated:
             total_dep_sav: float = self.liability(BalanceEntries.DEPOSITS) + self.liability(BalanceEntries.SAVINGS)
-            min_composite_reserve: float =  round(total_dep_sav * self.central_bank.min_reserve, 4)
+            min_composite_reserve: float =  round(total_dep_sav * self.min_reserve, 4)
 
             if self.risk_assets + self.balance.asset(BalanceEntries.RESERVES) < min_composite_reserve\
                     or self.risk_assets < self.__min_risk_assets * (self.safe_assets + self.risk_assets)\
                     or self.risk_assets > self.__max_risk_assets * (self.safe_assets + self.risk_assets):
-                c = [1, 1, 1, 0, 0, 0, 0]  # (to maximize)
+                c = [0, 1, 1]  # (to maximize)
 
                 # inequalities, number of rows equal to number of equations
-                # Sequence: [RES SEC MBS LOAN DEBT DEP SAV]
-                A = [[-1, -1, -1, 0, 0, self.central_bank.min_reserve, self.central_bank.min_reserve],
-                     [1, 0, 0, 0, 0, -self.max_reserve, -self.max_reserve],
-                     [self.min_risk_assets, self.min_risk_assets - 1, self.min_risk_assets - 1, self.min_risk_assets, 0, 0, 0],
-                     [-self.max_risk_assets, 1 - self.max_risk_assets, 1 - self.max_risk_assets, -self.max_risk_assets, 0, 0, 0],
-                     [0, self.max_mbs_assets, 1 - self.max_mbs_assets, 0, 0, 0, 0],
-                     [0, 1 - self.max_security_assets, -self.max_security_assets, 0, 0, 0, 0],
-                     [self.central_bank.mbs_relative_reserve, self.central_bank.mbs_relative_reserve, self.central_bank.mbs_relative_reserve - 1, 0, 0, 0, 0],
-                     [self.central_bank.securities_relative_reserve, self.central_bank.securities_relative_reserve - 1, self.central_bank.securities_relative_reserve, 0, 0, 0, 0],
-                     [0, 0, 0, 0, 0, 0, 1]]
-                # right-hand values, in this case all 0
-                b = [0, 0, 0, 0, 0, 0, 0, 0, self.liability(BalanceEntries.SAVINGS)]
+                # Sequence: [RES SEC MBS]
+                max_mbs: float  = self.central_bank.mbs_relative_reserve
+                max_securities: float = self.central_bank.securities_relative_reserve
 
-                # add slack variables by hand
-                A[0] += [1, 0, 0, 0, 0, 0, 0, 0]
-                A[1] += [0, 1, 0, 0, 0, 0, 0, 0]
-                A[2] += [0, 0, 1, 0, 0, 0, 0, 0]
-                A[3] += [0, 0, 0, 1, 0, 0, 0, 0]
-                A[4] += [0, 0, 0, 0, 1, 0, 0, 0]
-                A[5] += [0, 0, 0, 0, 0, 1, 0, 0]
-                A[6] += [0, 0, 0, 0, 0, 0, 1, 0]
-                A[7] += [0, 0, 0, 0, 0, 0, 0, 1]
-                A[8] += [0, 0, 0, 0, 0, 0, 0, 0]
-                c += [0, 0, 0, 0, 0, 0, 0, 0]
+                a = [[1, 1, 1],
+                     [1, 0, 0],
+                     [-max_mbs, -max_mbs, 1 - max_mbs],
+                     [-max_securities, 1 - max_securities, -max_securities]]
+                b = [self.min_reserve * total_dep_sav, total_dep_sav, 0, 0]
 
-                t, s, v = simplex(c, A, b)
-                print(t)
-                print(s)
-                print(v)
-                print('done')
+                # # add slack variables by hand
+                a[0] += [0,0,0]
+                a[1] += [1,0,0]
+                a[2] += [0,1,0]
+                a[3] += [0,0,1]
+                c += [0,0,0,0]
+
+                t, s, v = simplex(c, a, b)
+
+                target_reserve: float = s[0][1]
+                target_securities: float = s[1][1]
+                target_mbs: float = s[2][1]
+
+                if target_mbs > self.asset(BalanceEntries.MBS):
+                    new_mbs: float = target_mbs - self.asset(BalanceEntries.MBS)
+
+                    if self.asset(BalanceEntries.LOANS) < new_mbs:
+                        target_reserve += new_mbs - self.asset(BalanceEntries.LOANS)
+                        new_mbs = self.asset(BalanceEntries.LOANS)
+
+                    self.book_asset(BalanceEntries.LOANS, -new_mbs)
+                    self.book_asset(BalanceEntries.MBS, new_mbs)
+                    self.book_liability(BalanceEntries.EQUITY, -new_mbs)
+                    self.book_liability(BalanceEntries.MBS_EQUITY, new_mbs)
+
+                if target_securities > self.asset(BalanceEntries.SECURITIES):
+                    target_reserve += target_securities - self.asset(BalanceEntries.SECURITIES)
+
+                if self.asset(BalanceEntries.RESERVES) < target_reserve:
+                    self.borrow(target_reserve - self.asset(BalanceEntries.RESERVES))
 
                 # Update MBS
                 # if delta_mbs > self.asset(BalanceEntries.LOANS):
@@ -511,7 +532,10 @@ class Bank(EconomicActor):
                 # # Update reserves
                 # self.borrow(delta_res)
 
-            self.__reserves_and_risk_assets_updated = True
+            self.__reserves_updated = True
+
+    def update_risk_assets(self):
+        pass
 
     def trade_central_bank_securities(self, amount: float) -> float:
         """Trade securities with the central bank. A positive amount indicates a sell to the central bank.

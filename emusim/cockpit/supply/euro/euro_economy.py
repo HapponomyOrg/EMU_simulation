@@ -81,7 +81,7 @@ class EuroEconomy(ABC):
     def update_reserves(self):
         for central_bank in self.central_banks:
             for bank in central_bank.registered_banks:
-                bank.update_reserves_and_risk_assets()
+                bank.update_reserves()
 
     def update_risk_assets(self):
         for central_bank in self.central_banks:

@@ -140,28 +140,29 @@ def pivotAbout(tableau, pivot):
          tableau[k] = [x - y for x,y in zip(tableau[k], pivotRowMultiple)]
 
 
-'''
-   simplex: [float], [[float]], [float] -> [float], float
-   Solve the given standard-form linear program:
-      max <c,x>
-      s.t. Ax = b
-           x >= 0
-   providing the optimal solution x* and the value of the objective function
-'''
 def simplex(c, A, b):
+   """
+      simplex: [float], [[float]], [float] -> [float], float
+      Solve the given standard-form linear program:
+         max <c,x>
+         s.t. Ax = b
+              x >= 0
+      providing the optimal solution x* and the value of the objective function
+   """
+
    tableau = initialTableau(c, A, b)
-   print("Initial tableau:")
-   for row in tableau:
-      print(row)
-   print()
+   # print("Initial tableau:")
+   # for row in tableau:
+   #    print(row)
+   # print()
 
    while canImprove(tableau):
       pivot = findPivotIndex(tableau)
-      print("Next pivot index is=%d,%d \n" % pivot)
+      # print("Next pivot index is=%d,%d \n" % pivot)
       pivotAbout(tableau, pivot)
-      print("Tableau after pivot:")
-      for row in tableau:
-         print(row)
-      print()
+      # print("Tableau after pivot:")
+      # for row in tableau:
+      #    print(row)
+      # print()
 
    return tableau, primalSolution(tableau), objectiveValue(tableau)
