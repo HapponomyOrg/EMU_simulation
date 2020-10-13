@@ -1,5 +1,8 @@
+from decimal import *
+
 from emusim.cockpit.supply.euro import CentralBank, QEMode, HelicopterMode, Bank, SpendingMode, PrivateActor
 from emusim.cockpit.supply.euro.balance_entries import BalanceEntries
+from emusim.cockpit.utilities.cycles import Period, Interval
 
 central_bank = CentralBank()
 bank = Bank(central_bank)
@@ -12,10 +15,14 @@ def init_parameters():
     central_bank.min_reserve = 0.04
     central_bank.mbs_relative_reserve = 0.0
     central_bank.securities_relative_reserve = 0.0
-    central_bank.reserve_ir = 0.0
-    central_bank.surplus_reserve_ir = -0.005
-    central_bank.loan_ir = 0.01
-    central_bank.loan_duration = 1
+
+    # set interest rates per day
+    central_bank.reserve_ir = 0.0 * Period.YEAR_DAYS
+    central_bank.surplus_reserve_ir = -0.005 * Period.YEAR_DAYS
+    central_bank.loan_ir = 0.01 * Period.YEAR_DAYS
+    central_bank.loan_duration = Period(1, Interval.DAY)
+    central_bank.loan_interval = Period(1, Interval.DAY)
+
     central_bank.qe_mode = QEMode.NONE
     central_bank.qe_fixed = 0.0
     central_bank.qe_debt_related = 0.0
@@ -25,9 +32,9 @@ def init_parameters():
 
     bank.max_reserve = 0.04
     bank.min_liquidity = 0.05
-    bank.savings_ir = 0.02
-    bank.loan_ir = 0.025
-    bank.loan_duration = 20
+    bank.savings_ir = 0.02 * Period.YEAR_DAYS
+    bank.loan_ir = 0.025 * Period.YEAR_DAYS
+    bank.loan_duration = Period(20, Interval.YEAR)
     bank.no_loss = True
     bank.income_from_interest = 0.8
     bank.retain_profit = True
@@ -45,6 +52,9 @@ def init_parameters():
 def test_creation():
     init_parameters()
 
+    central_bank.book_asset("NO_ENTRY", Decimal(100.0))
+    assert central_bank.asset("NO_ENTRY") == 0.0
+
     central_bank.start_transactions()
     assert central_bank.end_transactions()
 
@@ -52,17 +62,14 @@ def test_creation():
 def test_borrowing():
     init_parameters()
 
-    central_bank.book_asset("NO_ENTRY", 100.0)
-    assert central_bank.asset("NO_ENTRY") == 0.0
-
     central_bank.start_transactions()
-    bank.borrow(100.0)
+    bank.borrow(Decimal(100.0))
     assert central_bank.asset(BalanceEntries.LOANS) == 100.0
     assert central_bank.liability(BalanceEntries.RESERVES) == 100.0
     assert bank.asset(BalanceEntries.RESERVES) == 100.0
     assert bank.liability(BalanceEntries.DEBT) == 100.0
 
-    client.borrow(1000.0)
+    client.borrow(Decimal(1000.0))
     assert bank.asset(BalanceEntries.LOANS) == 1000.0
     assert bank.liability(BalanceEntries.DEPOSITS) == 1000.0
     assert client.asset(BalanceEntries.DEPOSITS) == 1000.0
@@ -71,17 +78,44 @@ def test_borrowing():
     assert central_bank.end_transactions()
 
 
+def test_interest():
+    init_parameters()
+
+    central_bank.start_transactions()
+    bank.borrow(Decimal(100.0))
+    assert central_bank.asset(BalanceEntries.LOANS) == 100.0
+    assert central_bank.liability(BalanceEntries.RESERVES) == 100.0
+    assert bank.asset(BalanceEntries.RESERVES) == 100.0
+    assert bank.liability(BalanceEntries.DEBT) == 100.0
+
+    client.borrow(Decimal(1000.0))
+    assert bank.asset(BalanceEntries.LOANS) == 1000.0
+    assert bank.liability(BalanceEntries.DEPOSITS) == 1000.0
+    assert client.asset(BalanceEntries.DEPOSITS) == 1000.0
+    assert client.liability(BalanceEntries.DEBT) == 1000.0
+
+    central_bank.process_reserve_interests()
+
+    assert central_bank.end_transactions()
+
+    assert central_bank.asset(BalanceEntries.INTEREST) == 0.0
+    assert bank.asset(BalanceEntries.RESERVES) == 100.0
+    assert round(bank.liability(BalanceEntries.DEPOSITS), 1) == round(Decimal(1000.3), 1)
+    assert round(client.asset(BalanceEntries.DEPOSITS), 1) == round(Decimal(1000.3), 1)
+    assert round(client.liability(BalanceEntries.EQUITY), 1) == round(Decimal(0.3), 1)
+
+
 def test_inflation():
     init_parameters()
     central_bank.qe_fixed = 1.0
     central_bank.helicopter_fixed = 1.0
     bank.fixed_spending = 1.0
 
-    central_bank.inflate(0.1)
+    central_bank.inflate(Decimal(0.1))
 
-    assert central_bank.qe_fixed == 1.1
-    assert central_bank.helicopter_fixed == 1.1
-    assert bank.fixed_spending == 1.1
+    assert central_bank.qe_fixed == round(Decimal(1.1), 8)
+    assert central_bank.helicopter_fixed == round(Decimal(1.1), 8)
+    assert bank.fixed_spending == round(Decimal(1.1), 8)
 
 
 def test_fixed_qe():
@@ -90,12 +124,12 @@ def test_fixed_qe():
     central_bank.qe_fixed = 100.0
 
     central_bank.start_transactions()
-    client.trade_securities_with_bank(10.0)
+    client.trade_securities_with_bank(Decimal(10.0))
     assert client.balance.asset(BalanceEntries.DEPOSITS) == 10.0
     assert client.balance.asset(BalanceEntries.SECURITIES) == 0.0
     assert client.balance.liability(BalanceEntries.EQUITY) == 10.0
-    bank.book_asset(BalanceEntries.SECURITIES, 50.0)
-    bank.book_liability(BalanceEntries.EQUITY, 50.0)
+    bank.book_asset(BalanceEntries.SECURITIES, Decimal(50.0))
+    bank.book_liability(BalanceEntries.EQUITY, Decimal(50.0))
     central_bank.process_qe()
     central_bank.end_transactions()
 
@@ -112,5 +146,5 @@ def test_debt_related_qe():
     central_bank.qe_debt_related = 0.01
 
     central_bank.start_transactions()
-    client.borrow(100.0)
+    client.borrow(Decimal(100.0))
     # TODO
