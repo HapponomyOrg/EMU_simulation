@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import List, Dict, Set, Optional
 
 
-class BalanceSheet():
+class BalanceSheet:
     """Balance sheet"""
 
     def __init__(self, balance_sheet: Optional[BalanceSheet] = None):
-        self.__assets: Dict[str, float] = {}
-        self.__liabilities: Dict[str, float] = {}
+        self.__assets: Dict[str, Decimal] = {}
+        self.__liabilities: Dict[str, Decimal] = {}
 
         if balance_sheet is not None:
             for name in balance_sheet.assets.keys():
@@ -18,62 +19,62 @@ class BalanceSheet():
                 self.book_liability(name, balance_sheet.liability(name))
 
     @property
-    def assets(self) -> Dict[str, float]:
+    def assets(self) -> Dict[str, Decimal]:
         return self.__assets
 
     @property
-    def liabilities(self) -> Dict[str, float]:
+    def liabilities(self) -> Dict[str, Decimal]:
         return self.__liabilities
 
     @property
-    def assets_value(self) -> float:
+    def assets_value(self) -> Decimal:
         return self.__value(self.assets)
 
     @property
-    def liabilities_value(self) -> float:
+    def liabilities_value(self) -> Decimal:
         return self.__value(self.liabilities)
 
     @property
-    def total_balance(self) -> float:
+    def total_balance(self) -> Decimal:
         """:return The total balance if the balance sheet validates (assets == liabilities). -1.0 otherwise."""
         if self.validate():
             return self.__value(self.assets)
         else:
-            return -1.0
+            return Decimal(-1.0)
 
     def clear(self):
         self.assets.clear()
         self.liabilities.clear()
 
-    def book_asset(self, asset_name: str, amount: float):
+    def book_asset(self, asset_name: str, amount: Decimal):
         if asset_name in self.assets:
-            self.__assets[asset_name] += amount
+            self.__assets[asset_name] += Decimal(amount)
         else:
-            self.__assets[asset_name] = amount
+            self.__assets[asset_name] = Decimal(amount)
 
-    def book_liability(self, liability_name: str, amount: float):
+    def book_liability(self, liability_name: str, amount: Decimal):
         if liability_name in self.__liabilities:
-            self.__liabilities[liability_name] += amount
+            self.__liabilities[liability_name] += Decimal(amount)
         else:
-            self.__liabilities[liability_name] = amount
+            self.__liabilities[liability_name] = Decimal(amount)
 
     def validate(self) -> bool:
-        return self.__value(self.assets) - self.__value(self.liabilities) == 0
+        return round(self.__value(self.assets), 8) == round(self.__value(self.liabilities), 8)
 
-    def asset(self, name: str) -> float:
+    def asset(self, name: str) -> Decimal:
         if name in self.assets:
             return self.assets[name]
         else:
-            return 0.0
+            return Decimal(0.0)
 
-    def liability(self, name: str) -> float:
+    def liability(self, name: str) -> Decimal:
         if name in self.liabilities:
             return self.liabilities[name]
         else:
-            return 0.0
+            return Decimal(0.0)
 
-    def __value(self, entries: Dict[str, float]) -> float:
-        total_value = 0.0
+    def __value(self, entries: Dict[str, Decimal]) -> Decimal:
+        total_value: Decimal = Decimal(0.0)
 
         for value in entries.values():
             total_value += value
@@ -123,10 +124,10 @@ class BalanceSheetTimeline(BalanceSheet):
         else:
             return self.__history[len(self.__history) - abs(time_delta)]
     
-    def asset_history(self, name: str, time_delta: int) -> float:
+    def asset_history(self, name: str, time_delta: int) -> Decimal:
         return self.balance_history(time_delta).asset(name)
     
-    def liability_history(self, name: str, time_delta: int) -> float:
+    def liability_history(self, name: str, time_delta: int) -> Decimal:
         return self.balance_history(time_delta).liability(name)
     
     def delta_history(self, time_delta: int = 0) -> BalanceSheet:
@@ -140,7 +141,7 @@ class BalanceSheetTimeline(BalanceSheet):
             asset_names: Set = set(current.assets.keys())
             liability_names: Set = set(current.liabilities.keys())
 
-            previous_assets: Dict[str, float] = previous.assets
+            previous_assets: Dict[str, Decimal] = previous.assets
             asset_names.update(previous_assets.keys()) # collect all names
 
             for name in asset_names:
@@ -149,7 +150,7 @@ class BalanceSheetTimeline(BalanceSheet):
                 else:
                     delta.book_asset(name, current.assets[name])
 
-            previous_liabilities: Dict[str, float] = previous.liabilities
+            previous_liabilities: Dict[str, Decimal] = previous.liabilities
             liability_names.update(previous_liabilities.keys()) # collect all names
 
             for name in liability_names:

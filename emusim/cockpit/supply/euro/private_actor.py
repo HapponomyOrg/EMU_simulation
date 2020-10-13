@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, List
 from enum import Enum
 
+from decimal import *
 from ordered_set import OrderedSet
 from random import random, uniform
 
@@ -28,23 +29,23 @@ class PrivateActor(EconomicActor):
         self.__bank: Bank = bank
         self.bank.register(self)
 
-        self.savings_rate: float = 0.02
+        self.__savings_rate: Decimal = Decimal(0.02)
 
-        self.borrow_for_securities: float = 0.0
+        self.__borrow_for_securities: Decimal = Decimal(0.0)
 
         self.defaulting_mode: DefaultingMode = DefaultingMode.FIXED
-        self.fixed_defaulting_rate = 0.0
-        self.defaulting_probability = 0.0
-        self.defaulting_min = 0.0 # minimum defaulting percentage for probabilistic mode
-        self.defaulting_max = 0.0 # maximum defaulting percentage for probabilistic mode
+        self.__fixed_defaulting_rate: Decimal = Decimal(0.0)
+        self.__defaulting_probability: Decimal = Decimal(0.0)
+        self.__defaulting_min: Decimal = Decimal(0.0) # minimum defaulting percentage for probabilistic mode
+        self.__defaulting_max: Decimal = Decimal(0.0) # maximum defaulting percentage for probabilistic mode
 
-        self.defaults_bought_by_debt_collectors: float = 0.0 # In %
-        self.unresolved_debt_growth: float = 0.0 # Net growth of unresolved debt. Can be negative.
+        self.__defaults_bought_by_debt_collectors: Decimal = Decimal(0.0) # In %
+        self.__unresolved_debt_growth: Decimal = Decimal(0.0) # Net growth of unresolved debt. Can be negative.
 
-        self.__installments: List [float] = [0.0]
+        self.__installments: List [Decimal] = [Decimal(0.0)]
 
         # Cycle attributes.
-        self.__installment: float = 0.0
+        self.__installment: Decimal = Decimal(0.0)
 
         # Cycle flags. Some operations can only be executed once per cycle.
 
@@ -53,18 +54,82 @@ class PrivateActor(EconomicActor):
         return self.__bank
 
     @property
-    def installment(self) -> float:
+    def savings_rate(self) -> Decimal:
+        return self.__savings_rate
+
+    @savings_rate.setter
+    def savings_rate(self, rate: Decimal):
+        self.__savings_rate = Decimal(rate)
+
+    @property
+    def borrow_for_securities(self) -> Decimal:
+        return self.__borrow_for_securities
+
+    @borrow_for_securities.setter
+    def borrow_for_securities(self, percentage: Decimal):
+        self.__borrow_for_securities = Decimal(percentage)
+
+    @property
+    def fixed_defaulting_rate(self) -> Decimal:
+        return self.__fixed_defaulting_rate
+
+    @fixed_defaulting_rate.setter
+    def fixed_defaulting_rate(self, rate: Decimal):
+        self.__fixed_defaulting_rate = Decimal(rate)
+
+    @property
+    def defaulting_probability(self) -> Decimal:
+        return self.__defaulting_probability
+
+    @defaulting_probability.setter
+    def defaulting_probability(self, probability: Decimal):
+        self.__defaulting_probability = Decimal(probability)
+
+    @property
+    def defaulting_min(self) -> Decimal:
+        return self.__defaulting_min
+
+    @defaulting_min.setter
+    def defaulting_min(self, minimum: Decimal):
+        self.__defaulting_min = Decimal(minimum)
+
+    @property
+    def defaulting_max(self) -> Decimal:
+        return self.__defaulting_max
+
+    @defaulting_max.setter
+    def defaulting_max(self, maximum: Decimal):
+        self.__defaulting_max = Decimal(maximum)
+
+    @property
+    def defaults_bought_by_debt_collectors(self) -> Decimal:
+        return self.__defaults_bought_by_debt_collectors
+
+    @defaults_bought_by_debt_collectors.setter
+    def defaults_bought_by_debt_collectors(self, percentage: Decimal):
+        self.__defaults_bought_by_debt_collectors = Decimal(percentage)
+
+    @property
+    def unresolved_debt_growth(self) -> Decimal:
+        return self.__unresolved_debt_growth
+
+    @unresolved_debt_growth.setter
+    def unresolved_debt_growth(self, percentage: Decimal):
+        self.__unresolved_debt_growth = Decimal(percentage)
+
+    @property
+    def installment(self) -> Decimal:
         return self.__installment
 
     @property
-    def debt(self) -> float:
+    def debt(self) -> Decimal:
         return self.liability(BalanceEntries.DEBT)
 
     @property
-    def serviceable_debt(self) -> float:
+    def serviceable_debt(self) -> Decimal:
         return self.debt - self.fixed_defaulting_rate * self.debt
 
-    def inflate(self, inflation: float):
+    def inflate(self, inflation: Decimal):
         pass
 
     def start_transactions(self):
@@ -73,19 +138,23 @@ class PrivateActor(EconomicActor):
         if len(self.__installments) > 0:
             self.__installment = self.__installments.pop(0)
 
-    def save(self, amount: float):
-        self.book_asset(BalanceEntries.SAVINGS, amount)
-        self.book_asset(BalanceEntries.DEPOSITS, -amount)
-        self.bank.book_savings(amount)
+    def process_savings(self):
+        total_dep_sav: Decimal = self.asset(BalanceEntries.DEPOSITS) + self.asset(BalanceEntries.SAVINGS)
+        savings_target: Decimal = Decimal(round(self.savings_rate * total_dep_sav, 4))
+        savings_transfer: Decimal = savings_target - self.asset(BalanceEntries.SAVINGS)
 
-    def borrow(self, amount: float):
+        self.book_asset(BalanceEntries.SAVINGS, savings_transfer)
+        self.book_asset(BalanceEntries.DEPOSITS, -savings_transfer)
+        self.bank.book_savings(savings_transfer)
+
+    def borrow(self, amount: Decimal):
         if amount > 0:
             self.book_asset(BalanceEntries.DEPOSITS, amount)
             self.book_liability(BalanceEntries.DEBT, amount)
 
-            installment = amount/self.bank.loan_duration
+            installment = amount/self.bank.loan_installments
 
-            for i in range(self.bank.loan_duration):
+            for i in range(self.bank.loan_installments):
                 if len(self.__installments) < i + 1:
                     self.__installments.append(installment)
                 else:
@@ -100,11 +169,10 @@ class PrivateActor(EconomicActor):
         :param debt_payment the debt payment object to record payments in."""
 
         # Deal with existing unresolved debt.
-
         self.book_asset(BalanceEntries.UNRESOLVED_DEBT, self.asset(BalanceEntries.UNRESOLVED_DEBT) * self.unresolved_debt_growth)
         self.book_liability(BalanceEntries.UNRESOLVED_DEBT, self.liability(BalanceEntries.UNRESOLVED_DEBT) * self.unresolved_debt_growth)
 
-        unresolved_debt: float = 0.0
+        unresolved_debt: Decimal = Decimal(0.0)
         debt_payment.debt = self.debt
         debt_payment.full_installment = self.installment
 
@@ -127,42 +195,49 @@ class PrivateActor(EconomicActor):
         self.book_asset(BalanceEntries.UNRESOLVED_DEBT, unresolved_debt)
         self.book_liability(BalanceEntries.UNRESOLVED_DEBT, unresolved_debt)
 
-    def pay_bank(self, amount: float) -> float:
+    def pay_bank(self, amount: Decimal) -> Decimal:
         return self.__pay_bank(amount, BalanceEntries.EQUITY)
 
-    def trade_securities_with_bank(self, amount: float, security_type: str = BalanceEntries.SECURITIES):
+    def trade_securities_with_bank(self, amount: Decimal, security_type: str = BalanceEntries.SECURITIES) -> Decimal:
         """Attempt to trade the amount of securities, a positive amount indicating a sell, a negative amount
         indicating a buy. When buying, no more than the available deposits + savings can be used."""
 
-        equity: float = self.liability(BalanceEntries.EQUITY)
+        # Can mot buy more than there is money available. TODO introduce lending for securities
+        if amount < 0:
+            amount = -min(-amount, self.asset(BalanceEntries.DEPOSITS) + self.asset(BalanceEntries.SAVINGS))
+
+        # MBS can only be created by banks. Therefore no more MBS can be sold than those which are on the balance sheet.
+        if security_type == BalanceEntries.MBS:
+            amount = min(amount, self.asset(BalanceEntries.MBS))
+
+        equity: Decimal = self.liability(BalanceEntries.EQUITY)
+        amount = self.bank.exchange_client_securities(amount, security_type)
         self.__pay_bank(-amount, BalanceEntries.EQUITY, True)
 
-        traded_securities: float = self.liability(BalanceEntries.EQUITY) - equity
-
-        self.bank.receive_client_securities(traded_securities, security_type)
-
-        # when selling, do not subtract more than what was on the balance sheet. The surplus is 'created'. These
-        # actually represent securities which were hidden from the books until now.
-        securities_delta: float = min(self.asset(security_type), traded_securities)
+        # when selling securities (not MBS), do not subtract more than what was on the balance sheet. The surplus is
+        # 'created'. These actually represent securities which were 'hidden' from the books until now.
+        securities_delta: Decimal = min(self.asset(security_type), amount)
 
         self.book_asset(security_type, -securities_delta)
         self.book_liability(BalanceEntries.equity_type(security_type), -securities_delta)
 
-    def __pay_bank(self, amount: float, liability_name: str, borrow: bool = False) -> float:
+        return amount
+
+    def __pay_bank(self, amount: Decimal, liability_name: str, borrow: bool = False) -> Decimal:
         """Attempt to pay_bank an amount. Use savings if needed.
 
         :param amount the amount to pay_bank.
         :param liability_name the name of the liability that needs to be diminished."""
 
-        deposits: float = self.asset(BalanceEntries.DEPOSITS)
-        savings: float = self.asset(BalanceEntries.SAVINGS)
+        deposits: Decimal = self.asset(BalanceEntries.DEPOSITS)
+        savings: Decimal = self.asset(BalanceEntries.SAVINGS)
 
-        pay_from_deposits: float = min(amount, deposits)
-        pay_from_savings: float = min(savings, amount - pay_from_deposits)
+        pay_from_deposits: Decimal = min(amount, deposits)
+        pay_from_savings: Decimal = min(savings, amount - pay_from_deposits)
 
         # borrowing can only happen when paying for securities
         if pay_from_deposits + pay_from_savings < amount and borrow:
-            to_borrow: float = round((amount - pay_from_deposits - pay_from_savings) * self.borrow_for_securities, 4)
+            to_borrow: Decimal = (amount - pay_from_deposits - pay_from_savings) * self.borrow_for_securities
 
             self.bank.borrow(to_borrow)
             pay_from_deposits += to_borrow
@@ -178,4 +253,4 @@ class PrivateActor(EconomicActor):
 
     def clear(self):
         super().clear()
-        self.__installments = [0.0]
+        self.__installments = [Decimal(0.0)]
