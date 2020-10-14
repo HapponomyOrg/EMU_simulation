@@ -35,6 +35,7 @@ def init_parameters():
     bank.savings_ir = 0.02 * Period.YEAR_DAYS
     bank.loan_ir = 0.025 * Period.YEAR_DAYS
     bank.loan_duration = Period(20, Interval.YEAR)
+    bank.loan_interval = Period(1, Interval.DAY)
     bank.no_loss = True
     bank.income_from_interest = 0.8
     bank.retain_profit = True
@@ -122,6 +123,7 @@ def test_fixed_qe():
     init_parameters()
     central_bank.qe_mode = QEMode.FIXED
     central_bank.qe_fixed = 100.0
+    central_bank.qe_interval = Period(1, Interval.DAY)
 
     central_bank.start_transactions()
     client.trade_securities_with_bank(Decimal(10.0))

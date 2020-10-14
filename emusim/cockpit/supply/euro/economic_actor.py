@@ -89,7 +89,6 @@ class EconomicActor(ABC):
     def start_transactions(self):
         """Call before performing any transactions on the economic actor."""
 
-        self.__cycle += 1
         self.__transactions_started = True
         self.__security_growth_processed = False
         self.__mbs_growth_processed = False
@@ -99,6 +98,7 @@ class EconomicActor(ABC):
         :return True if the state of the economic actor is validated."""
 
         self.__transactions_started = False
+        self.__cycle += 1
         return self.balance.save_state()
 
     def clear(self):

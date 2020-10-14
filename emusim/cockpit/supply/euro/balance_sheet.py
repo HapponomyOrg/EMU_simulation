@@ -133,8 +133,10 @@ class BalanceSheetTimeline(BalanceSheet):
     def delta_history(self, time_delta: int = 0) -> BalanceSheet:
         if time_delta == 0:
             return self.__calculate_delta(self, self)
-        else:
+        elif len(self.__history) != 0:
             return self.__calculate_delta(self, self.__history[len(self.__history) - abs(time_delta)])
+        else:
+            return BalanceSheet()
     
     def __calculate_delta(self, current: BalanceSheet, previous: BalanceSheet) -> BalanceSheet:
             delta: BalanceSheet = BalanceSheet()
