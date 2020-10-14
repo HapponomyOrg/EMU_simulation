@@ -48,10 +48,21 @@ class CentralBank(EconomicActor):
         self.qe_mode: QEMode = QEMode.NONE
         self.__qe_fixed: Decimal = Decimal(0.0)
         self.__qe_debt_related = Decimal(0.0)
+        self.qe_interval: Period = Period(1, Interval.MONTH)
 
         self.helicopter_mode: HelicopterMode = HelicopterMode.NONE
         self.__helicopter_fixed: Decimal = Decimal(0.0)
         self.__helicopter_debt_related: Decimal = Decimal(0.0)
+        self.helicopter_interval: Period = Period(1, Interval.MONTH)
+
+        # Cycle parameters
+        self.__inflation_processed: bool = False
+        self.__mbs_growth_processed: bool = False
+        self.__security_growth_processed: bool = False
+        self.__reserves_processed: bool = False
+        self.__loans_processed: bool = False
+        self.__qe_processed: bool = False
+        self.__helicopter_money_processed: bool = False
 
     def register(self, bank: Bank):
         self.registered_banks.add(bank)
@@ -159,6 +170,14 @@ class CentralBank(EconomicActor):
     def start_transactions(self):
         super().start_transactions()
 
+        self.__inflation_processed: bool = False
+        self.__mbs_growth_processed: bool = False
+        self.__security_growth_processed: bool = False
+        self.__reserves_processed: bool = False
+        self.__loans_processed: bool = False
+        self.__qe_processed: bool = False
+        self.__helicopter_money_processed: bool = False
+
         for bank in self.registered_banks:
             bank.start_transactions()
 
@@ -172,104 +191,125 @@ class CentralBank(EconomicActor):
         return success
 
     def inflate(self, inflation: Decimal):
-        inflation = Decimal(inflation)
-        self.qe_fixed += Decimal(round(self.qe_fixed * inflation, 8))
-        self.helicopter_fixed += Decimal(round(self.helicopter_fixed * inflation, 8))
+        if not self.__inflation_processed:
+            inflation = Decimal(inflation)
+            self.qe_fixed += Decimal(round(self.qe_fixed * inflation, 8))
+            self.helicopter_fixed += Decimal(round(self.helicopter_fixed * inflation, 8))
 
-        for bank in self.registered_banks:
-            bank.inflate(inflation)
+            for bank in self.registered_banks:
+                bank.inflate(inflation)
+
+            self.__inflation_processed = True
 
     def grow_mbs(self, growth: Decimal):
-        super().grow_mbs(growth)
+        if not self.__mbs_growth_processed:
+            super().grow_mbs(growth)
 
-        for bank in self.registered_banks:
-            bank.grow_mbs(growth)
+            for bank in self.registered_banks:
+                bank.grow_mbs(growth)
+
+            self.__mbs_growth_processed = True
 
     def grow_securities(self, growth: Decimal):
-        super().grow_securities(growth)
+        if not self.__security_growth_processed:
+            super().grow_securities(growth)
 
-        for bank in self.registered_banks:
-            bank.grow_securities(growth)
+            for bank in self.registered_banks:
+                bank.grow_securities(growth)
+
+            self.__security_growth_processed = True
 
     def process_reserve_interests(self):
         """Give/collect interest according to a bank's reserve accounts."""
-        for bank in self.registered_banks:
-            # Banks may hold part of their reserves in another form than the balance of their reserve accounts.
-            # Those reserves will always meet the minimum reserves due to the implementation of the Bank class.
-            reserve_interest_rate = self.reserve_ir * self.reserve_interest_interval.days / Period.YEAR_DAYS
-            surplus_interest_rate = self.surplus_reserve_ir * self.reserve_interest_interval.days / Period.YEAR_DAYS
-            reserves: Decimal = bank.asset(BalanceEntries.RESERVES)
-            reserve_limit: Decimal = Decimal(round(bank.client_liabilities * self.min_reserve, 8))
-            surplus_reserve: Decimal = max(Decimal(0.0), reserves - reserve_limit)
-            interest: Decimal = Decimal(round(reserve_limit * reserve_interest_rate
-                                              + surplus_reserve * surplus_interest_rate, 8))
-            bank.process_interest(interest)
+        if not self.__reserves_processed and self.reserve_interest_interval.period_complete(self.cycle):
+            for bank in self.registered_banks:
+                # Banks may hold part of their reserves in another form than the balance of their reserve accounts.
+                # Those reserves will always meet the minimum reserves due to the implementation of the Bank class.
+                reserve_interest_rate = self.reserve_ir * self.reserve_interest_interval.days / Period.YEAR_DAYS
+                surplus_interest_rate = self.surplus_reserve_ir * self.reserve_interest_interval.days / Period.YEAR_DAYS
+                reserves: Decimal = bank.asset(BalanceEntries.RESERVES)
+                reserve_limit: Decimal = Decimal(round(bank.client_liabilities * self.min_reserve, 8))
+                surplus_reserve: Decimal = max(Decimal(0.0), reserves - reserve_limit)
+                interest: Decimal = Decimal(round(reserve_limit * reserve_interest_rate
+                                                  + surplus_reserve * surplus_interest_rate, 8))
+                bank.process_interest(interest)
 
-            if interest < 0.0:
-                # interest earned from banks is redistributed to the private sector
-                bank.distribute_interest(-interest)
-            else:
-                self.book_asset(BalanceEntries.INTEREST, -interest)
-                self.book_liability(BalanceEntries.EQUITY, -interest)
+                if interest < 0.0:
+                    # interest earned from banks is redistributed to the private sector
+                    bank.distribute_interest(-interest)
+                else:
+                    self.book_asset(BalanceEntries.INTEREST, -interest)
+                    self.book_liability(BalanceEntries.EQUITY, -interest)
+
+                self.__reserves_processed = True
 
     def book_loan(self, amount: Decimal):
         self.book_asset(BalanceEntries.LOANS, amount)
         self.book_liability(BalanceEntries.RESERVES, amount)
 
     def process_bank_loans(self):
-        for bank in self.registered_banks:
-            bank.pay_debt(self.loan_ir * self.loan_interval.days / Period.YEAR_DAYS)
+        if not self.__loans_processed and self.loan_interval.period_complete(self.cycle):
+            for bank in self.registered_banks:
+                bank.pay_debt(self.loan_ir * self.loan_interval.days / Period.YEAR_DAYS)
 
-    def process_qe(self):
-        qe_amount: Decimal = Decimal(0.0)
+            self.__loans_processed = True
 
-        if self.qe_mode == QEMode.FIXED:
-            qe_amount = self.qe_fixed
-        elif self.qe_mode == QEMode.DEBT_RELATED:
-            qe_amount = self.__calculate_private_debt() * self.qe_debt_related
+    def process_qe(self): # TODO: work with qe per year for fixed
+        if not self.__qe_processed and self.qe_interval.period_complete(self.cycle):
+            qe_amount: Decimal = Decimal(0.0)
 
-        self.book_asset(BalanceEntries.SECURITIES, qe_amount)
-        self.book_liability(BalanceEntries.RESERVES, qe_amount)
+            if self.qe_mode == QEMode.FIXED:
+                qe_amount = self.qe_fixed
+            elif self.qe_mode == QEMode.DEBT_RELATED:
+                qe_amount = self.__calculate_private_debt() * self.qe_debt_related
 
-        client_count: int = 0
+            self.book_asset(BalanceEntries.SECURITIES, qe_amount)
+            self.book_liability(BalanceEntries.RESERVES, qe_amount)
 
-        # first buy securities from banks on a first come, first serve basis
-        for bank in self.registered_banks:
-            client_count += len(bank.clients)
-            qe_amount -= bank.trade_central_bank_securities(qe_amount)
+            client_count: int = 0
 
-        # get remainder from private sector, distributed among all
-        client_qe: Decimal = qe_amount / client_count
+            # first buy securities from banks on a first come, first serve basis
+            for bank in self.registered_banks:
+                client_count += len(bank.clients)
+                qe_amount -= bank.trade_central_bank_securities(qe_amount)
 
-        for bank in self.registered_banks:
-            for client in bank.clients:
-                client.trade_securities_with_bank(client_qe)
-                bank.trade_central_bank_securities(client_qe)
+            # get remainder from private sector, distributed among all
+            client_qe: Decimal = qe_amount / client_count
 
-    def process_helicopter_money(self):
-        helicopter_money: Decimal = Decimal(0.0)
+            for bank in self.registered_banks:
+                for client in bank.clients:
+                    client.trade_securities_with_bank(client_qe)
+                    bank.trade_central_bank_securities(client_qe)
 
-        if self.helicopter_mode == HelicopterMode.FIXED:
-            helicopter_money = self.helicopter_fixed
-        elif self.helicopter_mode == HelicopterMode.DEBT_RELATED:
-            helicopter_money = self.__calculate_private_debt() * self.helicopter_debt_related
+            self.__qe_processed = True
 
-        self.book_asset(BalanceEntries.HELICOPTER_MONEY, helicopter_money)
-        self.book_liability(BalanceEntries.RESERVES, helicopter_money)
+    def process_helicopter_money(self):# TODO: work with helicopter per year for fixed
+        if not self.__helicopter_money_processed and self.helicopter_interval.period_complete(self.cycle):
+            helicopter_money: Decimal = Decimal(0.0)
 
-        client_count: int = 0
+            if self.helicopter_mode == HelicopterMode.FIXED:
+                helicopter_money = self.helicopter_fixed
+            elif self.helicopter_mode == HelicopterMode.DEBT_RELATED:
+                helicopter_money = self.__calculate_private_debt() * self.helicopter_debt_related
 
-        for bank in self.registered_banks:
-            client_count += len(bank.clients)
+            self.book_asset(BalanceEntries.HELICOPTER_MONEY, helicopter_money)
+            self.book_liability(BalanceEntries.RESERVES, helicopter_money)
 
-        helicopter_fraction: Decimal = helicopter_money / client_count
+            client_count: int = 0
 
-        for bank in self.registered_banks:
-            for client in bank.clients:
-                client.book_asset(BalanceEntries.DEPOSITS, helicopter_fraction)
-                client.book_liability(BalanceEntries.EQUITY, helicopter_fraction)
-                bank.book_asset(BalanceEntries.RESERVES, helicopter_fraction)
-                bank.book_liability(BalanceEntries.DEPOSITS, helicopter_fraction)
+            for bank in self.registered_banks:
+                client_count += len(bank.clients)
+
+            helicopter_fraction: Decimal = Decimal(round(helicopter_money / client_count, 8))
+
+            for bank in self.registered_banks:
+                for client in bank.clients:
+                    client.book_asset(BalanceEntries.DEPOSITS, helicopter_fraction)
+                    client.book_liability(BalanceEntries.EQUITY, helicopter_fraction)
+                    bank.book_asset(BalanceEntries.RESERVES, helicopter_fraction)
+                    bank.book_liability(BalanceEntries.DEPOSITS, helicopter_fraction)
+
+            self.__helicopter_money_processed = True
 
     def __calculate_private_debt(self) -> Decimal:
         debt: Decimal = Decimal(0.0)

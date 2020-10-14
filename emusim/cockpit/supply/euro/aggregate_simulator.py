@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 SYSTEM: str = "System"
 
 # System data fields
+CYCLE = "Cycle"
 GROWTH_TARGET = "Growth target"
 INFLATION = "Inflation"
 IM = "IM"
@@ -31,13 +32,15 @@ LENDING_RATE = "Lending rate"
 DEFLATED_LENDING = "Deflated lending"
 DEFLATED_REQUIRED_LENDING = "Deflated required lending"
 
-SYSTEM_OBLIGATORY_DATA_FIELDS = [GROWTH_TARGET,
+SYSTEM_OBLIGATORY_DATA_FIELDS = [CYCLE,
+                                 GROWTH_TARGET,
                                  INFLATION,
                                  REAL_GROWTH,
                                  REQUIRED_LENDING_RATE,
                                  LENDING_RATE]
 
-SYSTEM_DATA_FIELDS = [IM,
+SYSTEM_DATA_FIELDS = [CYCLE,
+                      IM,
                       IM_TARGET,
                       NOMINAL_GROWTH,
                       MBS_GROWTH,
@@ -192,7 +195,9 @@ class AggregateSimulator(Simulator):
         data: Decimal = Decimal(0.0)
 
         if category == SYSTEM:
-            if data_field == GROWTH_TARGET:
+            if data_field == CYCLE:
+                data = Decimal(self.economy.central_bank.cycle)
+            elif data_field == GROWTH_TARGET:
                 data = self.economy.cycle_growth_rate
             elif data_field == INFLATION:
                 data = self.economy.cycle_inflation_rate
@@ -211,7 +216,22 @@ class AggregateSimulator(Simulator):
         elif category == CENTRAL_BANK:
             data = Decimal(0.0)
         elif category == BANK:
-            data = Decimal(0.0)
+            if data_field == PROFIT:
+                data = self.economy.bank.real_profit
+        elif category == CENTRAL_BANK_BS:
+            data = self.__balance_entry(self.economy.central_bank, data_field)
+        elif category == BANK_BS:
+            data = self.__balance_entry(self.economy.bank, data_field)
+        elif category == PRIVATE_SECTOR_BS:
+            data = self.__balance_entry(self.economy.client, data_field)
+
+        return data
+
+    def __balance_entry(self, economic_actor: EconomicActor, entry: str) -> Decimal:
+        if entry in economic_actor.asset_names:
+            data = economic_actor.asset(entry)
+        else:
+            data = economic_actor.liability(entry)
 
         return data
 

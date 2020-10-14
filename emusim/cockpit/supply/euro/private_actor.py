@@ -14,8 +14,9 @@ if TYPE_CHECKING:
 
 
 class DefaultingMode(Enum):
-    FIXED = 0
-    PROBABILISTIC = 1
+    NONE = 0
+    FIXED = 1
+    PROBABILISTIC = 2
 
 
 class PrivateActor(EconomicActor):
@@ -179,7 +180,7 @@ class PrivateActor(EconomicActor):
         if self.defaulting_mode == DefaultingMode.PROBABILISTIC and random() < self.defaulting_probability:
             unresolved_debt = uniform(self.defaulting_min * self.installment, self.defaulting_max * self.installment)
         elif self.defaulting_mode == DefaultingMode.FIXED:
-            unresolved_debt = debt_payment.full_installment * self.fixed_defaulting_rate
+            unresolved_debt = round(Decimal(debt_payment.full_installment * self.fixed_defaulting_rate), 8)
 
         debt_payment.installment_paid = self.__pay_bank(self.installment - unresolved_debt, BalanceEntries.DEBT)
         debt_payment.interest_paid = self.__pay_bank(debt_payment.adjusted_interest, BalanceEntries.EQUITY)

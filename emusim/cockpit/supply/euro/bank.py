@@ -243,7 +243,7 @@ class Bank(EconomicActor):
     @property
     def real_profit(self) -> Decimal:
         """Return the profit for this cycle. Has to be called after the state for the current cycle has been saved."""
-        delta_balance: BalanceSheet = self.balance.delta_history[-1]
+        delta_balance: BalanceSheet = self.balance.delta_history(-1)
 
         return delta_balance.liability(BalanceEntries.EQUITY) + delta_balance.liability(BalanceEntries.MBS_EQUITY)
 
