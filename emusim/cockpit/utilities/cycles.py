@@ -38,5 +38,8 @@ class Period:
     def days(self) -> int:
         return self.__days
 
-    def period_complete(self, cycle: int) -> bool:
-        return (cycle + 1) % self.days == 0
+    def period_complete(self, cycle: int, zero_based: bool = False) -> bool:
+        if zero_based:
+            cycle += 1
+
+        return cycle % self.days == 0
