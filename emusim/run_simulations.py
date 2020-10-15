@@ -113,7 +113,7 @@ def init_collector():
 
 
 def dump_data(file_name: str):
-    file = open(file_name + ".csv", "w")
+    file = open("data/" + sec_no_sec + " - " + file_name + ".csv", "w")
 
     for category in collector.get_categories():
         for data_field in collector.get_data_fields(category):
@@ -142,9 +142,8 @@ def dump_data(file_name: str):
     file.close()
 
 
-def run_no_growth_no_save_no_profit():
-    economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+def run_no_growth_no_save_no_profit(param_initialization):
+    param_initialization()
 
     simulator.economy.growth_rate = 0.0
     simulator.economy.bank.spending_mode = SpendingMode.PROFIT
@@ -152,15 +151,16 @@ def run_no_growth_no_save_no_profit():
     simulator.economy.bank.profit_spending = 1.0
     simulator.economy.client.savings_rate = 0.0
 
+    economy.central_bank.clear()
+    economy.client.borrow(Decimal(1000000.0))
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
-    dump_data(dir + "/no_growth_no_save_no_profit")
+    dump_data("no_growth_no_save_no_profit")
 
 
-def run_no_growth_no_inflation_no_save_no_profit():
-    economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+def run_no_growth_no_inflation_no_save_no_profit(param_initialization):
+    param_initialization()
 
     simulator.economy.growth_rate = 0.0
     simulator.economy.inflation = 0.0
@@ -169,31 +169,43 @@ def run_no_growth_no_inflation_no_save_no_profit():
     simulator.economy.bank.profit_spending = 1.0
     simulator.economy.client.savings_rate = 0.0
 
+    economy.central_bank.clear()
+    economy.client.borrow(Decimal(1000000.0))
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
-    dump_data(dir + "/no_growth_no_inflation_no_save_no_profit")
+    dump_data("no_growth_no_inflation_no_save_no_profit")
 
 
-def run_large_growth_no_save_no_profit():
+def run_no_growth(param_initialization):
+    param_initialization()
+
+    simulator.economy.growth_rate = 0.0
+
     economy.central_bank.clear()
     economy.client.borrow(Decimal(1000000.0))
-
-    simulator.economy.growth_rate = 0.03
-    simulator.economy.bank.spending_mode = SpendingMode.PROFIT
-    simulator.economy.bank.retain_profit = False
-    simulator.economy.bank.profit_spending = 1.0
-    simulator.economy.client.savings_rate = 0.0
-
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
-    dump_data(dir + "/large_growth_no_save_no_profit")
+    dump_data("no_growth")
 
 
-def run_low_growth_no_save_no_profit():
+def run_no_growth_no_inflation(param_initialization):
+    param_initialization()
+
+    simulator.economy.growth_rate = 0.0
+    simulator.economy.inflation = 0.0
+
     economy.central_bank.clear()
     economy.client.borrow(Decimal(1000000.0))
+    init_collector()
+    simulator.run_simulation(YEARS * Period.YEAR_DAYS)
+
+    dump_data("no_growth_no_inflation")
+
+
+def run_low_growth_no_save_no_profit(param_initialization):
+    param_initialization()
 
     simulator.economy.growth_rate = 0.01
     simulator.economy.bank.spending_mode = SpendingMode.PROFIT
@@ -201,82 +213,101 @@ def run_low_growth_no_save_no_profit():
     simulator.economy.bank.profit_spending = 1.0
     simulator.economy.client.savings_rate = 0.0
 
+    economy.central_bank.clear()
+    economy.client.borrow(Decimal(1000000.0))
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
-    dump_data(dir + "/low_growth_no_save_no_profit")
+    dump_data("low_growth_no_save_no_profit")
 
 
-def run_large_growth():
-    economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
-
-    init_collector()
-    simulator.run_simulation(YEARS * Period.YEAR_DAYS)
-
-    dump_data(dir + "/large_growth")
-
-
-def run_low_growth():
-    economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+def run_low_growth(param_initialization):
+    param_initialization()
 
     simulator.economy.growth_rate = 0.01
 
+    economy.central_bank.clear()
+    economy.client.borrow(Decimal(1000000.0))
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
-    dump_data(dir + "/low_growth")
+    dump_data("low_growth")
 
 
-def run_no_growth():
-    economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+def run_low_growth_no_inflation(param_initialization):
+    param_initialization()
 
-    simulator.economy.growth_rate = 0.0
-
-    init_collector()
-    simulator.run_simulation(YEARS * Period.YEAR_DAYS)
-
-    dump_data(dir + "/no_growth")
-
-
-def run_no_growth_no_inflation():
-    economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
-
-    simulator.economy.growth_rate = 0.0
+    simulator.economy.growth_rate = 0.01
     simulator.economy.inflation = 0.0
 
+    economy.central_bank.clear()
+    economy.client.borrow(Decimal(1000000.0))
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
-    dump_data(dir + "/no_growth_no_inflation")
+    dump_data("low_growth_no_inflation")
+
+
+def run_large_growth_no_save_no_profit(param_initialization):
+    param_initialization()
+
+    simulator.economy.bank.spending_mode = SpendingMode.PROFIT
+    simulator.economy.bank.retain_profit = False
+    simulator.economy.bank.profit_spending = 1.0
+    simulator.economy.client.savings_rate = 0.0
+
+    economy.central_bank.clear()
+    economy.client.borrow(Decimal(1000000.0))
+    init_collector()
+    simulator.run_simulation(YEARS * Period.YEAR_DAYS)
+
+    dump_data("large_growth_no_save_no_profit")
+
+
+def run_large_growth(param_initialization):
+    param_initialization()
+
+    economy.central_bank.clear()
+    economy.client.borrow(Decimal(1000000.0))
+
+    init_collector()
+    simulator.run_simulation(YEARS * Period.YEAR_DAYS)
+
+    dump_data("large_growth")
+
+
+def run_large_growth_no_inflation(param_initialization):
+    param_initialization()
+
+    simulator.economy.inflation = 0.0
+
+    economy.central_bank.clear()
+    economy.client.borrow(Decimal(1000000.0))
+    init_collector()
+    simulator.run_simulation(YEARS * Period.YEAR_DAYS)
+
+    dump_data("large_growth_no_inflation")
 
 
 def run_batch(param_initialization):
-    param_initialization()
-    run_low_growth_no_save_no_profit()
-    param_initialization()
-    run_large_growth_no_save_no_profit()
-    param_initialization()
-    run_large_growth_no_save_no_profit()
-    param_initialization()
-    run_low_growth()
-    param_initialization()
-    run_no_growth()
-    param_initialization()
-    run_large_growth()
-    param_initialization()
-    run_no_growth_no_inflation()
-    param_initialization()
-    run_no_growth_no_save_no_profit()
+    run_no_growth_no_save_no_profit(param_initialization)
+    run_no_growth_no_inflation_no_save_no_profit(param_initialization)
+    run_no_growth(param_initialization)
+    run_no_growth_no_inflation(param_initialization)
+
+    run_low_growth_no_save_no_profit(param_initialization)
+    run_low_growth(param_initialization)
+    run_low_growth_no_inflation(param_initialization)
+
+    run_large_growth_no_save_no_profit(param_initialization)
+    run_large_growth(param_initialization)
+    run_large_growth_no_inflation(param_initialization)
 
 
 now = datetime.now()
 print("Starting")
-dir: str = "data_no_sec"
+sec_no_sec: str = "no_sec"
 run_batch(set_no_sec_parameters)
-dir = "data_sec"
+sec_no_sec = "sec"
 run_batch(set_sec_parameters)
 print("Done: " + str(datetime.now() - now))
