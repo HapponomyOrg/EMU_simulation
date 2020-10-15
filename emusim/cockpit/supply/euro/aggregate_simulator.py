@@ -194,12 +194,26 @@ class AggregateSimulator(Simulator):
                 data = Decimal(self.economy.central_bank.cycle)
             elif data_field == GROWTH_TARGET:
                 data = self.economy.cycle_growth_rate
+            elif data_field == REAL_GROWTH:
+                data = self.__real_growth
+            elif data_field == NOMINAL_GROWTH:
+                data = self.__nominal_growth
+            elif data_field == MBS_GROWTH:
+                data = self.economy.mbs_growth
+            elif data_field == SECURITY_GROWTH:
+                data = self.economy.security_growth
             elif data_field == INFLATION:
                 data = self.economy.cycle_inflation_rate
             elif data_field == IM:
                 data = self.economy.im
-            elif data_field == REAL_GROWTH:
-                data = self.__real_growth
+            elif data_field == IM_TARGET:
+                data = self.__target_im
+            elif data_field == LENDING_SATISFACTION:
+                data = self.economy.lending_satisfaction_rate
+            elif data_field == REQUIRED_LENDING:
+                data = self.__required_lending
+            elif data_field == LENDING:
+                data = self.__lending
             elif data_field == REQUIRED_LENDING_RATE:
                 data = self.__required_lending_rate
             elif data_field == LENDING_RATE:
