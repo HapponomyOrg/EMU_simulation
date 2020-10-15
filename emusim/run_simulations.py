@@ -16,10 +16,7 @@ collector: DataCollector = simulator.collector
 YEARS: int = 100
 
 
-def set_no_sec_parameters(do_print: bool = True):
-    if do_print:
-        print("initializing no sec")
-
+def set_no_sec_parameters():
     # simulator
     simulator.collect_interval = Period(1, Interval.MONTH)
 
@@ -71,9 +68,7 @@ def set_no_sec_parameters(do_print: bool = True):
 
 
 def set_sec_parameters():
-    print("initializing sec")
-
-    set_no_sec_parameters(False)
+    set_no_sec_parameters()
 
     economy.central_bank.mbs_relative_reserve = 0.1
     economy.central_bank.securities_relative_reserve = 0.05
@@ -113,7 +108,8 @@ def init_collector():
 
 
 def dump_data(file_name: str):
-    file = open("data/" + sec_no_sec + " - " + file_name + ".csv", "w")
+    file_name = sec_no_sec + " - " + file_name
+    file = open("data/" + file_name + ".csv", "w")
 
     for category in collector.get_categories():
         for data_field in collector.get_data_fields(category):
@@ -137,6 +133,11 @@ def dump_data(file_name: str):
                         file.write(str(data))
                 else:
                     first_column = False
+
+            if data_field == CYCLE:
+                print(file_name
+                      + ": "
+                      + str(round(collector.get_data_series(category, data_field)[-1] / Period.YEAR_DAYS, 2)))
 
             file.write("\n")
     file.close()
