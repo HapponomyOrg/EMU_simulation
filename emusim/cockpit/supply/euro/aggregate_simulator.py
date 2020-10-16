@@ -163,7 +163,7 @@ class AggregateSimulator(Simulator):
             self.collector.set_collect_data(PRIVATE_SECTOR_BS, liability, False)
 
     @property
-    def economy(self) -> AggregateEconomy:
+    def economy(self) -> EuroEconomy:
         return self.__economy
 
     def data(self, category: str, data_field: str) -> Decimal:

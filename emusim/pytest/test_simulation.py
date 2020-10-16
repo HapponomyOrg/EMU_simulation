@@ -27,9 +27,9 @@ def set_default_parameters():
     economy.central_bank.mbs_relative_reserve = 0.0
     economy.central_bank.securities_relative_reserve = 0.0
     economy.central_bank.reserve_ir = 0.0
-    economy.central_bank.surplus_reserve_ir = -0.005 * 12
+    economy.central_bank.surplus_reserve_ir = -0.005
     economy.central_bank.reserve_interest_interval = Period(1, Interval.DAY)
-    economy.central_bank.loan_ir = 0.01 * 12
+    economy.central_bank.loan_ir = 0.01
     economy.central_bank.loan_duration = Period(1, Interval.DAY)
     economy.central_bank.loan_interval = Period(1, Interval.DAY)
     economy.central_bank.qe_mode = QEMode.NONE
@@ -43,9 +43,9 @@ def set_default_parameters():
     economy.bank.min_risk_assets = 0.0
     economy.bank.max_mbs_assets = 1.0
     economy.bank.max_security_assets = 1.0
-    economy.bank.savings_ir = 0.011 * 12
+    economy.bank.savings_ir = 0.011
     economy.bank.client_interaction_interval = Period(1, Interval.DAY)
-    economy.bank.loan_ir = 0.025 * 12
+    economy.bank.loan_ir = 0.025
     economy.bank.loan_duration = Period(20, Interval.DAY)
     economy.bank.no_loss = True
     economy.bank.income_from_interest = 0.2
@@ -88,6 +88,27 @@ def init_collector():
         collector.set_collect_data(PRIVATE_SECTOR_BS, liability, True)
 
     collector.set_collect_data(BANK, PROFIT, True)
+
+
+def test_no_growth():
+    init_collector()
+    set_default_parameters()
+
+    simulator.economy.growth_rate = 0.0
+
+    economy.central_bank.clear()
+    economy.client.borrow(Decimal(1000000.0))
+
+    simulator.run_simulation(Period.YEAR_DAYS)
+
+    for real_growth in collector.get_data_series(SYSTEM, REAL_GROWTH):
+        assert real_growth == 0.0
+
+    for inflation in collector.get_data_series(SYSTEM, INFLATION):
+        assert inflation == round(Decimal(0.019 / Period.YEAR_DAYS), 8)
+
+    for deflated_im in collector.get_data_series(SYSTEM, IM):
+        assert deflated_im == 1000000.0
 
 
 def test_no_growth_no_save_no_profit():
