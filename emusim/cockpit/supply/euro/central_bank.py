@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING, Set
+from typing import TYPE_CHECKING, Tuple
 
 from decimal import *
 from ordered_set import OrderedSet
 
 from emusim.cockpit.utilities.cycles import Interval, Period
-from . import EconomicActor, BalanceEntries
+from . import BalanceEntries, EconomicActor
 
 if TYPE_CHECKING:
     from . import Bank
@@ -31,8 +31,6 @@ class CentralBank(EconomicActor):
         super().__init__(OrderedSet([BalanceEntries.LOANS, BalanceEntries.SECURITIES, BalanceEntries.HELICOPTER_MONEY,
                                      BalanceEntries.INTEREST]),
                          OrderedSet([BalanceEntries.RESERVES, BalanceEntries.EQUITY]))
-        self.__registered_banks: Set[Bank] = set()
-
         self.__min_reserve = Decimal(min_reserve)
         self.__mbs_reserve: Decimal = Decimal(0.0)                # max % of 'reserve' in the form of MBS
         self.__securities_reserve: Decimal = Decimal(0.0)         # max % of 'reserve' in the form of securities
@@ -63,9 +61,6 @@ class CentralBank(EconomicActor):
         self.__loans_processed: bool = False
         self.__qe_processed: bool = False
         self.__helicopter_money_processed: bool = False
-
-    def register(self, bank: Bank):
-        self.registered_banks.add(bank)
 
     @property
     def min_reserve(self) -> Decimal:
@@ -160,8 +155,12 @@ class CentralBank(EconomicActor):
         self.__helicopter_debt_related = Decimal(relative_helicopter)
 
     @property
-    def registered_banks(self) -> Set[Bank]:
-        return self.__registered_banks
+    def bank(self) -> Bank:
+        return self.__bank
+
+    @bank.setter
+    def bank(self, bank: Bank):
+        self.__bank: Bank = bank
 
     @property
     def loan_installments(self) -> int:
@@ -178,26 +177,19 @@ class CentralBank(EconomicActor):
         self.__qe_processed: bool = False
         self.__helicopter_money_processed: bool = False
 
-        for bank in self.registered_banks:
-            bank.start_transactions()
+        self.bank.start_transactions()
 
     def end_transactions(self) -> bool:
         # if there are interest assets on the books, spend them to the economy
-        success: bool = super().end_transactions()
-
-        for bank in self.registered_banks:
-            success = success and bank.end_transactions()
-
-        return success
+        return super().end_transactions() and self.bank.end_transactions()
 
     def inflate(self, inflation: Decimal):
         if not self.__inflation_processed:
             inflation = Decimal(inflation)
-            self.qe_fixed += Decimal(round(self.qe_fixed * inflation, 8))
-            self.helicopter_fixed += Decimal(round(self.helicopter_fixed * inflation, 8))
+            self.qe_fixed += round(Decimal(self.qe_fixed * inflation), 8)
+            self.helicopter_fixed += round(Decimal(self.helicopter_fixed * inflation), 8)
 
-            for bank in self.registered_banks:
-                bank.inflate(inflation)
+            self.bank.inflate(inflation)
 
             self.__inflation_processed = True
 
@@ -205,8 +197,7 @@ class CentralBank(EconomicActor):
         if not self.__mbs_growth_processed:
             super().grow_mbs(growth)
 
-            for bank in self.registered_banks:
-                bank.grow_mbs(growth)
+            self.bank.grow_mbs(growth)
 
             self.__mbs_growth_processed = True
 
@@ -214,43 +205,48 @@ class CentralBank(EconomicActor):
         if not self.__security_growth_processed:
             super().grow_securities(growth)
 
-            for bank in self.registered_banks:
-                bank.grow_securities(growth)
+            self.bank.grow_securities(growth)
 
             self.__security_growth_processed = True
 
     def process_reserve_interests(self):
         """Give/collect interest according to a bank's reserve accounts."""
         if not self.__reserves_processed and self.reserve_interest_interval.period_complete(self.cycle):
-            for bank in self.registered_banks:
-                # Banks may hold part of their reserves in another form than the balance of their reserve accounts.
-                # Those reserves will always meet the minimum reserves due to the implementation of the Bank class.
-                reserve_interest_rate = self.reserve_ir * self.reserve_interest_interval.days / Period.YEAR_DAYS
-                surplus_interest_rate = self.surplus_reserve_ir * self.reserve_interest_interval.days / Period.YEAR_DAYS
-                reserves: Decimal = bank.asset(BalanceEntries.RESERVES)
-                reserve_limit: Decimal = Decimal(round(bank.client_liabilities * self.min_reserve, 8))
-                surplus_reserve: Decimal = max(Decimal(0.0), reserves - reserve_limit)
-                interest: Decimal = Decimal(round(reserve_limit * reserve_interest_rate
-                                                  + surplus_reserve * surplus_interest_rate, 8))
-                bank.process_interest(interest)
+            # Banks may hold part of their reserves in another form than the balance of their reserve accounts.
+            # Those reserves will always meet the minimum reserves due to the implementation of the Bank class.
+            reserve_interest_rate = self.reserve_ir * self.reserve_interest_interval.days / Period.YEAR_DAYS
+            surplus_interest_rate = self.surplus_reserve_ir * self.reserve_interest_interval.days / Period.YEAR_DAYS
+            reserves: Decimal = self.bank.asset(BalanceEntries.RESERVES)
+            reserve_limit: Decimal = round(Decimal(self.bank.client_liabilities * self.min_reserve), 8)
+            surplus_reserve: Decimal = max(Decimal(0.0), reserves - reserve_limit)
+            interest: Decimal = round(Decimal(reserve_limit * reserve_interest_rate
+                                              + surplus_reserve * surplus_interest_rate), 8)
+            self.bank.process_interest(interest)
 
-                if interest < 0.0:
-                    # interest earned from banks is redistributed to the private sector
-                    bank.distribute_interest(-interest)
-                else:
-                    self.book_asset(BalanceEntries.INTEREST, -interest)
-                    self.book_liability(BalanceEntries.EQUITY, -interest)
+            if interest < 0.0:
+                # interest earned from banks is redistributed to the private sector
+                self.bank.distribute_interest(-interest)
+            else:
+                self.book_asset(BalanceEntries.INTEREST, -interest)
+                self.book_liability(BalanceEntries.EQUITY, -interest)
 
-                self.__reserves_processed = True
+            self.__reserves_processed = True
 
     def book_loan(self, amount: Decimal):
         self.book_asset(BalanceEntries.LOANS, amount)
         self.book_liability(BalanceEntries.RESERVES, amount)
 
     def process_bank_loans(self):
+        installment: Decimal = Decimal(0.0)
+
         if not self.__loans_processed and self.loan_interval.period_complete(self.cycle):
-            for bank in self.registered_banks:
-                bank.pay_debt(self.loan_ir * self.loan_interval.days / Period.YEAR_DAYS)
+            payment: Tuple[Decimal, Decimal] = self.bank.pay_debt(self.loan_ir * self.loan_interval.days / Period.YEAR_DAYS)
+            installment += payment[0]
+            interest: Decimal = payment[1]
+            self.bank.distribute_interest(interest)
+
+            self.book_asset(BalanceEntries.LOANS, -installment)
+            self.book_liability(BalanceEntries.RESERVES, -installment)
 
             self.__loans_processed = True
 
@@ -266,20 +262,12 @@ class CentralBank(EconomicActor):
             self.book_asset(BalanceEntries.SECURITIES, qe_amount)
             self.book_liability(BalanceEntries.RESERVES, qe_amount)
 
-            client_count: int = 0
+            # first buy securities from bank
+            qe_amount -= self.bank.trade_central_bank_securities(qe_amount)
 
-            # first buy securities from banks on a first come, first serve basis
-            for bank in self.registered_banks:
-                client_count += len(bank.clients)
-                qe_amount -= bank.trade_central_bank_securities(qe_amount)
-
-            # get remainder from private sector, distributed among all
-            client_qe: Decimal = qe_amount / client_count
-
-            for bank in self.registered_banks:
-                for client in bank.clients:
-                    client.trade_securities_with_bank(client_qe)
-                    bank.trade_central_bank_securities(client_qe)
+            # get remainder from private sector
+            self.bank.client.trade_securities_with_bank(qe_amount)
+            self.bank.trade_central_bank_securities(qe_amount)
 
             self.__qe_processed = True
 
@@ -295,33 +283,17 @@ class CentralBank(EconomicActor):
             self.book_asset(BalanceEntries.HELICOPTER_MONEY, helicopter_money)
             self.book_liability(BalanceEntries.RESERVES, helicopter_money)
 
-            client_count: int = 0
-
-            for bank in self.registered_banks:
-                client_count += len(bank.clients)
-
-            helicopter_fraction: Decimal = Decimal(round(helicopter_money / client_count, 8))
-
-            for bank in self.registered_banks:
-                for client in bank.clients:
-                    client.book_asset(BalanceEntries.DEPOSITS, helicopter_fraction)
-                    client.book_liability(BalanceEntries.EQUITY, helicopter_fraction)
-                    bank.book_asset(BalanceEntries.RESERVES, helicopter_fraction)
-                    bank.book_liability(BalanceEntries.DEPOSITS, helicopter_fraction)
+            self.bank.client.book_asset(BalanceEntries.DEPOSITS, helicopter_money)
+            self.bank.client.book_liability(BalanceEntries.EQUITY, helicopter_money)
+            self.bank.book_asset(BalanceEntries.RESERVES, helicopter_money)
+            self.bank.book_liability(BalanceEntries.DEPOSITS, helicopter_money)
 
             self.__helicopter_money_processed = True
 
     def __calculate_private_debt(self) -> Decimal:
-        debt: Decimal = Decimal(0.0)
-
-        for bank in self.registered_banks:
-            debt += bank.asset(BalanceEntries.LOANS)
-            debt += bank.asset(BalanceEntries.MBS)
-
-        return debt
+        return self.bank.asset(BalanceEntries.LOANS) + self.bank.asset(BalanceEntries.MBS)
 
     def clear(self):
         super().clear()
 
-        for bank in self.registered_banks:
-            bank.clear()
+        self.bank.clear()

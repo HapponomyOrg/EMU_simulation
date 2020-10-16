@@ -1,14 +1,15 @@
-from typing import Set
 from decimal import *
 
-from . import CentralBank, BalanceEntries
+from . import CentralBank, Bank, PrivateActor, BalanceEntries
 from emusim.cockpit.utilities.cycles import Period, Interval
 
 
 class EuroEconomy():
 
-    def __init__(self, central_banks: Set[CentralBank]):
-        self.__central_banks: Set[CentralBank] = set(central_banks)
+    def __init__(self):
+        self.__central_bank: CentralBank = CentralBank()
+        PrivateActor(Bank(self.central_bank))
+
         self.cycle_length: Period = Period(1, Interval.DAY)
         self.__growth_rate: Decimal = Decimal(0.014)
         self.__inflation: Decimal = Decimal(0.019)
@@ -65,108 +66,68 @@ class EuroEconomy():
         return round(Decimal(self.inflation * self.cycle_length.days / Period.YEAR_DAYS), 8)
 
     @property
-    def central_banks(self) -> Set[CentralBank]:
-        return self.__central_banks
+    def central_bank(self) -> CentralBank:
+        return self.__central_bank
+
+    @property
+    def bank(self) -> Bank:
+        return self.central_bank.bank
+
+    @property
+    def client(self) -> PrivateActor:
+        return self.bank.client
 
     def start_transactions(self):
-        for central_bank in self.central_banks:
-            central_bank.start_transactions()
+        self.central_bank.start_transactions()
 
     def end_transactions(self) -> bool:
-        success: bool = True
-
-        for central_bank in self.central_banks:
-            success = success and central_bank.end_transactions()
-
-        return success
+        return self.central_bank.end_transactions()
 
     def inflate(self):
-        for central_bank in self.central_banks:
-            central_bank.inflate(self.cycle_inflation_rate)
+        self.central_bank.inflate(self.cycle_inflation_rate)
 
     def grow_mbs(self):
-        for central_bank in self.central_banks:
-            central_bank.grow_mbs(self.mbs_growth)
+        self.central_bank.grow_mbs(self.mbs_growth)
 
     def grow_securities(self):
-        for central_bank in self.central_banks:
-            central_bank.grow_securities(self.security_growth)
+        self.central_bank.grow_securities(self.security_growth)
 
     def process_qe(self):
-        for central_bank in self.central_banks:
-            central_bank.process_qe()
+        self.central_bank.process_qe()
+
+    def process_bank_loans(self):
+        self.central_bank.process_bank_loans()
 
     def process_helicopter_money(self):
-        for central_bank in self.central_banks:
-            central_bank.process_helicopter_money()
+        self.central_bank.process_helicopter_money()
 
     def process_savings(self):
-        for central_bank in self.central_banks:
-            central_bank.process_reserve_interests()
-
-            for bank in central_bank.registered_banks:
-                bank.process_client_savings()
+        self.central_bank.process_reserve_interests()
+        self.bank.process_client_savings()
 
     def process_bank_income(self):
-        for central_bank in self.central_banks:
-            for bank in central_bank.registered_banks:
-                bank.process_income()
+        self.bank.process_income()
 
     def process_bank_spending(self):
-        for central_bank in self.central_banks:
-            for bank in central_bank.registered_banks:
-                bank.spend()
+        self.bank.spend()
 
     def process_borrowing(self, amount: Decimal):
-        for central_bank in self.central_banks:
-            for bank in central_bank.registered_banks:
-                for client in bank.clients:
-                    client.borrow(amount)
-
-    def process_saving(self):
-        for central_bank in self.central_banks:
-            for bank in central_bank.registered_banks:
-                for client in bank.clients:
-                    client.process_savings()
+        self.client.borrow(amount)
 
     def update_reserves(self):
-        for central_bank in self.central_banks:
-            for bank in central_bank.registered_banks:
-                bank.update_reserves()
+        self.bank.update_reserves()
 
     def update_risk_assets(self):
-        for central_bank in self.central_banks:
-            for bank in central_bank.registered_banks:
-                bank.update_risk_assets()
+        self.bank.update_risk_assets()
 
     @property
     def im(self) -> Decimal:
-        im: Decimal = Decimal(0.0)
-
-        for central_bank in self.central_banks:
-            for bank in central_bank.registered_banks:
-                im += bank.liability(BalanceEntries.DEPOSITS)
-                im += bank.liability(BalanceEntries.SAVINGS)
-
-        return im
+        return self.bank.liability(BalanceEntries.DEPOSITS) + self.bank.liability(BalanceEntries.SAVINGS)
 
     @property
     def private_debt(self) -> Decimal:
-        debt: Decimal = Decimal(0.0)
-
-        for central_bank in self.central_banks:
-            for bank in central_bank.registered_banks:
-                for client in bank.clients:
-                    debt += client.liability(BalanceEntries.DEBT)
-
-        return debt
+        return self.client.liability(BalanceEntries.DEBT)
 
     @property
     def bank_debt(self) -> Decimal:
-        debt: Decimal = Decimal(0.0)
-
-        for central_bank in self.central_banks:
-            for bank in central_bank.registered_banks:
-                debt += bank.liability(BalanceEntries.DEBT)
-
-        return debt
+        return self.bank.liability(BalanceEntries.DEBT)

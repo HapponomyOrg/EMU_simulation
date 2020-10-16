@@ -7,4 +7,4 @@ from .central_bank import CentralBank, QEMode, HelicopterMode
 from .bank import Bank, SpendingMode, DebtPayment
 from .private_actor import PrivateActor, DefaultingMode
 from .euro_economy import EuroEconomy
-from .aggregate_simulator import AggregateEconomy, SimpleDataGenerator, AggregateSimulator
+from .aggregate_simulator import SimpleDataGenerator, AggregateSimulator

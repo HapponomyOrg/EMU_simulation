@@ -4,9 +4,9 @@ from emusim.cockpit.supply.euro import CentralBank, QEMode, HelicopterMode, Bank
 from emusim.cockpit.supply.euro.balance_entries import BalanceEntries
 from emusim.cockpit.utilities.cycles import Period, Interval
 
-central_bank = CentralBank()
-bank = Bank(central_bank)
-client = PrivateActor(bank)
+central_bank: CentralBank = CentralBank()
+bank: Bank = Bank(central_bank)
+client: PrivateActor = PrivateActor(bank)
 
 
 def init_parameters():

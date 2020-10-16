@@ -6,8 +6,6 @@ from emusim.cockpit.supply.euro.balance_entries import BalanceEntries
 def test_entries():
     balance_sheet: BalanceSheetTimeline = BalanceSheetTimeline()
 
-    print(balance_sheet)
-
     assert balance_sheet.asset(BalanceEntries.SECURITIES) == Decimal(0.0)
     assert balance_sheet.liability(BalanceEntries.DEPOSITS) == Decimal(0.0)
     balance_sheet.book_asset(BalanceEntries.SECURITIES, Decimal(100.0))
@@ -41,8 +39,6 @@ def test_history():
     assert history.liability(BalanceEntries.EQUITY) == Decimal(100.0)
 
     delta: BalanceSheet = balance.delta_history(-1)
-
-    print(delta)
 
     assert delta.asset(BalanceEntries.DEPOSITS) == 0.0
     assert delta.liability(BalanceEntries.EQUITY) == 0.0

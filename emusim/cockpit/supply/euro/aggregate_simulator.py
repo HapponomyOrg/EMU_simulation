@@ -71,14 +71,16 @@ DEFLATABLE_FIELDS = [IM, IM_TARGET, LENDING, REQUIRED_LENDING]
 BANK = "Bank"
 
 # Bank data fields
-MAX_RESERVE = "Max reserve"
 SAVINGS_IR = "Savings interest rate"
 LOAN_IR = "Private loan interest rate"
 LOAN_DURATION = "Private loan duration"
 SPENDING = "Spending"
 PROFIT = "Profit"
+INCOME = "Income"
+INSTALLMENT = "INSTALLMENT"
 
-BANK_DATA_FIELDS = [MAX_RESERVE, SAVINGS_IR, LOAN_IR, LOAN_DURATION, SPENDING, PROFIT]
+BANK_STATIC_DATA_FIELDS = [MIN_RESERVE, SAVINGS_IR, LOAN_IR, LOAN_DURATION]
+BANK_DATA_FIELDS = [INCOME, SPENDING, PROFIT, INSTALLMENT]
 
 # Balance sheet categories
 CENTRAL_BANK_BS: str = "Central bank balance sheet"
@@ -86,28 +88,6 @@ BANK_BS: str = "Bank balance sheet"
 PRIVATE_SECTOR_BS = "Private sector balance sheet"
 
 BALANCE_SHEET_CATEGORIES = [CENTRAL_BANK_BS, BANK_BS, PRIVATE_SECTOR_BS]
-
-
-class AggregateEconomy(EuroEconomy):
-
-    def __init__(self):
-        self.__central_bank: CentralBank = CentralBank()
-        self.__bank: Bank = Bank(self.__central_bank)
-        self.__client: PrivateActor = PrivateActor(self.__bank)
-
-        super().__init__({self.__central_bank})
-
-    @property
-    def central_bank(self) -> CentralBank:
-        return self.__central_bank
-
-    @property
-    def bank(self) -> Bank:
-        return self.__bank
-
-    @property
-    def client(self) -> PrivateActor:
-        return self.__client
 
 
 class SimpleDataGenerator(DataGenerator):
@@ -133,8 +113,8 @@ class SimpleDataGenerator(DataGenerator):
 class AggregateSimulator(Simulator):
     # the structure of the data and whether or not it needs to be collected
 
-    def __init__(self, economy: AggregateEconomy, generator: DataGenerator):
-        self.__economy: AggregateEconomy = economy
+    def __init__(self, economy: EuroEconomy, generator: DataGenerator):
+        self.__economy: EuroEconomy = economy
         self.__desired_im: Decimal = Decimal(0.0) # im if growth_target is maintained
         self.__start_im: Decimal = Decimal(0.0)
         self.__target_im: Decimal = Decimal(0.0)
@@ -221,8 +201,14 @@ class AggregateSimulator(Simulator):
         elif category == CENTRAL_BANK:
             data = Decimal(0.0)
         elif category == BANK:
-            if data_field == PROFIT:
-                data = self.economy.bank.real_profit
+            if data_field == INCOME:
+                data = self.economy.bank.income
+            elif data_field == SPENDING:
+                data = self.economy.bank.spending
+            elif data_field == PROFIT:
+                data = self.economy.bank.profit
+            elif data_field == INSTALLMENT:
+                data = self.economy.bank.client_installment
         elif category == CENTRAL_BANK_BS:
             data = self.__balance_entry(self.economy.central_bank, data_field)
         elif category == BANK_BS:
@@ -233,7 +219,10 @@ class AggregateSimulator(Simulator):
         if data_field in DEFLATABLE_FIELDS or category in BALANCE_SHEET_CATEGORIES:
             data = self.deflate(data, True)
 
-        return data
+        if data_field in PERCENTAGE_FIELDS:
+            return round(Decimal(data), 8)
+        else:
+            return round(Decimal(data), 4)
 
     def __balance_entry(self, economic_actor: EconomicActor, entry: str) -> Decimal:
         if entry in economic_actor.asset_names:
@@ -246,14 +235,9 @@ class AggregateSimulator(Simulator):
     def collect_data(self):
         self.collector.collect_data()
 
-        for central_bank in self.economy.central_banks:
-            self.__collect_balance_data(CENTRAL_BANK_BS, central_bank)
-
-            for bank in central_bank.registered_banks:
-                self.__collect_balance_data(BANK_BS, bank)
-
-                for client in bank.clients:
-                    self.__collect_balance_data(PRIVATE_SECTOR_BS, client)
+        self.__collect_balance_data(CENTRAL_BANK_BS, self.economy.central_bank)
+        self.__collect_balance_data(BANK_BS, self.economy.central_bank.bank)
+        self.__collect_balance_data(PRIVATE_SECTOR_BS, self.economy.central_bank.bank.client)
 
     def __collect_balance_data(self, category: str, actor: EconomicActor):
         for asset_name in actor.asset_names:
@@ -274,17 +258,17 @@ class AggregateSimulator(Simulator):
         if cycle == 0:
             self.__desired_im = self.__start_im
 
-        self.__desired_im += self.__desired_im * self.economy.cycle_growth_rate
+        self.__desired_im += round(self.__desired_im * self.economy.cycle_growth_rate, 8)
 
         # set target im for end of cycle
         self.__target_im = self.economy.im
-        self.__target_im += self.__target_im * self.economy.cycle_growth_rate
+        self.__target_im += round(self.__target_im * self.economy.cycle_growth_rate, 8)
 
         # process inflation
         self.economy.start_transactions()
         self.economy.inflate()
-        self.__desired_im += self.__desired_im * self.economy.cycle_inflation_rate
-        self.__target_im += self.__target_im * self.economy.cycle_inflation_rate
+        self.__desired_im += round(self.__desired_im * self.economy.cycle_inflation_rate, 8)
+        self.__target_im += round(self.__target_im * self.economy.cycle_inflation_rate, 8)
 
         # There is a possibility that target_im > desired_im due to banks buying securities at the start of the sim
         self.__target_im = min(self.__desired_im, self.__target_im)
@@ -300,15 +284,16 @@ class AggregateSimulator(Simulator):
 
         self.economy.process_savings()
         self.economy.process_bank_income()
+        self.economy.process_bank_loans()
         self.economy.process_bank_spending()
 
         self.__required_lending = Decimal(max(self.__target_im - self.economy.im, 0.0))
-        self.__lending = Decimal(max(self.__required_lending * self.economy.lending_satisfaction_rate, 0.0))
+        self.__lending = round(Decimal(max(self.__required_lending * self.economy.lending_satisfaction_rate, 0.0)), 8)
 
         # calculate required and real lending percentages
         if self.economy.im > 0.0:
-            self.__required_lending_rate = self.__required_lending / self.economy.im
-            self.__lending_rate = self.__lending / self.economy.im
+            self.__required_lending_rate = round(self.__required_lending / self.economy.im, 8)
+            self.__lending_rate = round(self.__lending / self.economy.im, 8)
         else:
             self.__required_lending_rate = Decimal('Infinity')
             self.__lending_rate = Decimal('Infinity')
@@ -336,4 +321,4 @@ class AggregateSimulator(Simulator):
         for inflation in inflation_rates:
             amount /= 1 + inflation
 
-        return round(Decimal(amount), 8)
+        return round(Decimal(amount), 10)

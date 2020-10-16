@@ -2,13 +2,13 @@ from decimal import *
 from datetime import datetime
 
 from emusim.cockpit.supply import DataCollector
-from emusim.cockpit.supply.euro import AggregateSimulator, AggregateEconomy,QEMode,HelicopterMode,\
+from emusim.cockpit.supply.euro import AggregateSimulator, EuroEconomy,QEMode,HelicopterMode,\
     SimpleDataGenerator, SpendingMode, DefaultingMode
 from emusim.cockpit.supply.euro.aggregate_simulator import PERCENTAGE_FIELDS, SYSTEM_DATA_FIELDS, SYSTEM, \
-    CYCLE, BANK, PROFIT, CENTRAL_BANK_BS, BANK_BS, PRIVATE_SECTOR_BS
+    CYCLE, BANK, BANK_DATA_FIELDS, CENTRAL_BANK_BS, BANK_BS, PRIVATE_SECTOR_BS
 from emusim.cockpit.utilities.cycles import Period, Interval
 
-economy: AggregateEconomy = AggregateEconomy()
+economy: EuroEconomy = EuroEconomy()
 generator: SimpleDataGenerator = SimpleDataGenerator(economy)
 simulator: AggregateSimulator = AggregateSimulator(economy, generator)
 collector: DataCollector = simulator.collector
@@ -45,15 +45,15 @@ def set_no_sec_parameters():
 
     # bank
     economy.bank.min_reserve = 0.04
+    economy.bank.reserves_interval = Period(1, Interval.MONTH)
     economy.bank.min_risk_assets = 0.0
     economy.bank.max_risk_assets = 0.0
     economy.bank.max_mbs_assets = 1.0
     economy.bank.max_security_assets = 1.0
+    economy.bank.client_interaction_interval = Period(1, Interval.MONTH)
     economy.bank.savings_ir = 0.011
-    economy.bank.savings_interval = Period(1, Interval.DAY)
     economy.bank.loan_ir = 0.025
-    economy.bank.loan_duration = Period(20, Interval.DAY)
-    economy.bank.loan_interval = Period(1, Interval.DAY)
+    economy.bank.loan_duration = Period(20, Interval.YEAR)
     economy.bank.no_loss = True
     economy.bank.income_from_interest = 0.2
     economy.bank.retain_profit = True
@@ -83,6 +83,9 @@ def init_collector():
     for data_label in SYSTEM_DATA_FIELDS:
         collector.set_collect_data(SYSTEM, data_label, True)
 
+    for data_label in BANK_DATA_FIELDS:
+        collector.set_collect_data(BANK, data_label, True)
+
     # Central bank balance sheet
     for asset in economy.central_bank.asset_names:
         collector.set_collect_data(CENTRAL_BANK_BS, asset, True)
@@ -103,8 +106,6 @@ def init_collector():
 
     for liability in economy.client.liability_names:
         collector.set_collect_data(PRIVATE_SECTOR_BS, liability, True)
-
-    collector.set_collect_data(BANK, PROFIT, True)
 
 
 def dump_data(file_name: str):
@@ -205,6 +206,22 @@ def run_no_growth_no_inflation(param_initialization):
     dump_data("no_growth_no_inflation")
 
 
+def run_no_growth_no_profit(param_initialization):
+    param_initialization()
+
+    simulator.economy.growth_rate = 0.0
+    simulator.economy.bank.spending_mode = SpendingMode.PROFIT
+    simulator.economy.bank.retain_profit = False
+    simulator.economy.bank.profit_spending = 1.0
+
+    economy.central_bank.clear()
+    economy.client.borrow(Decimal(1000000.0))
+    init_collector()
+    simulator.run_simulation(YEARS * Period.YEAR_DAYS)
+
+    dump_data("no_growth_no_profit")
+
+
 def run_low_growth_no_save_no_profit(param_initialization):
     param_initialization()
 
@@ -249,7 +266,23 @@ def run_low_growth_no_inflation(param_initialization):
     dump_data("low_growth_no_inflation")
 
 
-def run_large_growth_no_save_no_profit(param_initialization):
+def run_low_growth_no_profit(param_initialization):
+    param_initialization()
+
+    simulator.economy.growth_rate = 0.01
+    simulator.economy.bank.spending_mode = SpendingMode.PROFIT
+    simulator.economy.bank.retain_profit = False
+    simulator.economy.bank.profit_spending = 1.0
+
+    economy.central_bank.clear()
+    economy.client.borrow(Decimal(1000000.0))
+    init_collector()
+    simulator.run_simulation(YEARS * Period.YEAR_DAYS)
+
+    dump_data("low_growth_no_profit")
+
+
+def run_high_growth_no_save_no_profit(param_initialization):
     param_initialization()
 
     simulator.economy.bank.spending_mode = SpendingMode.PROFIT
@@ -262,10 +295,10 @@ def run_large_growth_no_save_no_profit(param_initialization):
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
-    dump_data("large_growth_no_save_no_profit")
+    dump_data("high_growth_no_save_no_profit")
 
 
-def run_large_growth(param_initialization):
+def run_high_growth(param_initialization):
     param_initialization()
 
     economy.central_bank.clear()
@@ -274,10 +307,10 @@ def run_large_growth(param_initialization):
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
-    dump_data("large_growth")
+    dump_data("high_growth")
 
 
-def run_large_growth_no_inflation(param_initialization):
+def run_high_growth_no_inflation(param_initialization):
     param_initialization()
 
     simulator.economy.inflation = 0.0
@@ -287,7 +320,23 @@ def run_large_growth_no_inflation(param_initialization):
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
-    dump_data("large_growth_no_inflation")
+    dump_data("high_growth_no_inflation")
+
+
+def run_high_growth_no_profit(param_initialization):
+    param_initialization()
+
+    simulator.economy.growth_rate = 0.0
+    simulator.economy.bank.spending_mode = SpendingMode.PROFIT
+    simulator.economy.bank.retain_profit = False
+    simulator.economy.bank.profit_spending = 1.0
+
+    economy.central_bank.clear()
+    economy.client.borrow(Decimal(1000000.0))
+    init_collector()
+    simulator.run_simulation(YEARS * Period.YEAR_DAYS)
+
+    dump_data("high_growth_no_profit")
 
 
 def run_batch(param_initialization):
@@ -295,14 +344,17 @@ def run_batch(param_initialization):
     run_no_growth_no_inflation_no_save_no_profit(param_initialization)
     run_no_growth(param_initialization)
     run_no_growth_no_inflation(param_initialization)
+    run_no_growth_no_profit(param_initialization)
 
     run_low_growth_no_save_no_profit(param_initialization)
     run_low_growth(param_initialization)
     run_low_growth_no_inflation(param_initialization)
+    run_low_growth_no_profit(param_initialization)
 
-    run_large_growth_no_save_no_profit(param_initialization)
-    run_large_growth(param_initialization)
-    run_large_growth_no_inflation(param_initialization)
+    run_high_growth_no_save_no_profit(param_initialization)
+    run_high_growth(param_initialization)
+    run_high_growth_no_inflation(param_initialization)
+    run_high_growth_no_profit(param_initialization)
 
 
 now = datetime.now()

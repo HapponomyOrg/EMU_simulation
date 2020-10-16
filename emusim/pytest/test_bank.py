@@ -4,9 +4,9 @@ from emusim.cockpit.supply.euro import CentralBank, Bank, PrivateActor, Defaulti
 from emusim.cockpit.supply.euro.balance_entries import BalanceEntries
 from emusim.cockpit.utilities.cycles import Period, Interval
 
-central_bank = CentralBank()
-bank = Bank(central_bank)
-client = PrivateActor(bank)
+central_bank: CentralBank = CentralBank()
+bank: Bank = Bank(central_bank)
+client: PrivateActor = PrivateActor(bank)
 
 
 def test_pay_savings_interest():
@@ -14,7 +14,7 @@ def test_pay_savings_interest():
 
     # Set interest rate per day
     bank.savings_ir = Decimal(0.1) * Period.YEAR_DAYS
-    bank.savings_interval = Period(1, Interval.DAY)
+    bank.client_interaction_interval = Period(1, Interval.DAY)
 
     client.savings_rate = Decimal(0.1)
 
@@ -40,7 +40,7 @@ def test_full_income():
     central_bank.clear()
     bank.loan_ir = Decimal(0.05 * Period.YEAR_DAYS)
     bank.loan_duration = Period(10, Interval.DAY)
-    bank.loan_interval = Period(1, Interval.DAY)
+    bank.client_interaction_interval = Period(1, Interval.DAY)
     bank.income_from_interest = Decimal(0.8)
     client.defaulting_mode = DefaultingMode.FIXED
     client.fixed_defaulting_rate = Decimal(0.0)
@@ -66,7 +66,7 @@ def test_partial_income():
     central_bank.clear()
     bank.loan_ir = Decimal(0.05 * Period.YEAR_DAYS)
     bank.loan_duration = Period(10, Interval.DAY)
-    bank.loan_interval = Period(1, Interval.DAY)
+    bank.client_interaction_interval = Period(1, Interval.DAY)
     bank.income_from_interest = Decimal(0.8)
     client.defaulting_mode = DefaultingMode.FIXED
     client.fixed_defaulting_rate = Decimal(0.25)
@@ -100,7 +100,8 @@ def test_reserves_no_securities():
     bank.min_reserve = Decimal(0.05)
     bank.loan_ir = Decimal(0.05 * Period.YEAR_DAYS)
     bank.loan_duration = Period(10, Interval.DAY)
-    bank.loan_interval = Period(1, Interval.DAY)
+    bank.client_interaction_interval = Period(1, Interval.DAY)
+    bank.reserves_interval = Period(1, Interval.DAY)
     bank.income_from_interest = Decimal(0.8)
     client.defaulting_mode = DefaultingMode.FIXED
     client.fixed_defaulting_rate = Decimal(0.0)
@@ -139,6 +140,7 @@ def test_reserves_mbs():
     bank.min_reserve = Decimal(0.05)
     bank.loan_ir = Decimal(0.05)
     bank.loan_duration = Period(10, Interval.YEAR)
+    bank.reserves_interval = Period(1, Interval.DAY)
     bank.income_from_interest = Decimal(0.8)
     client.defaulting_mode = DefaultingMode.FIXED
     client.fixed_defaulting_rate = Decimal(0.0)
@@ -180,6 +182,7 @@ def test_reserve_mbs_growth():
     bank.max_security_assets = Decimal(1.0)
     bank.loan_ir = Decimal(0.05)
     bank.loan_duration = Period(10, Interval.YEAR)
+    bank.reserves_interval = Period(1, Interval.DAY)
     bank.income_from_interest = Decimal(0.8)
     client.defaulting_mode = DefaultingMode.FIXED
     client.fixed_defaulting_rate = Decimal(0.0)
@@ -213,6 +216,7 @@ def test_reserve_securities():
     bank.min_reserve = Decimal(0.05)
     bank.loan_ir = Decimal(0.05)
     bank.loan_duration = Period(10, Interval.YEAR)
+    bank.reserves_interval = Period(1, Interval.DAY)
     bank.income_from_interest = Decimal(0.8)
     client.defaulting_mode = DefaultingMode.FIXED
     client.fixed_defaulting_rate = Decimal(0.0)
@@ -256,6 +260,7 @@ def test_full_reserve_functionality():
 
     bank.loan_ir = Decimal(0.05)
     bank.loan_duration = Period(10, Interval.YEAR)
+    bank.reserves_interval = Period(1, Interval.DAY)
     bank.income_from_interest = Decimal(0.8)
     client.defaulting_mode = DefaultingMode.FIXED
     client.fixed_defaulting_rate = Decimal(0.0)

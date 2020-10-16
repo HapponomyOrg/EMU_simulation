@@ -28,7 +28,7 @@ class PrivateActor(EconomicActor):
             OrderedSet([BalanceEntries.DEBT, BalanceEntries.UNRESOLVED_DEBT, BalanceEntries.EQUITY,
                         BalanceEntries.MBS_EQUITY]))
         self.__bank: Bank = bank
-        self.bank.register(self)
+        self.__bank.client = self
 
         self.__savings_rate: Decimal = Decimal(0.02)
 
@@ -53,6 +53,10 @@ class PrivateActor(EconomicActor):
     @property
     def bank(self) -> Bank:
         return self.__bank
+
+    @bank.setter
+    def bank(self, bank: Bank):
+        self.__bank = bank
 
     @property
     def savings_rate(self) -> Decimal:
@@ -141,7 +145,7 @@ class PrivateActor(EconomicActor):
 
     def process_savings(self):
         total_dep_sav: Decimal = self.asset(BalanceEntries.DEPOSITS) + self.asset(BalanceEntries.SAVINGS)
-        savings_target: Decimal = Decimal(round(self.savings_rate * total_dep_sav, 4))
+        savings_target: Decimal = round(Decimal(self.savings_rate * total_dep_sav), 8)
         savings_transfer: Decimal = savings_target - self.asset(BalanceEntries.SAVINGS)
 
         self.book_asset(BalanceEntries.SAVINGS, savings_transfer)

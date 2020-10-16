@@ -12,7 +12,7 @@ from ordered_set import OrderedSet
 from . import EconomicActor, BalanceEntries
 
 if TYPE_CHECKING:
-    from . import CentralBank, PrivateActor, BalanceSheet
+    from . import CentralBank, PrivateActor
 
 
 class SpendingMode(Enum):
@@ -42,7 +42,7 @@ class DebtPayment():
     def debt(self, amount: Decimal):
         self.__debt = Decimal(amount)
         self.__adjusted_debt = self.debt
-        self.__full_interest = Decimal(round(self.debt * self.__interest_rate, 8))
+        self.__full_interest = round(Decimal(self.debt * self.__interest_rate), 8)
         self.__adjusted_interest = self.full_interest
 
     @property
@@ -77,7 +77,7 @@ class DebtPayment():
         # installments are treated as surplus systemic defaults and thus the adjusted debt, installment and interest
         # might need to be updated.
         self.__adjusted_debt -= self.full_installment - paid
-        self.__adjusted_interest = Decimal(round(self.__adjusted_debt * self.__interest_rate, 8))
+        self.__adjusted_interest = round(Decimal(self.__adjusted_debt * self.__interest_rate), 8)
 
     @property
     def interest_paid(self) -> Decimal:
@@ -96,11 +96,11 @@ class Bank(EconomicActor):
             OrderedSet([BalanceEntries.DEPOSITS, BalanceEntries.SAVINGS, BalanceEntries.DEBT, BalanceEntries.EQUITY,
                         BalanceEntries.MBS_EQUITY]))
         self.__central_bank: CentralBank = central_bank
-        self.__clients: Set[PrivateActor] = set()
+        self.central_bank.bank = self
         self.__installments: List[Decimal] = [Decimal(0.0)]
 
-        self.central_bank.register(self)
         self.__min_reserve: Decimal = central_bank.min_reserve
+        self.reserves_interval: Period = Period(1, Interval.MONTH) # Interval when reserves are updated
 
         self.__min_risk_assets: Decimal = Decimal(0.0)
         self.__max_risk_assets: Decimal = Decimal(1.0) # Maximum % of assets being MBS and/or Securities
@@ -109,11 +109,11 @@ class Bank(EconomicActor):
         self.__max_mbs_assets: Decimal = Decimal(1.0) # Max % of risk assets
         self.__max_security_assets: Decimal = Decimal(1.0) # Max % of risk assets
 
+        self.client_interaction_interval: Period = Period(1, Interval.MONTH)
+
         self.__savings_ir: Decimal = Decimal(0.02)
-        self.savings_interval: Period = Period(1, Interval.MONTH)
         self.__loan_ir: Decimal = Decimal(0.025)
         self.loan_duration: Period = Period(20, Interval.YEAR)
-        self.loan_interval: Period = Period(1, Interval.MONTH)
 
         self.no_loss: bool = True
         self.__income_from_interest: Decimal = Decimal(0.8)
@@ -139,6 +139,7 @@ class Bank(EconomicActor):
         self.__client_installment_shortage: Decimal = Decimal(0.0)
         self.__income: Decimal = Decimal(0.0)
         self.__income_shortage: Decimal = Decimal(0.0)
+        self.__spending: Decimal = Decimal(0.0)
 
     @property
     def central_bank(self) -> CentralBank:
@@ -217,12 +218,16 @@ class Bank(EconomicActor):
         self.__equity_spending = Decimal(amount)
 
     @property
-    def clients(self) -> Set[PrivateActor]:
-        return self.__clients
+    def client(self) -> PrivateActor:
+        return self.__client
+
+    @client.setter
+    def client(self, client: PrivateActor):
+        self.__client: PrivateActor = client
 
     @property
     def loan_installments(self) -> int:
-        return int(self.loan_duration.days / self.loan_interval.days)
+        return int(self.loan_duration.days / self.client_interaction_interval.days)
 
     @property
     def client_installment(self) -> Decimal:
@@ -241,15 +246,18 @@ class Bank(EconomicActor):
         return self.__income_shortage
 
     @property
-    def real_profit(self) -> Decimal:
-        """Return the profit for this cycle. Has to be called after the state for the current cycle has been saved."""
-        delta_balance: BalanceSheet = self.balance.delta_history(-1)
+    def spending(self) -> Decimal:
+        return self.__spending
 
-        return delta_balance.liability(BalanceEntries.EQUITY) + delta_balance.liability(BalanceEntries.MBS_EQUITY)
+    @property
+    def profit(self) -> Decimal:
+        """Return the profit for this cycle."""
+
+        return self.income - self.spending
 
     @property
     def client_liabilities(self) -> Decimal:
-        return self.liability(BalanceEntries.DEPOSITS) + self.liability(BalanceEntries.SAVINGS)
+        return round(Decimal(self.liability(BalanceEntries.DEPOSITS) + self.liability(BalanceEntries.SAVINGS)), 8)
 
     @property
     def total_equity(self) -> Decimal:
@@ -272,6 +280,7 @@ class Bank(EconomicActor):
         min_percentage = round(Decimal(min_percentage), 8)
 
         self.__min_risk_assets = min_percentage
+
         if self.max_risk_assets < min_percentage:
             self.max_risk_assets = min_percentage
 
@@ -320,9 +329,6 @@ class Bank(EconomicActor):
         transactions are ended. Results during transactions are not accurate."""
         return Decimal(1.0) # TODO
 
-    def register(self, client: PrivateActor):
-        self.__clients.add(client)
-
     def start_transactions(self):
         super().start_transactions()
 
@@ -338,36 +344,27 @@ class Bank(EconomicActor):
         self.__spending_processed = False
         self.__reserves_updated = False
 
-        for client in self.clients:
-            client.start_transactions()
+        self.client.start_transactions()
 
     def end_transactions(self) -> bool:
-        success: bool = super().end_transactions()
-
-        for client in self.clients:
-            success = success and client.end_transactions()
-
-        return success
+        return super().end_transactions() and self.client.end_transactions()
 
     def inflate(self, inflation: Decimal):
         inflation = Decimal(inflation)
 
-        self.fixed_spending += Decimal(round(self.fixed_spending * inflation, 8))
+        self.fixed_spending += round(Decimal(self.fixed_spending * inflation), 8)
 
-        for client in self.clients:
-            client.inflate(inflation)
+        self.client.inflate(inflation)
 
     def grow_mbs(self, growth: Decimal):
         super().grow_mbs(growth)
 
-        for client in self.clients:
-            client.grow_mbs(growth)
+        self.client.grow_mbs(growth)
 
     def grow_securities(self, growth: Decimal):
         super().grow_securities(growth)
 
-        for client in self.clients:
-            client.grow_securities(growth)
+        self.client.grow_securities(growth)
 
     def book_savings(self, amount: Decimal):
         """Transfer deposits to savings. This should only be called by the client."""
@@ -388,21 +385,19 @@ class Bank(EconomicActor):
 
         if self._transactions_started\
             and not self.__savings_processed\
-            and self.savings_interval.period_complete(self.cycle):
+            and self.client_interaction_interval.period_complete(self.cycle):
 
-            interest_rate: Decimal = self.savings_ir * self.savings_interval.days / Period.YEAR_DAYS
+            interest_rate: Decimal = self.savings_ir * self.client_interaction_interval.days / Period.YEAR_DAYS
 
-            for client in self.clients:
-                client.process_savings()
+            self.client.process_savings()
 
-            interest: Decimal = Decimal(round(self.liability(BalanceEntries.SAVINGS) * interest_rate, 8))
+            interest: Decimal = round(Decimal(self.liability(BalanceEntries.SAVINGS) * interest_rate), 8)
             self.book_liability(BalanceEntries.SAVINGS, interest)
             self.book_liability(BalanceEntries.EQUITY, -interest)
 
-            for client in self.clients:
-                interest = Decimal(round(client.asset(BalanceEntries.SAVINGS) * interest_rate, 8))
-                client.book_asset(BalanceEntries.SAVINGS, interest)
-                client.book_liability(BalanceEntries.EQUITY, interest)
+            interest = round(Decimal(self.client.asset(BalanceEntries.SAVINGS) * interest_rate), 8)
+            self.client.book_asset(BalanceEntries.SAVINGS, interest)
+            self.client.book_liability(BalanceEntries.EQUITY, interest)
 
             self.__savings_processed = True
 
@@ -418,21 +413,16 @@ class Bank(EconomicActor):
         self.book_asset(BalanceEntries.RESERVES, interest)
         self.book_liability(BalanceEntries.EQUITY, interest)
 
+        self.__income += interest
+
     def distribute_interest(self, interest: Decimal):
         """Distribute interest from central bank to clients"""
-        total_dep_sav: Decimal = self.client_liabilities
 
         self.book_asset(BalanceEntries.RESERVES, interest)
         self.book_liability(BalanceEntries.DEPOSITS, interest)
 
-        for client in self.clients:
-            fraction: Decimal = interest\
-                              * (client.asset(BalanceEntries.DEPOSITS)
-                                 + client.asset(BalanceEntries.SAVINGS))\
-                              / total_dep_sav
-
-            client.book_asset(BalanceEntries.DEPOSITS, fraction)
-            client.book_liability(BalanceEntries.EQUITY, fraction)
+        self.client.book_asset(BalanceEntries.DEPOSITS, interest)
+        self.client.book_liability(BalanceEntries.EQUITY, interest)
 
     def process_income(self):
         """Collect interest, installments and other income.
@@ -440,29 +430,27 @@ class Bank(EconomicActor):
 
         if self._transactions_started\
                 and not self.__income_processed\
-                and self.loan_interval.period_complete(self.cycle):
+                and self.client_interaction_interval.period_complete(self.cycle):
 
-            for client in self.clients:
-                income: Decimal = Decimal(0.0)
-                debt_payment: DebtPayment = DebtPayment(self.loan_ir * self.loan_interval.days / Period.YEAR_DAYS)
+            debt_payment: DebtPayment = DebtPayment(round(
+                Decimal(self.loan_ir * self.client_interaction_interval.days / Period.YEAR_DAYS), 8))
 
-                client.pay_debt(debt_payment)
-                income += debt_payment.interest_paid
+            self.client.pay_debt(debt_payment)
+            self.__income += debt_payment.interest_paid
 
-                self.__client_installment += debt_payment.full_installment
-                self.__client_installment_shortage += debt_payment.full_installment - debt_payment.installment_paid
+            self.__client_installment += debt_payment.full_installment
+            self.__client_installment_shortage += debt_payment.full_installment - debt_payment.installment_paid
 
-                # if interest on paid installments was not fully paid, add it to the client's debt, which is subject to
-                # interest.
-                client.borrow(debt_payment.adjusted_interest - debt_payment.interest_paid)
+            # if interest on paid installments was not fully paid, add it to the client's debt, which is subject to
+            # interest.
+            self.client.borrow(debt_payment.adjusted_interest - debt_payment.interest_paid)
 
-                # bank costs do not decrease due to defaulted loans
-                bank_costs: Decimal = Decimal(round(debt_payment.full_interest / self.income_from_interest
-                                                    - debt_payment.full_interest, 8))
-                income += client.pay_bank(bank_costs)
+            # bank costs do not decrease due to defaulted loans
+            bank_costs: Decimal = round(Decimal(debt_payment.full_interest / self.income_from_interest
+                                                - debt_payment.full_interest), 8)
+            self.__income += self.client.pay_bank(bank_costs)
 
-                self.__income += income
-                self.__income_shortage += debt_payment.full_interest + bank_costs - income
+            self.__income_shortage += debt_payment.full_interest + bank_costs - self.__income
 
             # subtract expected installment proportionally from loans and mbs
             loans: Decimal = self.asset(BalanceEntries.LOANS)
@@ -485,60 +473,48 @@ class Bank(EconomicActor):
         if security_type == BalanceEntries.SECURITIES and amount < 0:
             amount = -min(-amount, self.asset(BalanceEntries.SECURITIES))
 
-        client_liabilities_before_transaction: Decimal = self.client_liabilities
-        traded_securities: Decimal = Decimal(0.0)
-
-        for client in self.clients:
-            client_deposits = client.asset(BalanceEntries.DEPOSITS) + client.asset(BalanceEntries.SAVINGS)
-            fraction: Decimal = client_deposits / client_liabilities_before_transaction * amount
-
-            traded_securities += client.trade_securities_with_bank(amount, security_type)
-
-        return traded_securities
+        return self.client.trade_securities_with_bank(amount, security_type)
 
     def spend(self):
-        # calculate real_profit
-        profit: Decimal = self.balance.delta_history(-1).asset(BalanceEntries.EQUITY)\
-                        + self.balance.delta_history(-1).asset(BalanceEntries.MBS_EQUITY)
-        expenses: Decimal = Decimal(0.0)
+        if self._transactions_started\
+            and not self.__spending_processed\
+                and self.client_interaction_interval.period_complete(self.cycle):
 
-        if self.spending_mode == SpendingMode.FIXED:
-            expenses = self.fixed_spending
-        elif self.spending_mode == SpendingMode.PROFIT:
-            expenses: Decimal = max(0.0, profit * self.profit_spending)
+            if self.spending_mode == SpendingMode.FIXED:
+                self.__spending = self.fixed_spending
+            elif self.spending_mode == SpendingMode.PROFIT:
+                self.__spending = round(Decimal(max(Decimal(0.0), self.income * self.profit_spending)), 8)
+            elif self.spending_mode == SpendingMode.EQUITY:
+                self.__spending = self.liability(BalanceEntries.EQUITY) * self.equity_spending
+            elif self.spending_mode == SpendingMode.CAPITAL:
+                self.__spending = (self.liability(BalanceEntries.EQUITY) + self.liability(BalanceEntries.MBS_EQUITY))\
+                           * self.capital_spending
 
-            self.book_liability(BalanceEntries.EQUITY, -expenses)
-            self.book_liability(BalanceEntries.DEPOSITS, expenses)
-        elif self.spending_mode == SpendingMode.EQUITY:
-            expenses = self.liability(BalanceEntries.EQUITY) * self.equity_spending
-        elif self.spending_mode == SpendingMode.CAPITAL:
-            expenses = (self.liability(BalanceEntries.EQUITY) + self.liability(BalanceEntries.MBS_EQUITY))\
-                       * self.capital_spending
+                if self.__spending > self.liability(BalanceEntries.EQUITY):
+                    available_deposits: Decimal = self.liability(BalanceEntries.DEPOSITS) + self.liability(BalanceEntries.SAVINGS)
+                    mbs_to_sell: Decimal = min(available_deposits, self.__spending - self.liability(BalanceEntries.EQUITY))
 
-            if expenses > self.liability(BalanceEntries.EQUITY):
-                available_deposits: Decimal = self.liability(BalanceEntries.DEPOSITS) + self.liability(BalanceEntries.SAVINGS)
-                mbs_to_sell: Decimal = min(available_deposits, expenses - self.liability(BalanceEntries.EQUITY))
+                    # TODO review and implement correct sale of MBS
+                    self.client.pay_bank(mbs_to_sell)
 
-                # TODO review and implement correct sale of MBS
-                for client in self.clients:
-                    fraction: Decimal = (client.asset(BalanceEntries.DEPOSITS) + client.asset(BalanceEntries.SAVINGS))\
-                                      / available_deposits
+                    self.book_liability(BalanceEntries.DEPOSITS, -mbs_to_sell)
+                    self.book_asset(BalanceEntries.MBS, -mbs_to_sell)
+                    self.book_liability(BalanceEntries.MBS_EQUITY, -mbs_to_sell)
+                    self.book_liability(BalanceEntries.EQUITY, mbs_to_sell)
 
-                    client.pay_bank(fraction * mbs_to_sell)
+            if self.retain_profit:
+                self.__spending = min(self.__spending, max(Decimal(0.0), self.income * self.retain_profit_percentage))
 
-                self.book_liability(BalanceEntries.DEPOSITS, -mbs_to_sell)
-                self.book_asset(BalanceEntries.MBS, -mbs_to_sell)
-                self.book_liability(BalanceEntries.MBS_EQUITY, -mbs_to_sell)
-                self.book_liability(BalanceEntries.EQUITY, mbs_to_sell)
+            if self.no_loss:
+                self.__spending = min(self.__spending, max(Decimal(0.0), self.income))
 
-        if self.retain_profit:
-            expenses = min(expenses, max(0.0, profit - profit * self.retain_profit_percentage))
+            self.client.book_asset(BalanceEntries.DEPOSITS, self.__spending)
+            self.client.book_liability(BalanceEntries.EQUITY, self.__spending)
 
-        if self.no_loss:
-            expenses = min(expenses, max(0.0, profit))
+            self.book_liability(BalanceEntries.EQUITY, -self.__spending)
+            self.book_liability(BalanceEntries.DEPOSITS, self.__spending)
 
-        self.book_liability(BalanceEntries.EQUITY, -expenses)
-        self.book_liability(BalanceEntries.DEPOSITS, expenses)
+            self.__spending_processed = True
 
     def borrow(self, amount: Decimal):
         self.central_bank.book_loan(amount)
@@ -558,29 +534,28 @@ class Bank(EconomicActor):
         installment: Decimal = self.__installments.pop(0)
         total: Decimal = interest + installment
 
+        self.__income -= total
         to_borrow: Decimal = max(Decimal(0.0), total - self.asset(BalanceEntries.RESERVES))
         self.borrow(to_borrow)
-        self.book_asset(BalanceEntries.RESERVES, -installment)
+        self.book_asset(BalanceEntries.RESERVES, -total)
         self.book_liability(BalanceEntries.DEBT, -installment)
-
-        # interest is used to fund central bank working costs and the rest is redistributed to member states,
-        # eventually resulting in deposits
         self.book_liability(BalanceEntries.EQUITY, -interest)
-        self.book_liability(BalanceEntries.DEPOSITS, interest)
 
-        return tuple((interest, installment))
+        return tuple((installment, interest))
 
     def update_reserves(self):
         """Update reserves so that they are adequate for the current amount of deposits + savings on the balance
         sheet of the bank. Loans might be converted to MBS if needed but no securities will be purchased. Instead
         extra reserves are borrowed from the central bank if needed."""
 
-        if self._transactions_started and not self.__reserves_updated:
-            min_composite_reserve: Decimal =  Decimal(round(self.client_liabilities * self.min_reserve, 8))
+        if self._transactions_started\
+                and not self.__reserves_updated\
+                and self.reserves_interval.period_complete(self.cycle):
+            min_composite_reserve: Decimal =  round(Decimal(self.client_liabilities * self.min_reserve), 8)
 
-            target_mbs: Decimal = Decimal(round(self.central_bank.mbs_relative_reserve * min_composite_reserve, 8))
-            target_securities: Decimal = Decimal(round(self.central_bank.securities_relative_reserve
-                                                       * min_composite_reserve, 8))
+            target_mbs: Decimal = round(Decimal(self.central_bank.mbs_relative_reserve * min_composite_reserve), 8)
+            target_securities: Decimal = round(Decimal(self.central_bank.securities_relative_reserve
+                                                       * min_composite_reserve), 8)
             target_reserve: Decimal = min_composite_reserve - target_mbs - target_securities
 
             cur_reserve: Decimal = self.asset(BalanceEntries.RESERVES)
@@ -722,5 +697,4 @@ class Bank(EconomicActor):
         super().clear()
         self.__installments = [Decimal(0.0)]
 
-        for client in self.clients:
-            client.clear()
+        self.client.clear()

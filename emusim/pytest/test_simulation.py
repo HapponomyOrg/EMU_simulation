@@ -1,13 +1,13 @@
 from decimal import *
 
 from emusim.cockpit.supply import DataCollector
-from emusim.cockpit.supply.euro import AggregateSimulator, AggregateEconomy,QEMode,HelicopterMode,\
-    SimpleDataGenerator, SpendingMode, DefaultingMode
-from emusim.cockpit.supply.euro.aggregate_simulator import PERCENTAGE_FIELDS, SYSTEM_DATA_FIELDS, SYSTEM, INFLATION, \
-    IM,REAL_GROWTH, REQUIRED_LENDING_RATE, BANK, PROFIT, CENTRAL_BANK_BS, BANK_BS, PRIVATE_SECTOR_BS
+from emusim.cockpit.supply.euro import AggregateSimulator, EuroEconomy,QEMode, HelicopterMode,\
+    SimpleDataGenerator, SpendingMode, DefaultingMode, BalanceEntries
+from emusim.cockpit.supply.euro.aggregate_simulator import SYSTEM_DATA_FIELDS, SYSTEM, INFLATION, \
+    IM,REAL_GROWTH, BANK, PROFIT, CENTRAL_BANK_BS, BANK_BS, PRIVATE_SECTOR_BS
 from emusim.cockpit.utilities.cycles import Period, Interval
 
-economy: AggregateEconomy = AggregateEconomy()
+economy: EuroEconomy = EuroEconomy()
 generator: SimpleDataGenerator = SimpleDataGenerator(economy)
 simulator: AggregateSimulator = AggregateSimulator(economy, generator)
 collector: DataCollector = simulator.collector
@@ -27,9 +27,9 @@ def set_default_parameters():
     economy.central_bank.mbs_relative_reserve = 0.0
     economy.central_bank.securities_relative_reserve = 0.0
     economy.central_bank.reserve_ir = 0.0
-    economy.central_bank.surplus_reserve_ir = -0.005 * Period.YEAR_DAYS
+    economy.central_bank.surplus_reserve_ir = -0.005 * 12
     economy.central_bank.reserve_interest_interval = Period(1, Interval.DAY)
-    economy.central_bank.loan_ir = 0.01 * Period.YEAR_DAYS
+    economy.central_bank.loan_ir = 0.01 * 12
     economy.central_bank.loan_duration = Period(1, Interval.DAY)
     economy.central_bank.loan_interval = Period(1, Interval.DAY)
     economy.central_bank.qe_mode = QEMode.NONE
@@ -43,11 +43,10 @@ def set_default_parameters():
     economy.bank.min_risk_assets = 0.0
     economy.bank.max_mbs_assets = 1.0
     economy.bank.max_security_assets = 1.0
-    economy.bank.savings_ir = 0.011 * Period.YEAR_DAYS
-    economy.bank.savings_interval = Period(1, Interval.DAY)
-    economy.bank.loan_ir = 0.025 * Period.YEAR_DAYS
+    economy.bank.savings_ir = 0.011 * 12
+    economy.bank.client_interaction_interval = Period(1, Interval.DAY)
+    economy.bank.loan_ir = 0.025 * 12
     economy.bank.loan_duration = Period(20, Interval.DAY)
-    economy.bank.loan_interval = Period(1, Interval.DAY)
     economy.bank.no_loss = True
     economy.bank.income_from_interest = 0.2
     economy.bank.retain_profit = True
@@ -104,11 +103,8 @@ def test_no_growth_no_save_no_profit():
     simulator.economy.client.savings_rate = 0.0
 
     economy.central_bank.clear()
-    economy.start_transactions()
     economy.client.borrow(Decimal(1000000.0))
-    economy.end_transactions()
 
-    init_collector()
     simulator.run_simulation(Period.YEAR_DAYS)
 
     for real_growth in collector.get_data_series(SYSTEM, REAL_GROWTH):
@@ -126,22 +122,23 @@ def test_growth_save():
     set_default_parameters()
 
     economy.central_bank.clear()
-    economy.start_transactions()
     economy.client.borrow(Decimal(1000000.0))
-    economy.end_transactions()
 
     for data_label in SYSTEM_DATA_FIELDS:
         collector.set_collect_data(SYSTEM, data_label, True)
 
     simulator.run_simulation(Period.YEAR_DAYS)
 
+    growth: Decimal = round(Decimal(0.03 / Period.YEAR_DAYS), 8)
+
     for real_growth in collector.get_data_series(SYSTEM, REAL_GROWTH):
-        assert round(real_growth, 8) == round(Decimal(0.03 / Period.YEAR_DAYS), 8)
+        assert round(real_growth, 8) == growth
 
 
 def test_growth_securities():
     init_collector()
     set_default_parameters()
+
     simulator.economy.growth_rate = 0.03 * Period.YEAR_DAYS
     simulator.economy.central_bank.securities_relative_reserve = 0.03
     simulator.economy.central_bank.mbs_relative_reserve = 0.05
@@ -151,9 +148,7 @@ def test_growth_securities():
     simulator.economy.bank.max_security_assets = 0.5
 
     economy.central_bank.clear()
-    economy.start_transactions()
     economy.client.borrow(Decimal(1000000.0))
-    economy.end_transactions()
 
     for data_label in SYSTEM_DATA_FIELDS:
         collector.set_collect_data(SYSTEM, data_label, True)
@@ -166,3 +161,22 @@ def test_growth_securities():
             assert round(real_growth, 2) == round(Decimal(0.03), 2)
 
         cycle += 1
+
+
+def test_deposits_savings():
+    set_default_parameters()
+    init_collector()
+
+    economy.central_bank.clear()
+    economy.client.borrow(Decimal(1000000.0))
+
+    simulator.run_simulation(Period.YEAR_DAYS)
+
+    client_deposits = collector.get_data_series(PRIVATE_SECTOR_BS, BalanceEntries.DEPOSITS)
+    client_savings = collector.get_data_series(PRIVATE_SECTOR_BS, BalanceEntries.SAVINGS)
+    bank_deposits = collector.get_data_series(BANK_BS, BalanceEntries.DEPOSITS)
+    bank_savings = collector.get_data_series(BANK_BS, BalanceEntries.SAVINGS)
+
+    for i in range(len(client_deposits)):
+        assert round(client_deposits[i], 8) == round(bank_deposits[i], 8)
+        assert round(client_savings[i], 8) == round(bank_savings[i], 8)
