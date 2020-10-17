@@ -59,11 +59,11 @@ class EuroEconomy():
 
     @property
     def cycle_growth_rate(self) -> Decimal:
-        return round(Decimal(self.growth_rate * self.cycle_length.days / Period.YEAR_DAYS), 8)
+        return self.growth_rate * self.cycle_length.days / Period.YEAR_DAYS
 
     @property
     def cycle_inflation_rate(self) -> Decimal:
-        return round(Decimal(self.inflation * self.cycle_length.days / Period.YEAR_DAYS), 8)
+        return self.inflation * self.cycle_length.days / Period.YEAR_DAYS
 
     @property
     def central_bank(self) -> CentralBank:
@@ -105,11 +105,8 @@ class EuroEconomy():
         self.central_bank.process_reserve_interests()
         self.bank.process_client_savings()
 
-    def process_bank_income(self):
-        self.bank.process_income()
-
-    def process_bank_spending(self):
-        self.bank.spend()
+    def process_bank_income_and_spending(self):
+        self.bank.process_income_and_spending()
 
     def process_borrowing(self, amount: Decimal):
         self.client.borrow(amount)

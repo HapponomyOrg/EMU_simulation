@@ -48,15 +48,15 @@ class BalanceSheet:
 
     def book_asset(self, asset_name: str, amount: Decimal):
         if asset_name in self.assets:
-            self.__assets[asset_name] += round(Decimal(amount), 12)
+            self.__assets[asset_name] += Decimal(amount)
         else:
-            self.__assets[asset_name] = round(Decimal(amount), 12)
+            self.__assets[asset_name] = Decimal(amount)
 
     def book_liability(self, liability_name: str, amount: Decimal):
         if liability_name in self.__liabilities:
-            self.__liabilities[liability_name] += round(Decimal(amount), 12)
+            self.__liabilities[liability_name] += Decimal(amount)
         else:
-            self.__liabilities[liability_name] = round(Decimal(amount), 12)
+            self.__liabilities[liability_name] = Decimal(amount)
 
     def validate(self) -> bool:
         return round(self.__value(self.assets), 4) == round(self.__value(self.liabilities), 4)

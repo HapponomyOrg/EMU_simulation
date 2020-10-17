@@ -186,8 +186,8 @@ class CentralBank(EconomicActor):
     def inflate(self, inflation: Decimal):
         if not self.__inflation_processed:
             inflation = Decimal(inflation)
-            self.qe_fixed += round(Decimal(self.qe_fixed * inflation), 8)
-            self.helicopter_fixed += round(Decimal(self.helicopter_fixed * inflation), 8)
+            self.qe_fixed += self.qe_fixed * inflation
+            self.helicopter_fixed += self.helicopter_fixed * inflation
 
             self.bank.inflate(inflation)
 
@@ -217,10 +217,9 @@ class CentralBank(EconomicActor):
             reserve_interest_rate = self.reserve_ir * self.reserve_interest_interval.days / Period.YEAR_DAYS
             surplus_interest_rate = self.surplus_reserve_ir * self.reserve_interest_interval.days / Period.YEAR_DAYS
             reserves: Decimal = self.bank.asset(BalanceEntries.RESERVES)
-            reserve_limit: Decimal = round(Decimal(self.bank.client_liabilities * self.min_reserve), 8)
+            reserve_limit: Decimal = self.bank.client_liabilities * self.min_reserve
             surplus_reserve: Decimal = max(Decimal(0.0), reserves - reserve_limit)
-            interest: Decimal = round(Decimal(reserve_limit * reserve_interest_rate
-                                              + surplus_reserve * surplus_interest_rate), 8)
+            interest: Decimal = reserve_limit * reserve_interest_rate + surplus_reserve * surplus_interest_rate
             self.bank.process_interest(interest)
 
             if interest < 0.0:

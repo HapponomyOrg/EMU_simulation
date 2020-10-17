@@ -47,14 +47,14 @@ class EconomicActor(ABC):
 
     def grow_securities(self, growth: Decimal):
         if self._transactions_started and not self.__security_growth_processed:
-            security_growth = round(Decimal(self.asset(BalanceEntries.SECURITIES) * growth), 8)
+            security_growth = self.asset(BalanceEntries.SECURITIES) * Decimal(growth)
             self.book_asset(BalanceEntries.SECURITIES, security_growth)
             self.book_liability(BalanceEntries.EQUITY, security_growth)
             self.__security_growth_processed = True
 
     def grow_mbs(self, growth: Decimal):
         if self._transactions_started and not self.__mbs_growth_processed:
-            mbs_growth = round(Decimal(self.asset(BalanceEntries.MBS) * growth), 8)
+            mbs_growth = self.asset(BalanceEntries.MBS) * Decimal(growth)
             self.book_asset(BalanceEntries.MBS, mbs_growth)
             self.book_liability(BalanceEntries.MBS_EQUITY, mbs_growth)
             self.__mbs_growth_processed = True

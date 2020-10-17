@@ -145,7 +145,7 @@ class PrivateActor(EconomicActor):
 
     def process_savings(self):
         total_dep_sav: Decimal = self.asset(BalanceEntries.DEPOSITS) + self.asset(BalanceEntries.SAVINGS)
-        savings_target: Decimal = round(Decimal(self.savings_rate * total_dep_sav), 8)
+        savings_target: Decimal = self.savings_rate * total_dep_sav
         savings_transfer: Decimal = savings_target - self.asset(BalanceEntries.SAVINGS)
 
         self.book_asset(BalanceEntries.SAVINGS, savings_transfer)
@@ -182,9 +182,10 @@ class PrivateActor(EconomicActor):
         debt_payment.full_installment = self.installment
 
         if self.defaulting_mode == DefaultingMode.PROBABILISTIC and random() < self.defaulting_probability:
-            unresolved_debt = uniform(self.defaulting_min * self.installment, self.defaulting_max * self.installment)
+            unresolved_debt = Decimal(uniform(float(self.defaulting_min * self.installment),
+                                              float(self.defaulting_max * self.installment)))
         elif self.defaulting_mode == DefaultingMode.FIXED:
-            unresolved_debt = round(Decimal(debt_payment.full_installment * self.fixed_defaulting_rate), 8)
+            unresolved_debt = debt_payment.full_installment * self.fixed_defaulting_rate
 
         debt_payment.installment_paid = self.__pay_bank(self.installment - unresolved_debt, BalanceEntries.DEBT)
         debt_payment.interest_paid = self.__pay_bank(debt_payment.adjusted_interest, BalanceEntries.EQUITY)
@@ -207,17 +208,12 @@ class PrivateActor(EconomicActor):
         """Attempt to trade the amount of securities, a positive amount indicating a sell, a negative amount
         indicating a buy. When buying, no more than the available deposits + savings can be used."""
 
-        # Can mot buy more than there is money available. TODO introduce lending for securities
-        if amount < 0:
-            amount = -min(-amount, self.asset(BalanceEntries.DEPOSITS) + self.asset(BalanceEntries.SAVINGS))
-
         # MBS can only be created by banks. Therefore no more MBS can be sold than those which are on the balance sheet.
         if security_type == BalanceEntries.MBS:
             amount = min(amount, self.asset(BalanceEntries.MBS))
 
-        equity: Decimal = self.liability(BalanceEntries.EQUITY)
         amount = self.bank.exchange_client_securities(amount, security_type)
-        self.__pay_bank(-amount, BalanceEntries.EQUITY, True)
+        self.__pay_bank(-amount, BalanceEntries.EQUITY, self.__borrow_for_securities)
 
         # when selling securities (not MBS), do not subtract more than what was on the balance sheet. The surplus is
         # 'created'. These actually represent securities which were 'hidden' from the books until now.
@@ -228,7 +224,7 @@ class PrivateActor(EconomicActor):
 
         return amount
 
-    def __pay_bank(self, amount: Decimal, liability_name: str, borrow: bool = False) -> Decimal:
+    def __pay_bank(self, amount: Decimal, liability_name: str, borrow: Decimal = Decimal(1.0)) -> Decimal:
         """Attempt to pay_bank an amount. Use savings if needed.
 
         :param amount the amount to pay_bank.
@@ -241,11 +237,10 @@ class PrivateActor(EconomicActor):
         pay_from_savings: Decimal = min(savings, amount - pay_from_deposits)
 
         # borrowing can only happen when paying for securities
-        if pay_from_deposits + pay_from_savings < amount and borrow:
-            to_borrow: Decimal = (amount - pay_from_deposits - pay_from_savings) * self.borrow_for_securities
+        to_borrow: Decimal = max(amount - pay_from_deposits - pay_from_savings, Decimal(0.0)) * borrow
 
-            self.bank.borrow(to_borrow)
-            pay_from_deposits += to_borrow
+        self.bank.borrow(to_borrow)
+        pay_from_deposits += to_borrow
 
         self.book_asset(BalanceEntries.DEPOSITS, -pay_from_deposits)
         self.book_asset(BalanceEntries.SAVINGS, -pay_from_savings)

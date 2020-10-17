@@ -107,7 +107,7 @@ class SimpleDataGenerator(DataGenerator):
     def generate_next(self):
         inflation: Decimal = self.data_collector.get_data_series(SYSTEM, INFLATION)[-1]
         real_growth: Decimal = self.data_collector.get_data_series(SYSTEM, REAL_GROWTH)[-1]
-        self.__economy.inflation += round(self.__economy.inflation * real_growth * self.growth_influence_rate, 8)
+        self.__economy.inflation += self.__economy.inflation * real_growth * self.growth_influence_rate
 
 
 class AggregateSimulator(Simulator):
@@ -219,10 +219,7 @@ class AggregateSimulator(Simulator):
         if data_field in DEFLATABLE_FIELDS or category in BALANCE_SHEET_CATEGORIES:
             data = self.deflate(data, True)
 
-        if data_field in PERCENTAGE_FIELDS:
-            return round(Decimal(data), 8)
-        else:
-            return round(Decimal(data), 4)
+        return data
 
     def __balance_entry(self, economic_actor: EconomicActor, entry: str) -> Decimal:
         if entry in economic_actor.asset_names:
@@ -258,17 +255,17 @@ class AggregateSimulator(Simulator):
         if cycle == 0:
             self.__desired_im = self.__start_im
 
-        self.__desired_im += round(self.__desired_im * self.economy.cycle_growth_rate, 8)
+        self.__desired_im += self.__desired_im * self.economy.cycle_growth_rate
 
         # set target im for end of cycle
         self.__target_im = self.economy.im
-        self.__target_im += round(self.__target_im * self.economy.cycle_growth_rate, 8)
+        self.__target_im += self.__target_im * self.economy.cycle_growth_rate
 
         # process inflation
         self.economy.start_transactions()
         self.economy.inflate()
-        self.__desired_im += round(self.__desired_im * self.economy.cycle_inflation_rate, 8)
-        self.__target_im += round(self.__target_im * self.economy.cycle_inflation_rate, 8)
+        self.__desired_im += self.__desired_im * self.economy.cycle_inflation_rate
+        self.__target_im += self.__target_im * self.economy.cycle_inflation_rate
 
         # There is a possibility that target_im > desired_im due to banks buying securities at the start of the sim
         self.__target_im = min(self.__desired_im, self.__target_im)
@@ -283,17 +280,16 @@ class AggregateSimulator(Simulator):
         self.economy.process_helicopter_money()
 
         self.economy.process_savings()
-        self.economy.process_bank_income()
         self.economy.process_bank_loans()
-        self.economy.process_bank_spending()
+        self.economy.process_bank_income_and_spending()
 
         self.__required_lending = Decimal(max(self.__target_im - self.economy.im, 0.0))
-        self.__lending = round(Decimal(max(self.__required_lending * self.economy.lending_satisfaction_rate, 0.0)), 8)
+        self.__lending = max(self.__required_lending * self.economy.lending_satisfaction_rate, Decimal(0.0))
 
         # calculate required and real lending percentages
         if self.economy.im > 0.0:
-            self.__required_lending_rate = round(self.__required_lending / self.economy.im, 8)
-            self.__lending_rate = round(self.__lending / self.economy.im, 8)
+            self.__required_lending_rate = self.__required_lending / self.economy.im
+            self.__lending_rate = self.__lending / self.economy.im
         else:
             self.__required_lending_rate = Decimal('Infinity')
             self.__lending_rate = Decimal('Infinity')
@@ -305,11 +301,11 @@ class AggregateSimulator(Simulator):
 
         deflated_start_im: Decimal = self.deflate(self.__start_im, True)
         deflated_im: Decimal = self.deflate(self.economy.im)
-        self.__real_growth = round((deflated_im - deflated_start_im) / deflated_start_im, 8)
+        self.__real_growth = (deflated_im - deflated_start_im) / deflated_start_im
 
         return self.economy.end_transactions()\
                and self.economy.im > 0\
-               and self.__required_lending_rate != Decimal('Infinity')
+               and self.__required_lending_rate <= Decimal(1)
 
     # only call after initial_inflation_rate has been applied in a cycle
     def deflate(self, amount: Decimal, skip_one: bool = False) -> Decimal:
@@ -321,4 +317,4 @@ class AggregateSimulator(Simulator):
         for inflation in inflation_rates:
             amount /= 1 + inflation
 
-        return round(Decimal(amount), 10)
+        return amount
