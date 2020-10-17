@@ -54,7 +54,7 @@ def test_creation():
     init_parameters()
 
     central_bank.book_asset("NO_ENTRY", Decimal(100.0))
-    assert central_bank.asset("NO_ENTRY") == 0.0
+    assert round(central_bank.asset("NO_ENTRY"), 8) == round(Decimal(0.0), 8)
 
     central_bank.start_transactions()
     assert central_bank.end_transactions()
@@ -65,16 +65,16 @@ def test_borrowing():
 
     central_bank.start_transactions()
     bank.borrow(Decimal(100.0))
-    assert central_bank.asset(BalanceEntries.LOANS) == 100.0
-    assert central_bank.liability(BalanceEntries.RESERVES) == 100.0
-    assert bank.asset(BalanceEntries.RESERVES) == 100.0
-    assert bank.liability(BalanceEntries.DEBT) == 100.0
+    assert round(central_bank.asset(BalanceEntries.LOANS), 8) == round(Decimal(100.0), 8)
+    assert round(central_bank.liability(BalanceEntries.RESERVES), 8) == round(Decimal(100.0), 8)
+    assert round(bank.asset(BalanceEntries.RESERVES), 8) == round(Decimal(100.0), 8)
+    assert round(bank.liability(BalanceEntries.DEBT), 8) == round(Decimal(100.0), 8)
 
     client.borrow(Decimal(1000.0))
-    assert bank.asset(BalanceEntries.LOANS) == 1000.0
-    assert bank.liability(BalanceEntries.DEPOSITS) == 1000.0
-    assert client.asset(BalanceEntries.DEPOSITS) == 1000.0
-    assert client.liability(BalanceEntries.DEBT) == 1000.0
+    assert round(bank.asset(BalanceEntries.LOANS), 8) == round(Decimal(1000.0), 8)
+    assert round(bank.liability(BalanceEntries.DEPOSITS), 8) == round(Decimal(1000.0), 8)
+    assert round(client.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(1000.0), 8)
+    assert round(client.liability(BalanceEntries.DEBT), 8) == round(Decimal(1000.0), 8)
 
     assert central_bank.end_transactions()
 
@@ -84,23 +84,23 @@ def test_interest():
 
     central_bank.start_transactions()
     bank.borrow(Decimal(100.0))
-    assert central_bank.asset(BalanceEntries.LOANS) == 100.0
-    assert central_bank.liability(BalanceEntries.RESERVES) == 100.0
-    assert bank.asset(BalanceEntries.RESERVES) == 100.0
-    assert bank.liability(BalanceEntries.DEBT) == 100.0
+    assert round(central_bank.asset(BalanceEntries.LOANS), 8) == round(Decimal(100.0), 8)
+    assert round(central_bank.liability(BalanceEntries.RESERVES), 8) == round(Decimal(100.0), 8)
+    assert round(bank.asset(BalanceEntries.RESERVES), 8) == round(Decimal(100.0), 8)
+    assert round(bank.liability(BalanceEntries.DEBT), 8) == round(Decimal(100.0), 8)
 
     client.borrow(Decimal(1000.0))
-    assert bank.asset(BalanceEntries.LOANS) == 1000.0
-    assert bank.liability(BalanceEntries.DEPOSITS) == 1000.0
-    assert client.asset(BalanceEntries.DEPOSITS) == 1000.0
-    assert client.liability(BalanceEntries.DEBT) == 1000.0
+    assert round(bank.asset(BalanceEntries.LOANS), 8) == round(Decimal(1000.0), 8)
+    assert round(bank.liability(BalanceEntries.DEPOSITS), 8) == round(Decimal(1000.0), 8)
+    assert round(client.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(1000.0), 8)
+    assert round(client.liability(BalanceEntries.DEBT), 8) == round(Decimal(1000.0), 8)
 
     central_bank.process_reserve_interests()
 
     assert central_bank.end_transactions()
 
-    assert central_bank.asset(BalanceEntries.INTEREST) == 0.0
-    assert bank.asset(BalanceEntries.RESERVES) == 100.0
+    assert round(central_bank.asset(BalanceEntries.INTEREST), 8) == round(Decimal(0.0), 8)
+    assert round(bank.asset(BalanceEntries.RESERVES), 8) == round(Decimal(100.0), 8)
     assert round(bank.liability(BalanceEntries.DEPOSITS), 1) == round(Decimal(1000.3), 1)
     assert round(client.asset(BalanceEntries.DEPOSITS), 1) == round(Decimal(1000.3), 1)
     assert round(client.liability(BalanceEntries.EQUITY), 1) == round(Decimal(0.3), 1)
@@ -114,9 +114,9 @@ def test_inflation():
 
     central_bank.inflate(Decimal(0.1))
 
-    assert central_bank.qe_fixed == round(Decimal(1.1), 8)
-    assert central_bank.helicopter_fixed == round(Decimal(1.1), 8)
-    assert bank.fixed_spending == round(Decimal(1.1), 8)
+    assert round(central_bank.qe_fixed, 8) == round(Decimal(1.1), 8)
+    assert round(central_bank.helicopter_fixed, 8) == round(Decimal(1.1), 8)
+    assert round(bank.fixed_spending, 8) == round(Decimal(1.1), 8)
 
 
 def test_fixed_qe():
@@ -127,19 +127,19 @@ def test_fixed_qe():
 
     central_bank.start_transactions()
     client.trade_securities_with_bank(Decimal(10.0))
-    assert client.balance.asset(BalanceEntries.DEPOSITS) == 10.0
-    assert client.balance.asset(BalanceEntries.SECURITIES) == 0.0
-    assert client.balance.liability(BalanceEntries.EQUITY) == 10.0
+    assert round(client.balance.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(10.0), 8)
+    assert round(client.balance.asset(BalanceEntries.SECURITIES), 8) == round(Decimal(0.0), 8)
+    assert round(client.balance.liability(BalanceEntries.EQUITY), 8) == round(Decimal(10.0), 8)
     bank.book_asset(BalanceEntries.SECURITIES, Decimal(50.0))
     bank.book_liability(BalanceEntries.EQUITY, Decimal(50.0))
     central_bank.process_qe()
     central_bank.end_transactions()
 
-    assert central_bank.asset(BalanceEntries.SECURITIES) == 100.0
-    assert central_bank.liability(BalanceEntries.RESERVES) == 100.0
-    assert bank.asset(BalanceEntries.RESERVES) == 100.0
-    assert bank.liability(BalanceEntries.DEPOSITS) == 50.0
-    assert bank.liability(BalanceEntries.EQUITY) == 50.0
+    assert round(central_bank.asset(BalanceEntries.SECURITIES), 8) == round(Decimal(100.0), 8)
+    assert round(central_bank.liability(BalanceEntries.RESERVES), 8) == round(Decimal(100.0), 8)
+    assert round(bank.asset(BalanceEntries.RESERVES), 8) == round(Decimal(100.0), 8)
+    assert round(bank.liability(BalanceEntries.DEPOSITS), 8) == round(Decimal(50.0), 8)
+    assert round(bank.liability(BalanceEntries.EQUITY), 8) == round(Decimal(50.0), 8)
 
 
 def test_debt_related_qe():

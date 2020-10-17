@@ -14,13 +14,13 @@ def test_borrow():
     client.borrow(Decimal(100.0))
     assert central_bank.end_transactions()
 
-    assert client.asset(BalanceEntries.DEPOSITS) == 100.0
-    assert client.liability(BalanceEntries.DEBT) == 100.0
-    assert client.balance.total_balance == 100.0
+    assert round(client.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(100.0) , 8)
+    assert round(client.liability(BalanceEntries.DEBT), 8) == round(Decimal(100.0) , 8)
+    assert round(client.balance.total_balance, 8) == round(Decimal(100.0) , 8)
 
-    assert bank.asset(BalanceEntries.LOANS) == 100.0
-    assert bank.liability(BalanceEntries.DEPOSITS) == 100.0
-    assert bank.balance.total_balance == 100.0
+    assert round(bank.asset(BalanceEntries.LOANS), 8) == round(Decimal(100.0) , 8)
+    assert round(bank.liability(BalanceEntries.DEPOSITS), 8) == round(Decimal(100.0) , 8)
+    assert round(bank.balance.total_balance, 8) == round(Decimal(100.0) , 8)
 
 
 def test_save():
@@ -32,15 +32,15 @@ def test_save():
     client.process_savings()
     assert central_bank.end_transactions()
 
-    assert client.asset(BalanceEntries.DEPOSITS) == 60.0
-    assert client.asset(BalanceEntries.SAVINGS) == 40.0
-    assert client.liability(BalanceEntries.DEBT) == 100.0
-    assert client.balance.total_balance == 100.0
+    assert round(client.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(60.0) , 8)
+    assert round(client.asset(BalanceEntries.SAVINGS), 8) == round(Decimal(40.0) , 8)
+    assert round(client.liability(BalanceEntries.DEBT), 8) == round(Decimal(100.0) , 8)
+    assert round(client.balance.total_balance, 8) == round(Decimal(100.0) , 8)
 
-    assert bank.asset(BalanceEntries.LOANS) == 100.0
-    assert bank.liability(BalanceEntries.DEPOSITS) == 60.0
-    assert bank.liability(BalanceEntries.SAVINGS) == 40.0
-    assert bank.balance.total_balance == 100.0
+    assert round(bank.asset(BalanceEntries.LOANS), 8) == round(Decimal(100.0) , 8)
+    assert round(bank.liability(BalanceEntries.DEPOSITS), 8) == round(Decimal(60.0) , 8)
+    assert round(bank.liability(BalanceEntries.SAVINGS), 8) == round(Decimal(40.0) , 8)
+    assert round(bank.balance.total_balance, 8) == round(Decimal(100.0) , 8)
 
 
 def test_sell_securities():
@@ -51,14 +51,14 @@ def test_sell_securities():
     client.trade_securities_with_bank(Decimal(150.0), BalanceEntries.SECURITIES)
     assert central_bank.end_transactions()
 
-    assert client.asset(BalanceEntries.SECURITIES) == 0.0
-    assert client.asset(BalanceEntries.DEPOSITS) == 150.0
-    assert client.liability(BalanceEntries.EQUITY) == 150.0
-    assert client.balance.total_balance == 150.0
+    assert round(client.asset(BalanceEntries.SECURITIES), 8) == round(Decimal(0.0) , 8)
+    assert round(client.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(150.0) , 8)
+    assert round(client.liability(BalanceEntries.EQUITY), 8) == round(Decimal(150.0) , 8)
+    assert round(client.balance.total_balance, 8) == round(Decimal(150.0) , 8)
 
-    assert bank.asset(BalanceEntries.SECURITIES) == 150.0
-    assert bank.client_liabilities == 150.0
-    assert bank.balance.assets_value == 150.0
+    assert round(bank.asset(BalanceEntries.SECURITIES), 8) == round(Decimal(150.0) , 8)
+    assert round(bank.client_liabilities, 8) == round(Decimal(150.0) , 8)
+    assert round(bank.balance.assets_value, 8) == round(Decimal(150.0) , 8)
 
 
 def test_buy_securities_none_available():
@@ -71,14 +71,14 @@ def test_buy_securities_none_available():
     client.trade_securities_with_bank(Decimal(-150.0), BalanceEntries.SECURITIES)
     assert central_bank.end_transactions()
 
-    assert client.asset(BalanceEntries.DEPOSITS) == 100.0
-    assert client.liability(BalanceEntries.EQUITY) == 100.0
-    assert client.asset(BalanceEntries.SECURITIES) == 0.0
-    assert client.balance.total_balance == 100.0
+    assert round(client.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(100.0) , 8)
+    assert round(client.liability(BalanceEntries.EQUITY), 8) == round(Decimal(100.0) , 8)
+    assert round(client.asset(BalanceEntries.SECURITIES), 8) == round(Decimal(0.0) , 8)
+    assert round(client.balance.total_balance, 8) == round(Decimal(100.0) , 8)
 
-    assert bank.liability(BalanceEntries.DEPOSITS) == 100.0
-    assert bank.liability(BalanceEntries.EQUITY) == -100.0
-    assert bank.balance.total_balance == 0.0
+    assert round(bank.liability(BalanceEntries.DEPOSITS), 8) == round(Decimal(100.0) , 8)
+    assert round(bank.liability(BalanceEntries.EQUITY), 8) == round(Decimal(-100.0) , 8)
+    assert round(bank.balance.total_balance, 8) == round(Decimal(0.0) , 8)
 
 
 def test_buy_securities_available():
@@ -92,14 +92,14 @@ def test_buy_securities_available():
     client.trade_securities_with_bank(Decimal(-150.0), BalanceEntries.SECURITIES)
     assert central_bank.end_transactions()
 
-    assert client.asset(BalanceEntries.DEPOSITS) == 0.0
-    assert client.asset(BalanceEntries.SECURITIES) == 100.0
-    assert client.liability(BalanceEntries.EQUITY) == 100.0
-    assert client.balance.total_balance == 100.0
+    assert round(client.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(0.0) , 8)
+    assert round(client.asset(BalanceEntries.SECURITIES), 8) == round(Decimal(100.0) , 8)
+    assert round(client.liability(BalanceEntries.EQUITY), 8) == round(Decimal(100.0) , 8)
+    assert round(client.balance.total_balance, 8) == round(Decimal(100.0) , 8)
 
-    assert bank.asset(BalanceEntries.SECURITIES) == 100.0
-    assert bank.liability(BalanceEntries.DEPOSITS) == 0.0
-    assert bank.liability(BalanceEntries.EQUITY) == 100.0
+    assert round(bank.asset(BalanceEntries.SECURITIES), 8) == round(Decimal(100.0) , 8)
+    assert round(bank.liability(BalanceEntries.DEPOSITS), 8) == round(Decimal(0.0) , 8)
+    assert round(bank.liability(BalanceEntries.EQUITY), 8) == round(Decimal(100.0) , 8)
 
 
 def test_sell_mbs_none_available():
@@ -108,10 +108,10 @@ def test_sell_mbs_none_available():
     client.trade_securities_with_bank(Decimal(150.0), BalanceEntries.MBS)
     assert central_bank.end_transactions()
 
-    assert client.asset(BalanceEntries.MBS) == 0.0
-    assert client.asset(BalanceEntries.DEPOSITS) == 0.0
-    assert client.liability(BalanceEntries.EQUITY) == 0.0
-    assert client.balance.total_balance == 0.0
+    assert round(client.asset(BalanceEntries.MBS), 8) == round(Decimal(0.0) , 8)
+    assert round(client.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(0.0) , 8)
+    assert round(client.liability(BalanceEntries.EQUITY), 8) == round(Decimal(0.0) , 8)
+    assert round(client.balance.total_balance, 8) == round(Decimal(0.0) , 8)
 
 
 def test_sell_mbs_available():
@@ -122,14 +122,14 @@ def test_sell_mbs_available():
     client.trade_securities_with_bank(Decimal(150.0), BalanceEntries.MBS)
     assert central_bank.end_transactions()
 
-    assert client.asset(BalanceEntries.MBS) == 0.0
-    assert client.asset(BalanceEntries.DEPOSITS) == 100.0
-    assert client.liability(BalanceEntries.EQUITY) == 100.0
-    assert client.liability(BalanceEntries.MBS_EQUITY) == 0.0
-    assert client.balance.total_balance == 100.0
+    assert round(client.asset(BalanceEntries.MBS), 8) == round(Decimal(0.0) , 8)
+    assert round(client.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(100.0) , 8)
+    assert round(client.liability(BalanceEntries.EQUITY), 8) == round(Decimal(100.0) , 8)
+    assert round(client.liability(BalanceEntries.MBS_EQUITY), 8) == round(Decimal(0.0) , 8)
+    assert round(client.balance.total_balance, 8) == round(Decimal(100.0) , 8)
 
-    assert bank.asset(BalanceEntries.MBS) == 100.0
-    assert bank.liability(BalanceEntries.MBS_EQUITY) == 100.0
+    assert round(bank.asset(BalanceEntries.MBS), 8) == round(Decimal(100.0) , 8)
+    assert round(bank.liability(BalanceEntries.MBS_EQUITY), 8) == round(Decimal(100.0) , 8)
 
 
 def buy_mbs():
@@ -140,7 +140,7 @@ def buy_mbs():
     client.trade_securities_with_bank(Decimal(-150.0), BalanceEntries.MBS)
     assert central_bank.end_transactions()
 
-    assert client.asset(BalanceEntries.MBS) == 100.0
-    assert client.liability(BalanceEntries.MBS_EQUITY) == 100.0
-    assert client.balance.total_balance == 100.0
+    assert round(client.asset(BalanceEntries.MBS), 8) == round(Decimal(100.0) , 8)
+    assert round(client.liability(BalanceEntries.MBS_EQUITY), 8) == round(Decimal(100.0) , 8)
+    assert round(client.balance.total_balance, 8) == round(Decimal(100.0) , 8)
 

@@ -102,13 +102,13 @@ def test_no_growth():
     simulator.run_simulation(Period.YEAR_DAYS)
 
     for real_growth in collector.get_data_series(SYSTEM, REAL_GROWTH):
-        assert real_growth == 0.0
+        assert round(real_growth, 8) == round(Decimal(0.0), 8)
 
     for inflation in collector.get_data_series(SYSTEM, INFLATION):
-        assert inflation == round(Decimal(0.019 / Period.YEAR_DAYS), 8)
+        assert round(inflation, 8) == round(Decimal(0.019 / Period.YEAR_DAYS), 8)
 
     for deflated_im in collector.get_data_series(SYSTEM, IM):
-        assert deflated_im == 1000000.0
+        assert round(deflated_im, 8) == round(Decimal(1000000.0), 8)
 
 
 def test_no_growth_no_save_no_profit():
@@ -129,13 +129,13 @@ def test_no_growth_no_save_no_profit():
     simulator.run_simulation(Period.YEAR_DAYS)
 
     for real_growth in collector.get_data_series(SYSTEM, REAL_GROWTH):
-        assert real_growth == 0.0
+        assert round(real_growth, 8) == round(Decimal(0.0), 8)
 
     for inflation in collector.get_data_series(SYSTEM, INFLATION):
-        assert inflation == round(Decimal(0.019 / Period.YEAR_DAYS), 8)
+        assert round(inflation, 8) == round(Decimal(0.019 / Period.YEAR_DAYS), 8)
 
     for deflated_im in collector.get_data_series(SYSTEM, IM):
-        assert deflated_im == 1000000.0
+        assert round(deflated_im, 6) == round(Decimal(1000000.0), 6)
 
 
 def test_growth_save():
