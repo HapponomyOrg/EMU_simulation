@@ -221,8 +221,12 @@ class PrivateActor(EconomicActor):
         if security_type == BalanceEntries.MBS:
             amount = min(amount, self.asset(BalanceEntries.MBS))
 
+        # check for availability of securities with bank
+        if amount < Decimal(0.0):
+            amount = -min(-amount, self.bank.asset(BalanceEntries.SECURITIES))
+
+        amount = -self.__pay_bank(-amount, BalanceEntries.EQUITY, self.__borrow_for_securities)
         amount = self.bank.exchange_client_securities(amount, security_type)
-        self.__pay_bank(-amount, BalanceEntries.EQUITY, self.__borrow_for_securities)
 
         # when selling securities (not MBS), do not subtract more than what was on the balance sheet. The surplus is
         # 'created'. These actually represent securities which were 'hidden' from the books until now.
@@ -248,7 +252,7 @@ class PrivateActor(EconomicActor):
         # borrowing can only happen when paying for securities
         to_borrow: Decimal = max(amount - pay_from_deposits - pay_from_savings, Decimal(0.0)) * borrow
 
-        self.bank.borrow(to_borrow)
+        self.borrow(to_borrow)
         pay_from_deposits += to_borrow
 
         self.book_asset(BalanceEntries.DEPOSITS, -pay_from_deposits)
