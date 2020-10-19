@@ -271,7 +271,7 @@ class AggregateSimulator(Simulator):
             self.__desired_im += self.__desired_im * self.economy.client_interval_growth_rate
 
             # set target im for end of cycle
-            self.__target_im = self.economy.im
+            self.__target_im = self.__start_im
             self.__target_im += self.__target_im * self.economy.client_interval_growth_rate
 
             # process inflation
