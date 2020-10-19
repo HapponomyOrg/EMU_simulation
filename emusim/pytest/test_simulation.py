@@ -150,7 +150,7 @@ def test_growth_save():
 
     simulator.run_simulation(Period.YEAR_DAYS)
 
-    growth: Decimal = round(Decimal(0.03 / Period.YEAR_DAYS), 8)
+    growth: Decimal = round(Decimal(0.03), 8)
 
     for real_growth in collector.get_data_series(SYSTEM, REAL_GROWTH):
         assert round(real_growth, 8) == growth

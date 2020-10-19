@@ -152,21 +152,21 @@ def test_reserves_no_securities():
     bank.update_reserves()
     assert central_bank.end_transactions()
 
-    assert round(central_bank.asset(BalanceEntries.LOANS), 8) == round(Decimal(83.75), 8)
-    assert round(central_bank.liability(BalanceEntries.RESERVES), 8) == round(Decimal(83.75), 8)
-    assert round(central_bank.balance.total_balance, 8) == round(Decimal(83.75), 8)
+    assert round(central_bank.asset(BalanceEntries.LOANS), 8) == round(Decimal(88.75), 8)
+    assert round(central_bank.liability(BalanceEntries.RESERVES), 8) == round(Decimal(88.75), 8)
+    assert round(central_bank.balance.total_balance, 8) == round(Decimal(88.75), 8)
 
-    assert round(client.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(1675.0), 8)
+    assert round(client.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(1775.0), 8)
     assert round(client.liability(BalanceEntries.DEBT), 8) == round(Decimal(1800.0), 8)
-    assert round(client.liability(BalanceEntries.EQUITY), 8) == -round(Decimal(125.0), 8)
-    assert round(client.balance.total_balance, 8) == round(Decimal(1675.0), 8)
+    assert round(client.liability(BalanceEntries.EQUITY), 8) == -round(Decimal(25.0), 8)
+    assert round(client.balance.total_balance, 8) == round(Decimal(1775.0), 8)
 
-    assert round(bank.asset(BalanceEntries.RESERVES), 8) == round(Decimal(83.75), 8)
+    assert round(bank.asset(BalanceEntries.RESERVES), 8) == round(Decimal(88.75), 8)
     assert round(bank.asset(BalanceEntries.LOANS), 8) == round(Decimal(1800.0), 8)
-    assert round(bank.liability(BalanceEntries.DEPOSITS), 8) == round(Decimal(1675.0), 8)
-    assert round(bank.liability(BalanceEntries.DEBT), 8) == round(Decimal(83.75), 8)
-    assert round(bank.liability(BalanceEntries.EQUITY), 8) == round(Decimal(125.0), 8)
-    assert round(bank.balance.total_balance, 8) == round(Decimal(1883.75), 8)
+    assert round(bank.liability(BalanceEntries.DEPOSITS), 8) == round(Decimal(1775.0), 8)
+    assert round(bank.liability(BalanceEntries.DEBT), 8) == round(Decimal(88.75), 8)
+    assert round(bank.liability(BalanceEntries.EQUITY), 8) == round(Decimal(25.0), 8)
+    assert round(bank.balance.total_balance, 8) == round(Decimal(1888.75), 8)
 
 
 def test_reserves_mbs():
