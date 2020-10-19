@@ -3,8 +3,9 @@ from __future__ import annotations
 from decimal import *
 from typing import TYPE_CHECKING, List
 
-from . import EuroEconomy, CentralBank, Bank, PrivateActor
+from . import EuroEconomy, BalanceEntries
 from .. import Simulator, DataGenerator
+from emusim.cockpit.utilities.cycles import Period, Interval
 
 if TYPE_CHECKING:
     from . import EconomicActor
@@ -27,6 +28,8 @@ LENDING = "Lending"
 REQUIRED_LENDING = "Required lending"
 REQUIRED_LENDING_RATE = "Required lending rate"
 LENDING_RATE = "Lending rate"
+DEBT_RATIO = "Debt ratio"
+SECURITIES_RATIO = "Securities ratio"
 
 SYSTEM_OBLIGATORY_DATA_FIELDS = [CYCLE,
                                  GROWTH_TARGET,
@@ -43,7 +46,9 @@ SYSTEM_DATA_FIELDS = [CYCLE,
                       SECURITY_GROWTH,
                       LENDING_SATISFACTION,
                       REQUIRED_LENDING,
-                      LENDING]
+                      LENDING,
+                      DEBT_RATIO,
+                      SECURITIES_RATIO]
 
 # Central bank category
 CENTRAL_BANK = "Central bank"
@@ -62,8 +67,8 @@ CENTRAL_BANK_DATA_FIELDS = [MIN_RESERVE, MBS_RESERVE, SECURITIES_RESERVE, RESERV
                             BANK_LOAN_IR, BANK_LOAN_DURATION, QE]
 
 PERCENTAGE_FIELDS = [GROWTH_TARGET, INFLATION, NOMINAL_GROWTH, REAL_GROWTH, MBS_GROWTH, SECURITY_GROWTH,
-                     REQUIRED_LENDING_RATE, LENDING_RATE, LENDING_SATISFACTION, MIN_RESERVE, MBS_RESERVE,
-                     SECURITIES_RESERVE, RESERVE_IR, SURPLUS_RESERVE_IR, BANK_LOAN_IR]
+                     REQUIRED_LENDING_RATE, LENDING_RATE, DEBT_RATIO, SECURITIES_RATIO, LENDING_SATISFACTION, MIN_RESERVE,
+                     MBS_RESERVE, SECURITIES_RESERVE, RESERVE_IR, SURPLUS_RESERVE_IR, BANK_LOAN_IR]
 
 DEFLATABLE_FIELDS = [IM, IM_TARGET, LENDING, REQUIRED_LENDING]
 
@@ -74,13 +79,13 @@ BANK = "Bank"
 SAVINGS_IR = "Savings interest rate"
 LOAN_IR = "Private loan interest rate"
 LOAN_DURATION = "Private loan duration"
-SPENDING = "Spending"
-PROFIT = "Profit"
 INCOME = "Income"
-INSTALLMENT = "INSTALLMENT"
+COSTS = "Costs"
+PROFIT = "Profit"
+INSTALLMENT = "Installment"
 
 BANK_STATIC_DATA_FIELDS = [MIN_RESERVE, SAVINGS_IR, LOAN_IR, LOAN_DURATION]
-BANK_DATA_FIELDS = [INCOME, SPENDING, PROFIT, INSTALLMENT]
+BANK_DATA_FIELDS = [INCOME, COSTS, PROFIT, INSTALLMENT]
 
 # Balance sheet categories
 CENTRAL_BANK_BS: str = "Central bank balance sheet"
@@ -123,7 +128,9 @@ class AggregateSimulator(Simulator):
         self.__required_lending: Decimal = Decimal(0.0)
         self.__lending: Decimal = Decimal(0.0)
         self.__required_lending_rate: Decimal = Decimal(0.0)
-        self.__lending_rate:Decimal = Decimal(0.0)
+        self.__lending_rate: Decimal = Decimal(0.0)
+        self.__debt_ratio: Decimal = Decimal(0.0)
+        self.__securities_ratio: Decimal = Decimal(0.0)
 
         super().__init__(generator)
         self.generator.data_collector = self.collector
@@ -173,7 +180,7 @@ class AggregateSimulator(Simulator):
             if data_field == CYCLE:
                 data = Decimal(self.economy.central_bank.cycle)
             elif data_field == GROWTH_TARGET:
-                data = self.economy.cycle_growth_rate
+                data = self.economy.client_interval_growth_rate
             elif data_field == REAL_GROWTH:
                 data = self.__real_growth
             elif data_field == NOMINAL_GROWTH:
@@ -183,7 +190,7 @@ class AggregateSimulator(Simulator):
             elif data_field == SECURITY_GROWTH:
                 data = self.economy.security_growth
             elif data_field == INFLATION:
-                data = self.economy.cycle_inflation_rate
+                data = self.economy.client_interval_inflation_rate
             elif data_field == IM:
                 data = self.economy.im
             elif data_field == IM_TARGET:
@@ -198,13 +205,17 @@ class AggregateSimulator(Simulator):
                 data = self.__required_lending_rate
             elif data_field == LENDING_RATE:
                 data = self.__lending_rate
+            elif data_field == DEBT_RATIO:
+                data = self.__debt_ratio
+            elif data_field == SECURITIES_RATIO:
+                data = self.__securities_ratio
         elif category == CENTRAL_BANK:
             data = Decimal(0.0)
         elif category == BANK:
             if data_field == INCOME:
                 data = self.economy.bank.income
-            elif data_field == SPENDING:
-                data = self.economy.bank.spending
+            elif data_field == COSTS:
+                data = self.economy.bank.costs
             elif data_field == PROFIT:
                 data = self.economy.bank.profit
             elif data_field == INSTALLMENT:
@@ -248,29 +259,32 @@ class AggregateSimulator(Simulator):
 
         :param cycle The current cycle number.
 
-        :return True if all balance sheets validate and IM > 0."""
-        self.__start_im = self.economy.im
+        :return True if all balance sheets validate, IM > 0 and required lending rate < 100%."""
+        self.economy.start_transactions()
 
-        # grow im for optimal scenario where growth_target is always achieved
-        if cycle == 0:
+        if cycle == 0 :
+            self.__start_im = self.economy.im
             self.__desired_im = self.__start_im
 
-        self.__desired_im += self.__desired_im * self.economy.cycle_growth_rate
+        # aiming for target_im is only done when borrowing happens
+        if self.economy.bank.client_interaction_interval.period_complete(cycle):
+            self.__desired_im += self.__desired_im * self.economy.client_interval_growth_rate
 
-        # set target im for end of cycle
-        self.__target_im = self.economy.im
-        self.__target_im += self.__target_im * self.economy.cycle_growth_rate
+            # set target im for end of cycle
+            self.__target_im = self.economy.im
+            self.__target_im += self.__target_im * self.economy.client_interval_growth_rate
 
-        # process inflation
-        self.economy.start_transactions()
-        self.economy.inflate()
-        self.__desired_im += self.__desired_im * self.economy.cycle_inflation_rate
-        self.__target_im += self.__target_im * self.economy.cycle_inflation_rate
+            # process inflation
+            self.economy.inflate()
+            self.__desired_im += self.__desired_im * self.economy.client_interval_inflation_rate
+            self.__target_im += self.__target_im * self.economy.client_interval_inflation_rate
 
-        # There is a possibility that target_im > desired_im due to banks buying securities at the start of the sim
-        self.__target_im = min(self.__desired_im, self.__target_im)
+            # There is a possibility that target_im > desired_im due to banks buying securities at the start of the sim
+            self.__target_im = min(self.__desired_im, self.__target_im)
 
-        # reflect impact of price changes in securities
+        # banks actions occur every cycle
+        self.economy.update_reserves()
+
         self.economy.grow_securities()
         self.economy.grow_mbs()
         self.economy.update_risk_assets()
@@ -279,29 +293,46 @@ class AggregateSimulator(Simulator):
         self.economy.process_qe()
         self.economy.process_helicopter_money()
 
-        self.economy.process_savings()
         self.economy.process_bank_loans()
+
+        self.economy.process_savings()
         self.economy.process_bank_income_and_spending()
 
-        self.__required_lending = Decimal(max(self.__target_im - self.economy.im, 0.0))
-        self.__lending = max(self.__required_lending * self.economy.lending_satisfaction_rate, Decimal(0.0))
+        # calculations which only make sense on client interaction cycles
+        if self.economy.bank.client_interaction_interval.period_complete(cycle):
+            self.__required_lending = Decimal(max(self.__target_im - self.economy.im, 0.0))
+            self.__lending = self.__required_lending * self.economy.lending_satisfaction_rate
 
-        # calculate required and real lending percentages
-        if self.economy.im > 0.0:
-            self.__required_lending_rate = self.__required_lending / self.economy.im
-            self.__lending_rate = self.__lending / self.economy.im
-        else:
-            self.__required_lending_rate = Decimal('Infinity')
-            self.__lending_rate = Decimal('Infinity')
+            self.economy.process_borrowing(self.__lending)
 
-        self.economy.process_borrowing(self.__lending)
-        self.economy.update_reserves()
+            # Calculate real total lending
+            self.__lending = self.economy.client.borrowed_money
 
-        self.__nominal_growth = round((self.economy.im - self.__start_im) / self.__start_im, 8)
+            # multiplier to extrapolate to % per year
+            multiplier: Decimal = Decimal(Period.YEAR_DAYS / self.economy.bank.client_interaction_interval.days)
 
-        deflated_start_im: Decimal = self.deflate(self.__start_im, True)
-        deflated_im: Decimal = self.deflate(self.economy.im)
-        self.__real_growth = (deflated_im - deflated_start_im) / deflated_start_im
+            # calculate required and real lending percentages.
+            if self.economy.im > 0.0:
+                self.__required_lending_rate = self.__required_lending / self.economy.im * multiplier
+                self.__lending_rate = self.__lending / self.economy.im * multiplier
+            else:
+                self.__required_lending_rate = Decimal('Infinity')
+                self.__lending_rate = Decimal('Infinity')
+
+            self.__nominal_growth = round((self.economy.im - self.__start_im) / self.__start_im * multiplier, 8)
+
+            deflated_start_im: Decimal = self.deflate(self.__start_im, True)
+            deflated_im: Decimal = self.deflate(self.economy.im)
+            self.__real_growth = (deflated_im - deflated_start_im) / deflated_start_im * multiplier
+
+            # set start_im for next growth cycle
+            self.__start_im = self.economy.im
+
+        self.__debt_ratio = self.economy.client.liability(BalanceEntries.DEBT) / self.economy.im
+
+        if self.economy.client.balance.asset(BalanceEntries.SECURITIES) > Decimal(0.0):
+            self.__securities_ratio = self.economy.client.balance.asset(BalanceEntries.SECURITIES) \
+                                      / self.economy.client.balance.assets_value
 
         return self.economy.end_transactions()\
                and self.economy.im > 0\
@@ -312,7 +343,7 @@ class AggregateSimulator(Simulator):
         inflation_rates: List[Decimal] = self.collector.get_data_series(SYSTEM, INFLATION)
 
         if not skip_one:
-            amount /= 1 + self.economy.cycle_inflation_rate
+            amount /= 1 + self.economy.client_interval_inflation_rate
 
         for inflation in inflation_rates:
             amount /= 1 + inflation

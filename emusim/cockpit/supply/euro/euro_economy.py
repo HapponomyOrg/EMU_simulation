@@ -18,6 +18,18 @@ class EuroEconomy():
         self.__lending_satisfaction_rate = Decimal(1.0)
 
     @property
+    def central_bank(self) -> CentralBank:
+        return self.__central_bank
+
+    @property
+    def bank(self) -> Bank:
+        return self.central_bank.bank
+
+    @property
+    def client(self) -> PrivateActor:
+        return self.bank.client
+
+    @property
     def growth_rate(self) -> Decimal:
         return self.__growth_rate
 
@@ -58,24 +70,12 @@ class EuroEconomy():
         self.__lending_satisfaction_rate = Decimal(rate)
 
     @property
-    def cycle_growth_rate(self) -> Decimal:
-        return self.growth_rate * self.cycle_length.days / Period.YEAR_DAYS
+    def client_interval_growth_rate(self) -> Decimal:
+        return self.growth_rate * self.bank.client_interaction_interval.days / Period.YEAR_DAYS
 
     @property
-    def cycle_inflation_rate(self) -> Decimal:
-        return self.inflation * self.cycle_length.days / Period.YEAR_DAYS
-
-    @property
-    def central_bank(self) -> CentralBank:
-        return self.__central_bank
-
-    @property
-    def bank(self) -> Bank:
-        return self.central_bank.bank
-
-    @property
-    def client(self) -> PrivateActor:
-        return self.bank.client
+    def client_interval_inflation_rate(self) -> Decimal:
+        return self.inflation * self.bank.client_interaction_interval.days / Period.YEAR_DAYS
 
     def start_transactions(self):
         self.central_bank.start_transactions()
@@ -84,7 +84,7 @@ class EuroEconomy():
         return self.central_bank.end_transactions()
 
     def inflate(self):
-        self.central_bank.inflate(self.cycle_inflation_rate)
+        self.central_bank.inflate(self.client_interval_inflation_rate)
 
     def grow_mbs(self):
         self.central_bank.grow_mbs(self.mbs_growth)

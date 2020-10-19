@@ -3,7 +3,7 @@ from datetime import datetime
 
 from emusim.cockpit.supply import DataCollector
 from emusim.cockpit.supply.euro import AggregateSimulator, EuroEconomy,QEMode,HelicopterMode,\
-    SimpleDataGenerator, SpendingMode, DefaultingMode
+    SimpleDataGenerator, SpendingMode, DefaultingMode, BalanceEntries, Bank, PrivateActor
 from emusim.cockpit.supply.euro.aggregate_simulator import PERCENTAGE_FIELDS, SYSTEM_DATA_FIELDS, SYSTEM, \
     CYCLE, BANK, BANK_DATA_FIELDS, CENTRAL_BANK_BS, BANK_BS, PRIVATE_SECTOR_BS
 from emusim.cockpit.utilities.cycles import Period, Interval
@@ -70,13 +70,13 @@ def set_no_sec_parameters():
 def set_sec_parameters():
     set_no_sec_parameters()
 
-    economy.central_bank.mbs_relative_reserve = 0.1
+    economy.central_bank.mbs_relative_reserve = 0.0
     economy.central_bank.securities_relative_reserve = 0.05
 
     economy.bank.min_risk_assets = 0.1
     economy.bank.max_risk_assets = 0.4
-    economy.bank.max_mbs_assets = 0.8
-    economy.bank.max_security_assets = 0.4
+    economy.bank.max_mbs_assets = 0.0
+    economy.bank.max_security_assets = 1.0
 
 
 def init_collector():
@@ -108,6 +108,22 @@ def init_collector():
         collector.set_collect_data(PRIVATE_SECTOR_BS, liability, True)
 
 
+def init_bank_balance():
+    bank: Bank = economy.bank
+    client: PrivateActor = economy.client
+
+    client.borrow(Decimal(1000000.0))
+    bank.update_risk_assets()
+    bank.set_liability(BalanceEntries.DEPOSITS, Decimal(1000000.0))
+    bank.set_liability(BalanceEntries.EQUITY, bank.balance.assets_value - bank.liability(BalanceEntries.DEPOSITS))
+    client.set_asset(BalanceEntries.DEPOSITS, Decimal(1000000.0))
+    client.set_liability(BalanceEntries.EQUITY, client.balance.assets_value - client.liability(BalanceEntries.DEBT))
+    bank.update_reserves(True)
+
+    assert bank.balance.validate()
+    assert client.balance.validate()
+
+
 def dump_data(file_name: str):
     file_name = sec_no_sec + " - " + file_name
     file = open("data/" + file_name + ".csv", "w")
@@ -128,7 +144,9 @@ def dump_data(file_name: str):
 
                     file.write(",")
 
-                    if data.is_finite():
+                    if data_field == CYCLE:
+                        file.write(str(round(data, 0)))
+                    elif data.is_finite():
                         file.write(str(round(data, 4)))
                     else:
                         file.write(str(data))
@@ -154,7 +172,7 @@ def run_no_growth_no_save_no_profit(param_initialization):
     simulator.economy.client.savings_rate = 0.0
 
     economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+    init_bank_balance()
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
@@ -172,7 +190,7 @@ def run_no_growth_no_inflation_no_save_no_profit(param_initialization):
     simulator.economy.client.savings_rate = 0.0
 
     economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+    init_bank_balance()
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
@@ -185,7 +203,7 @@ def run_no_growth(param_initialization):
     simulator.economy.growth_rate = 0.0
 
     economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+    init_bank_balance()
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
@@ -199,7 +217,7 @@ def run_no_growth_no_inflation(param_initialization):
     simulator.economy.inflation = 0.0
 
     economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+    init_bank_balance()
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
@@ -215,7 +233,7 @@ def run_no_growth_no_profit(param_initialization):
     simulator.economy.bank.profit_spending = 1.0
 
     economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+    init_bank_balance()
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
@@ -232,7 +250,7 @@ def run_low_growth_no_save_no_profit(param_initialization):
     simulator.economy.client.savings_rate = 0.0
 
     economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+    init_bank_balance()
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
@@ -245,7 +263,7 @@ def run_low_growth(param_initialization):
     simulator.economy.growth_rate = 0.01
 
     economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+    init_bank_balance()
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
@@ -259,7 +277,7 @@ def run_low_growth_no_inflation(param_initialization):
     simulator.economy.inflation = 0.0
 
     economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+    init_bank_balance()
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
@@ -275,7 +293,7 @@ def run_low_growth_no_profit(param_initialization):
     simulator.economy.bank.profit_spending = 1.0
 
     economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+    init_bank_balance()
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
@@ -291,7 +309,7 @@ def run_high_growth_no_save_no_profit(param_initialization):
     simulator.economy.client.savings_rate = 0.0
 
     economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+    init_bank_balance()
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
@@ -302,8 +320,7 @@ def run_high_growth(param_initialization):
     param_initialization()
 
     economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
-
+    init_bank_balance()
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
@@ -316,7 +333,7 @@ def run_high_growth_no_inflation(param_initialization):
     simulator.economy.inflation = 0.0
 
     economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+    init_bank_balance()
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
@@ -332,7 +349,7 @@ def run_high_growth_no_profit(param_initialization):
     simulator.economy.bank.profit_spending = 1.0
 
     economy.central_bank.clear()
-    economy.client.borrow(Decimal(1000000.0))
+    init_bank_balance()
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 

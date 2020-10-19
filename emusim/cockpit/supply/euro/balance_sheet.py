@@ -58,6 +58,12 @@ class BalanceSheet:
         else:
             self.__liabilities[liability_name] = Decimal(amount)
 
+    def set_asset(self, asset_name: str, amount: Decimal):
+            self.__assets[asset_name] = Decimal(amount)
+
+    def set_liability(self, liability_name: str, amount: Decimal):
+            self.__liabilities[liability_name] = Decimal(amount)
+
     def validate(self) -> bool:
         return round(self.__value(self.assets), 4) == round(self.__value(self.liabilities), 4)
 

@@ -66,9 +66,23 @@ class EconomicActor(ABC):
         else:
             return False
 
+    def set_asset(self, name: str, amount: Decimal) -> bool:
+        if name in self.asset_names:
+            self.balance.set_asset(name, amount)
+            return True
+        else:
+            return False
+
     def book_liability(self, name: str, amount: Decimal) -> bool:
         if name in self.liability_names:
             self.balance.book_liability(name, amount)
+            return True
+        else:
+            return False
+
+    def set_liability(self, name: str, amount: Decimal) -> bool:
+        if name in self.liability_names:
+            self.balance.set_liability(name, amount)
             return True
         else:
             return False

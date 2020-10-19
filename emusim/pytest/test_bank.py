@@ -1,6 +1,6 @@
 from decimal import *
 
-from emusim.cockpit.supply.euro import CentralBank, Bank, PrivateActor, DefaultingMode
+from emusim.cockpit.supply.euro import CentralBank, Bank, SpendingMode, PrivateActor, DefaultingMode
 from emusim.cockpit.supply.euro.balance_entries import BalanceEntries
 from emusim.cockpit.utilities.cycles import Period, Interval
 
@@ -36,14 +36,53 @@ def test_pay_savings_interest():
     assert round(bank.balance.total_balance, 8) == round(Decimal(1000.0), 8)
 
 
+def test_income_and_spending():
+    central_bank.clear()
+
+    bank.loan_ir = Decimal(0.1 * Period.YEAR_DAYS)
+    bank.loan_duration = Period(10, Interval.DAY)
+    bank.client_interaction_interval = Period(1, Interval.DAY)
+    bank.income_from_interest = Decimal(0.5)
+    bank.spending_mode = SpendingMode.PROFIT
+    bank.profit_spending = 0.8
+
+    bank.savings_ir = Decimal(0.01) * Period.YEAR_DAYS
+    bank.client_interaction_interval = Period(1, Interval.DAY)
+
+    client.defaulting_mode = DefaultingMode.NONE
+    client.savings_rate = Decimal(0.1)
+
+    client.borrow(Decimal(100000.0))
+
+    central_bank.start_transactions()
+    bank.process_client_savings()
+    assert round(client.asset(BalanceEntries.SAVINGS), 8) == round(Decimal(10100.0), 8)
+    assert round(client.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(90000.0), 8)
+
+    bank.process_income_and_spending()
+    assert round(client.liability(BalanceEntries.DEBT), 8) == round(Decimal(90000.0), 8)
+    assert round(client.asset(BalanceEntries.SAVINGS), 8) == round(Decimal(10100.0), 8)
+    assert round(client.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(75920.0), 8)
+
+    assert central_bank.end_transactions()
+
+    assert client.asset(BalanceEntries.DEPOSITS) == bank.liability(BalanceEntries.DEPOSITS)
+    assert client.asset(BalanceEntries.SAVINGS) == bank.liability(BalanceEntries.SAVINGS)
+    assert client.liability(BalanceEntries.DEBT) == bank.asset(BalanceEntries.LOANS)
+    assert round(bank.income, 8) == round(Decimal(20000), 8)
+    assert round(bank.costs, 8) == round(Decimal(16020), 8)
+    assert round(bank.income_shortage, 8) == round(Decimal(0.0), 8)
+    assert round(bank.profit, 8) == round(Decimal(3980.0), 8)
+
+
 def test_full_income():
     central_bank.clear()
+
     bank.loan_ir = Decimal(0.05 * Period.YEAR_DAYS)
     bank.loan_duration = Period(10, Interval.DAY)
     bank.client_interaction_interval = Period(1, Interval.DAY)
     bank.income_from_interest = Decimal(0.8)
-    client.defaulting_mode = DefaultingMode.FIXED
-    client.fixed_defaulting_rate = Decimal(0.0)
+    client.defaulting_mode = DefaultingMode.NONE
 
     central_bank.start_transactions()
     client.borrow(Decimal(2000.0))
@@ -52,17 +91,17 @@ def test_full_income():
     bank.process_income_and_spending()
     assert central_bank.end_transactions()
 
-    assert round(client.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(1675.0), 8)
+    assert round(client.asset(BalanceEntries.DEPOSITS), 8) == round(Decimal(1775.0), 8)
     assert round(client.liability(BalanceEntries.DEBT), 8) == round(Decimal(1800.0), 8)
-    assert round(client.liability(BalanceEntries.EQUITY), 8) == round(Decimal(-125.0), 8)
-    assert round(client.balance.total_balance, 8) == round(Decimal(1675.0), 8)
+    assert round(client.liability(BalanceEntries.EQUITY), 8) == round(Decimal(-25.0), 8)
+    assert round(client.balance.total_balance, 8) == round(Decimal(1775.0), 8)
 
     assert round(bank.asset(BalanceEntries.LOANS), 8) == round(Decimal(1800.0), 8)
-    assert round(bank.liability(BalanceEntries.DEPOSITS), 8) == round(Decimal(1675.0), 8)
-    assert round(bank.liability(BalanceEntries.EQUITY), 8) == round(Decimal(125.0), 8)
+    assert round(bank.liability(BalanceEntries.DEPOSITS), 8) == round(Decimal(1775.0), 8)
+    assert round(bank.liability(BalanceEntries.EQUITY), 8) == round(Decimal(25.0), 8)
 
 
-def test_partial_income():
+def test_income_defaulting():
     central_bank.clear()
     bank.loan_ir = Decimal(0.05 * Period.YEAR_DAYS)
     bank.loan_duration = Period(10, Interval.DAY)
@@ -103,9 +142,7 @@ def test_reserves_no_securities():
     bank.client_interaction_interval = Period(1, Interval.DAY)
     bank.reserves_interval = Period(1, Interval.DAY)
     bank.income_from_interest = Decimal(0.8)
-    client.defaulting_mode = DefaultingMode.FIXED
-    client.fixed_defaulting_rate = Decimal(0.0)
-    client.defaults_bought_by_debt_collectors = Decimal(0.0)
+    client.defaulting_mode = DefaultingMode.NONE
 
     central_bank.start_transactions()
     client.borrow(Decimal(2000.0))
@@ -142,9 +179,7 @@ def test_reserves_mbs():
     bank.loan_duration = Period(10, Interval.YEAR)
     bank.reserves_interval = Period(1, Interval.DAY)
     bank.income_from_interest = Decimal(0.8)
-    client.defaulting_mode = DefaultingMode.FIXED
-    client.fixed_defaulting_rate = Decimal(0.0)
-    client.defaults_bought_by_debt_collectors = Decimal(0.0)
+    client.defaulting_mode = DefaultingMode.NONE
 
     central_bank.start_transactions()
     client.borrow(Decimal(2000.0))
@@ -184,9 +219,7 @@ def test_reserve_mbs_growth():
     bank.loan_duration = Period(10, Interval.YEAR)
     bank.reserves_interval = Period(1, Interval.DAY)
     bank.income_from_interest = Decimal(0.8)
-    client.defaulting_mode = DefaultingMode.FIXED
-    client.fixed_defaulting_rate = Decimal(0.0)
-    client.defaults_bought_by_debt_collectors = Decimal(0.0)
+    client.defaulting_mode = DefaultingMode.NONE
 
     central_bank.start_transactions()
     client.borrow(Decimal(2000.0))
@@ -218,9 +251,7 @@ def test_reserve_securities():
     bank.loan_duration = Period(10, Interval.YEAR)
     bank.reserves_interval = Period(1, Interval.DAY)
     bank.income_from_interest = Decimal(0.8)
-    client.defaulting_mode = DefaultingMode.FIXED
-    client.fixed_defaulting_rate = Decimal(0.0)
-    client.defaults_bought_by_debt_collectors = Decimal(0.0)
+    client.defaulting_mode = DefaultingMode.NONE
 
     central_bank.start_transactions()
     bank.book_asset(BalanceEntries.SECURITIES, Decimal(10.0))
@@ -262,9 +293,7 @@ def test_full_reserve_functionality():
     bank.loan_duration = Period(10, Interval.YEAR)
     bank.reserves_interval = Period(1, Interval.DAY)
     bank.income_from_interest = Decimal(0.8)
-    client.defaulting_mode = DefaultingMode.FIXED
-    client.fixed_defaulting_rate = Decimal(0.0)
-    client.defaults_bought_by_debt_collectors = Decimal(0.0)
+    client.defaulting_mode = DefaultingMode.NONE
 
     central_bank.start_transactions()
     bank.book_asset(BalanceEntries.SECURITIES, Decimal(10.0))

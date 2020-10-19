@@ -47,6 +47,7 @@ class PrivateActor(EconomicActor):
 
         # Cycle attributes.
         self.__installment: Decimal = Decimal(0.0)
+        self.__borrowed_money: Decimal = Decimal(0.0)
 
         # Cycle flags. Some operations can only be executed once per cycle.
 
@@ -134,11 +135,18 @@ class PrivateActor(EconomicActor):
     def serviceable_debt(self) -> Decimal:
         return self.debt - self.fixed_defaulting_rate * self.debt
 
+    @property
+    def borrowed_money(self) -> Decimal:
+        return self.__borrowed_money
+
     def inflate(self, inflation: Decimal):
         pass
 
     def start_transactions(self):
         super().start_transactions()
+
+        self.__installment = Decimal(0.0)
+        self.__borrowed_money = Decimal(0.0)
 
         if len(self.__installments) > 0:
             self.__installment = self.__installments.pop(0)
@@ -154,6 +162,7 @@ class PrivateActor(EconomicActor):
 
     def borrow(self, amount: Decimal):
         if amount > 0:
+            self.__borrowed_money += amount
             self.book_asset(BalanceEntries.DEPOSITS, amount)
             self.book_liability(BalanceEntries.DEBT, amount)
 
