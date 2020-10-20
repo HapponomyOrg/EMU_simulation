@@ -381,7 +381,7 @@ def test_risk_assets():
 
     central_bank.start_transactions()
     client.borrow(Decimal(10000.0))
-    bank.update_risk_assets()
+    bank.update_risk_assets(True)
     assert central_bank.end_transactions()
 
     assert round(bank.risk_assets, 8) >= round(bank.balance.assets_value * bank.min_risk_assets, 8)
