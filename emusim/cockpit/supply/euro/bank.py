@@ -586,11 +586,11 @@ class Bank(EconomicActor):
 
             self.__reserves_updated = True
 
-    def update_risk_assets(self):
+    def update_risk_assets(self, force_update: bool = False):
         # Update risk assets in the same cycles as reserves are updated
         if not self.__risk_assets_updated\
             and self.min_risk_assets > 0.0\
-                and self.reserves_interval.period_complete(self.cycle):
+                and (self.reserves_interval.period_complete(self.cycle) or force_update):
             if self.max_mbs_assets == 0.0 or self.max_security_assets == 0.0:
                 risk_asset: str = BalanceEntries.MBS if self.max_security_assets == 0.0 else BalanceEntries.SECURITIES
                 target_risk: Decimal = self.max_risk_assets * self.safe_assets / (1 - self.max_risk_assets)
@@ -663,8 +663,8 @@ class Bank(EconomicActor):
 
                 t, s, v = simplex(c, a, b)
 
-                new_securities: Decimal = s[0][1] - self.asset(BalanceEntries.SECURITIES)
-                new_mbs: Decimal = s[1][1] - self.asset(BalanceEntries.MBS)
+                new_mbs: Decimal = s[0][1] - self.asset(BalanceEntries.MBS)
+                new_securities: Decimal = s[1][1] - self.asset(BalanceEntries.SECURITIES)
 
                 self.__trade_client_securities(new_securities, BalanceEntries.SECURITIES)
                 self.book_asset(BalanceEntries.MBS, new_mbs)
