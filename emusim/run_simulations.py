@@ -113,12 +113,14 @@ def init_bank_balance():
     client: PrivateActor = economy.client
 
     client.borrow(Decimal(1000000.0))
+    bank.update_reserves(True)
     bank.update_risk_assets()
     bank.set_liability(BalanceEntries.DEPOSITS, Decimal(1000000.0))
-    bank.set_liability(BalanceEntries.EQUITY, bank.balance.assets_value - bank.liability(BalanceEntries.DEPOSITS))
+    bank.set_liability(BalanceEntries.EQUITY,
+                       bank.balance.assets_value - bank.liability(BalanceEntries.DEPOSITS)
+                       - bank.liability(BalanceEntries.DEBT))
     client.set_asset(BalanceEntries.DEPOSITS, Decimal(1000000.0))
     client.set_liability(BalanceEntries.EQUITY, client.balance.assets_value - client.liability(BalanceEntries.DEBT))
-    bank.update_reserves(True)
 
     assert bank.balance.validate()
     assert client.balance.validate()
@@ -208,6 +210,20 @@ def run_no_growth(param_initialization):
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
     dump_data("no_growth")
+
+
+def run_no_growth_low_inflation(param_initialization):
+    param_initialization()
+
+    simulator.economy.growth_rate = 0.0
+    simulator.economy.inflation = 0.005
+
+    economy.central_bank.clear()
+    init_bank_balance()
+    init_collector()
+    simulator.run_simulation(YEARS * Period.YEAR_DAYS)
+
+    dump_data("no_growth_low_inflation")
 
 
 def run_no_growth_no_inflation(param_initialization):
@@ -360,6 +376,7 @@ def run_batch(param_initialization):
     run_no_growth_no_save_no_profit(param_initialization)
     run_no_growth_no_inflation_no_save_no_profit(param_initialization)
     run_no_growth(param_initialization)
+    run_no_growth_low_inflation()
     run_no_growth_no_inflation(param_initialization)
     run_no_growth_no_profit(param_initialization)
 

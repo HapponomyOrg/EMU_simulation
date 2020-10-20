@@ -134,6 +134,7 @@ class Bank(EconomicActor):
         self.__reserves_updated: bool = False
 
         # Cycle attributes
+        self.__installment = Decimal(0.0)
         self.__client_installment: Decimal = Decimal(0.0)
         self.__client_installment_shortage: Decimal = Decimal(0.0)
         self.__expected_income: Decimal = Decimal(0.0)
@@ -227,6 +228,10 @@ class Bank(EconomicActor):
     @property
     def loan_installments(self) -> int:
         return int(self.loan_duration.days / self.client_interaction_interval.days)
+
+    @property
+    def installment(self) -> Decimal:
+        return self.__installment
 
     @property
     def client_installment(self) -> Decimal:
@@ -533,16 +538,16 @@ class Bank(EconomicActor):
 
     def pay_debt(self, ir: Decimal) -> Tuple[Decimal, Decimal]:
         interest: Decimal = self.liability(BalanceEntries.DEBT) * ir
-        installment: Decimal = self.__installments.pop(0)
-        total: Decimal = interest + installment
+        self.__installment = self.__installments.pop(0)
+        total: Decimal = interest + self.installment
 
         to_borrow: Decimal = max(Decimal(0.0), total - self.asset(BalanceEntries.RESERVES))
         self.borrow(to_borrow)
         self.book_asset(BalanceEntries.RESERVES, -total)
-        self.book_liability(BalanceEntries.DEBT, -installment)
+        self.book_liability(BalanceEntries.DEBT, -self.installment)
         self.book_liability(BalanceEntries.EQUITY, -interest)
 
-        return tuple((installment, interest))
+        return tuple((self.installment, interest))
 
     def update_reserves(self, force_update: bool = False):
         """Update reserves so that they are adequate for the current amount of deposits + savings on the balance
@@ -582,7 +587,10 @@ class Bank(EconomicActor):
             self.__reserves_updated = True
 
     def update_risk_assets(self):
-        if not self.__risk_assets_updated and self.min_risk_assets > 0.0:
+        # Update risk assets in the same cycles as reserves are updated
+        if not self.__risk_assets_updated\
+            and self.min_risk_assets > 0.0\
+                and self.reserves_interval.period_complete(self.cycle):
             if self.max_mbs_assets == 0.0 or self.max_security_assets == 0.0:
                 risk_asset: str = BalanceEntries.MBS if self.max_security_assets == 0.0 else BalanceEntries.SECURITIES
                 target_risk: Decimal = self.max_risk_assets * self.safe_assets / (1 - self.max_risk_assets)
@@ -620,41 +628,43 @@ class Bank(EconomicActor):
                     self.book_asset(BalanceEntries.MBS, new_mbs)
                     self.book_asset(BalanceEntries.LOANS, -new_mbs)
             else:
-                c = [1, 1]  # (to maximize)
+                cur_loans: Decimal = self.asset(BalanceEntries.LOANS)
+                cur_mbs: Decimal = self.asset(BalanceEntries.MBS)
+                c = [1, 1, 0]  # (to maximize)
 
                 # inequalities, number of rows equal to number of equations
-                # Sequence: [MBS SEC]
+                # Sequence: [MBS SEC LOANS]
 
                 # Equations (non normalized):
                 # [0] MBS + SEC >= min_risk_assets * total_assets
                 # [1] MBS + SEC <= max_risk_assets * total assets
                 # [2] MBS <= max_mbs * risk_assets
                 # [3] SEC <= max_sec * risk_assets
-                # [4] MBS <= LOANS + cur_MBS
-                a = [[1 - self.min_risk_assets, 1 - self.min_risk_assets],
-                     [1 - self.max_risk_assets, 1 - self.max_risk_assets],
-                     [1 - self.max_mbs_assets, -self.max_mbs_assets],
-                     [-self.max_security_assets, 1 - self.max_security_assets],
-                     [1, 0]]
-                b = [round(self.min_risk_assets * self.safe_assets, 8),
-                     round(self.max_risk_assets * self.safe_assets, 8),
+                # [4] MBS + LOANS == cur_MBS + cur_LOANS
+                a = [[1 - self.min_risk_assets, 1 - self.min_risk_assets, -self.min_risk_assets],
+                     [1 - self.max_risk_assets, 1 - self.max_risk_assets, -self.max_risk_assets],
+                     [1 - self.max_mbs_assets, -self.max_mbs_assets, 0],
+                     [-self.max_security_assets, 1 - self.max_security_assets, 0],
+                     [1, 0, 1]]
+                b = [self.min_risk_assets * self.asset(BalanceEntries.RESERVES),
+                     self.max_risk_assets * self.asset(BalanceEntries.RESERVES),
                      0,
                      0,
-                     self.asset(BalanceEntries.LOANS) + self.asset(BalanceEntries.MBS)]
+                     cur_mbs + cur_loans]
 
                 # # add slack variables by hand
-                a[0] += [-1, 0, 0, 0, 0]
-                a[1] += [0, 1, 0, 0, 0]
-                a[2] += [0, 0, 1, 0, 0]
-                a[3] += [0, 0, 0, 1, 0]
-                a[4] += [0, 0, 0, 0, 1]
+                a[0] += [-1, 0, 0, 0]
+                a[1] += [0, 1, 0, 0]
+                a[2] += [0, 0, 1, 0]
+                a[3] += [0, 0, 0, 1]
+                a[4] += [0, 0, 0, 0]
 
-                c += [0, 0, 0, 0, 0]
+                c += [0, 0, 0, 0]
 
                 t, s, v = simplex(c, a, b)
 
-                new_securities: Decimal = round(s[0][1], 8) - self.asset(BalanceEntries.SECURITIES)
-                new_mbs: Decimal = round(s[1][1], 8) - self.asset(BalanceEntries.MBS)
+                new_securities: Decimal = s[0][1] - self.asset(BalanceEntries.SECURITIES)
+                new_mbs: Decimal = s[1][1] - self.asset(BalanceEntries.MBS)
 
                 self.__trade_client_securities(new_securities, BalanceEntries.SECURITIES)
                 self.book_asset(BalanceEntries.MBS, new_mbs)

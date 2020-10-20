@@ -82,10 +82,14 @@ LOAN_DURATION = "Private loan duration"
 INCOME = "Income"
 COSTS = "Costs"
 PROFIT = "Profit"
-INSTALLMENT = "Installment"
+INSTALLMENT_RATIO = "Installment"
+
+# Private sector
+PRIVATE_SECTOR = "Private sector"
+SAVINGS_RATE = "Savings rate"
 
 BANK_STATIC_DATA_FIELDS = [MIN_RESERVE, SAVINGS_IR, LOAN_IR, LOAN_DURATION]
-BANK_DATA_FIELDS = [INCOME, COSTS, PROFIT, INSTALLMENT]
+BANK_DATA_FIELDS = [INCOME, COSTS, PROFIT, INSTALLMENT_RATIO]
 
 # Balance sheet categories
 CENTRAL_BANK_BS: str = "Central bank balance sheet"
@@ -218,8 +222,11 @@ class AggregateSimulator(Simulator):
                 data = self.economy.bank.costs
             elif data_field == PROFIT:
                 data = self.economy.bank.profit
-            elif data_field == INSTALLMENT:
-                data = self.economy.bank.client_installment
+            elif data_field == INSTALLMENT_RATIO:
+                data = self.economy.bank.installment / self.economy.bank.balance.assets_value
+        elif category == PRIVATE_SECTOR:
+            if data_field == INSTALLMENT_RATIO:
+                data = self.economy.bank.client_installment / self.economy.client.balance.assets_value
         elif category == CENTRAL_BANK_BS:
             data = self.__balance_entry(self.economy.central_bank, data_field)
         elif category == BANK_BS:
@@ -284,10 +291,22 @@ class AggregateSimulator(Simulator):
 
         # banks actions occur every cycle
         self.economy.update_reserves()
+        if self.economy.bank.reserves_interval.period_complete(cycle):
+            assert round(self.economy.bank.asset(BalanceEntries.RESERVES), 8)\
+                   >= round(self.economy.bank.client_liabilities * (self.economy.central_bank.min_reserve
+                                                              - self.economy.central_bank.mbs_real_reserve
+                                                              - self.economy.central_bank.securities_real_reserve), 8)
 
         self.economy.grow_securities()
         self.economy.grow_mbs()
         self.economy.update_risk_assets()
+        if self.economy.bank.reserves_interval.period_complete(cycle):
+            assert round(self.economy.bank.risk_assets, 8) >= round(self.economy.bank.balance.assets_value * self.economy.bank.min_risk_assets, 8)
+            # print(round(self.economy.bank.risk_assets, 8))
+            # print(round(self.economy.bank.balance.assets_value * self.economy.bank.max_risk_assets, 8))
+            assert round(self.economy.bank.risk_assets, 8) <= round(self.economy.bank.balance.assets_value * self.economy.bank.max_risk_assets, 8)
+            assert round(self.economy.bank.asset(BalanceEntries.MBS), 8) <= round(self.economy.bank.risk_assets * self.economy.bank.max_mbs_assets, 8)
+            assert round(self.economy.bank.asset(BalanceEntries.SECURITIES), 8) <= round(self.economy.bank.risk_assets * self.economy.bank.max_security_assets, 8)
 
         # process QE and helicopter money
         self.economy.process_qe()

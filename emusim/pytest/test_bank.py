@@ -384,7 +384,7 @@ def test_risk_assets():
     bank.update_risk_assets()
     assert central_bank.end_transactions()
 
-    assert bank.risk_assets >= bank.balance.assets_value * bank.min_risk_assets
-    assert bank.risk_assets <= bank.balance.assets_value * bank.max_risk_assets
-    assert bank.asset(BalanceEntries.MBS) <= bank.risk_assets * bank.max_mbs_assets
-    assert bank.asset(BalanceEntries.SECURITIES) <= bank.risk_assets * bank.max_security_assets
+    assert round(bank.risk_assets, 8) >= round(bank.balance.assets_value * bank.min_risk_assets, 8)
+    assert round(bank.risk_assets, 8) <= round(bank.balance.assets_value * bank.max_risk_assets, 8)
+    assert round(bank.asset(BalanceEntries.MBS), 8) <= round(bank.risk_assets * bank.max_mbs_assets, 8)
+    assert round(bank.asset(BalanceEntries.SECURITIES), 8) <= round(bank.risk_assets * bank.max_security_assets, 8)
