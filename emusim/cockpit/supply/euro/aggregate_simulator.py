@@ -291,22 +291,10 @@ class AggregateSimulator(Simulator):
 
         # banks actions occur every cycle
         self.economy.update_reserves()
-        if self.economy.bank.reserves_interval.period_complete(cycle):
-            assert round(self.economy.bank.asset(BalanceEntries.RESERVES), 8)\
-                   >= round(self.economy.bank.client_liabilities * (self.economy.central_bank.min_reserve
-                                                              - self.economy.central_bank.mbs_real_reserve
-                                                              - self.economy.central_bank.securities_real_reserve), 8)
 
         self.economy.grow_securities()
         self.economy.grow_mbs()
         self.economy.update_risk_assets()
-        if self.economy.bank.reserves_interval.period_complete(cycle):
-            assert round(self.economy.bank.risk_assets, 8) >= round(self.economy.bank.balance.assets_value * self.economy.bank.min_risk_assets, 8)
-            # print(round(self.economy.bank.risk_assets, 8))
-            # print(round(self.economy.bank.balance.assets_value * self.economy.bank.max_risk_assets, 8))
-            assert round(self.economy.bank.risk_assets, 8) <= round(self.economy.bank.balance.assets_value * self.economy.bank.max_risk_assets, 8)
-            assert round(self.economy.bank.asset(BalanceEntries.MBS), 8) <= round(self.economy.bank.risk_assets * self.economy.bank.max_mbs_assets, 8)
-            assert round(self.economy.bank.asset(BalanceEntries.SECURITIES), 8) <= round(self.economy.bank.risk_assets * self.economy.bank.max_security_assets, 8)
 
         # process QE and helicopter money
         self.economy.process_qe()
