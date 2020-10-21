@@ -114,7 +114,6 @@ class SimpleDataGenerator(DataGenerator):
         self.__growth_influence_rate = Decimal(rate)
 
     def generate_next(self):
-        inflation: Decimal = self.data_collector.get_data_series(SYSTEM, INFLATION)[-1]
         real_growth: Decimal = self.data_collector.get_data_series(SYSTEM, REAL_GROWTH)[-1]
         self.__economy.inflation += self.__economy.inflation * real_growth * self.growth_influence_rate
 
@@ -184,7 +183,7 @@ class AggregateSimulator(Simulator):
             if data_field == CYCLE:
                 data = Decimal(self.economy.central_bank.cycle)
             elif data_field == GROWTH_TARGET:
-                data = self.economy.client_interval_growth_rate
+                data = self.economy.growth_rate
             elif data_field == REAL_GROWTH:
                 data = self.__real_growth
             elif data_field == NOMINAL_GROWTH:
@@ -194,7 +193,7 @@ class AggregateSimulator(Simulator):
             elif data_field == SECURITY_GROWTH:
                 data = self.economy.security_growth
             elif data_field == INFLATION:
-                data = self.economy.client_interval_inflation_rate
+                data = self.economy.inflation
             elif data_field == IM:
                 data = self.economy.im
             elif data_field == IM_TARGET:

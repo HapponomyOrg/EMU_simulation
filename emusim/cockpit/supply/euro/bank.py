@@ -99,9 +99,10 @@ class Bank(EconomicActor):
         self.central_bank.bank = self
         self.__installments: List[Decimal] = [Decimal(0.0)]
 
-        self.__min_reserve: Decimal = central_bank.min_reserve
         self.reserves_interval: Period = Period(1, Interval.MONTH) # Interval when reserves are updated
+        self.__min_reserve: Decimal = central_bank.min_reserve
 
+        self.risk_assets_interval: Period = Period(1, Interval.MONTH)
         self.__min_risk_assets: Decimal = Decimal(0.0)
         self.__max_risk_assets: Decimal = Decimal(1.0) # Maximum % of assets being MBS and/or Securities
 
@@ -590,7 +591,7 @@ class Bank(EconomicActor):
         # Update risk assets in the same cycles as reserves are updated
         if not self.__risk_assets_updated\
             and self.min_risk_assets > 0.0\
-                and (self.reserves_interval.period_complete(self.cycle) or force_update):
+                and (self.risk_assets_interval.period_complete(self.cycle) or force_update):
             if self.max_mbs_assets == 0.0 or self.max_security_assets == 0.0:
                 risk_asset: str = BalanceEntries.MBS if self.max_security_assets == 0.0 else BalanceEntries.SECURITIES
                 target_risk: Decimal = self.max_risk_assets * self.safe_assets / (1 - self.max_risk_assets)
