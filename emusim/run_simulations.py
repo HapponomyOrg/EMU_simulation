@@ -5,7 +5,8 @@ from emusim.cockpit.supply import DataCollector
 from emusim.cockpit.supply.euro import AggregateSimulator, EuroEconomy,QEMode,HelicopterMode,\
     SimpleDataGenerator, SpendingMode, DefaultingMode, BalanceEntries, Bank, PrivateActor
 from emusim.cockpit.supply.euro.aggregate_simulator import PERCENTAGE_FIELDS, SYSTEM_DATA_FIELDS, SYSTEM, \
-    CYCLE, BANK, BANK_DATA_FIELDS, CENTRAL_BANK_BS, BANK_BS, PRIVATE_SECTOR_BS
+    CYCLE, REAL_GROWTH, DEBT_RATIO,REQUIRED_LENDING_RATE, BANK, BANK_DATA_FIELDS, CENTRAL_BANK_BS, BANK_BS, \
+    PRIVATE_SECTOR_BS
 from emusim.cockpit.utilities.cycles import Period, Interval
 
 economy: EuroEconomy = EuroEconomy()
@@ -80,32 +81,39 @@ def set_sec_parameters():
 
 
 def init_collector():
-    for data_label in SYSTEM_DATA_FIELDS:
-        collector.set_collect_data(SYSTEM, data_label, True)
+    collector.set_collect_data(SYSTEM, CYCLE, True)
+    collector.set_collect_data(SYSTEM, REAL_GROWTH, True)
+    collector.set_collect_data(SYSTEM, DEBT_RATIO, True)
+    collector.set_collect_data(SYSTEM, REQUIRED_LENDING_RATE, True)
+    collector.set_collect_data(BANK_BS, BalanceEntries.EQUITY, True)
+    collector.set_collect_data(PRIVATE_SECTOR_BS, BalanceEntries.EQUITY, True)
 
-    for data_label in BANK_DATA_FIELDS:
-        collector.set_collect_data(BANK, data_label, True)
-
-    # Central bank balance sheet
-    for asset in economy.central_bank.asset_names:
-        collector.set_collect_data(CENTRAL_BANK_BS, asset, True)
-
-    for liability in economy.central_bank.liability_names:
-        collector.set_collect_data(CENTRAL_BANK_BS, liability, True)
-
-    # Bank balance sheet
-    for asset in economy.bank.asset_names:
-        collector.set_collect_data(BANK_BS, asset, True)
-
-    for liability in economy.bank.liability_names:
-        collector.set_collect_data(BANK_BS, liability, True)
-
-    # Private sector balance sheet
-    for asset in economy.client.asset_names:
-        collector.set_collect_data(PRIVATE_SECTOR_BS, asset, True)
-
-    for liability in economy.client.liability_names:
-        collector.set_collect_data(PRIVATE_SECTOR_BS, liability, True)
+    # for data_label in SYSTEM_DATA_FIELDS:
+    #     collector.set_collect_data(SYSTEM, data_label, True)
+    #
+    # for data_label in BANK_DATA_FIELDS:
+    #     collector.set_collect_data(BANK, data_label, True)
+    #
+    # # Central bank balance sheet
+    # for asset in economy.central_bank.asset_names:
+    #     collector.set_collect_data(CENTRAL_BANK_BS, asset, True)
+    #
+    # for liability in economy.central_bank.liability_names:
+    #     collector.set_collect_data(CENTRAL_BANK_BS, liability, True)
+    #
+    # # Bank balance sheet
+    # for asset in economy.bank.asset_names:
+    #     collector.set_collect_data(BANK_BS, asset, True)
+    #
+    # for liability in economy.bank.liability_names:
+    #     collector.set_collect_data(BANK_BS, liability, True)
+    #
+    # # Private sector balance sheet
+    # for asset in economy.client.asset_names:
+    #     collector.set_collect_data(PRIVATE_SECTOR_BS, asset, True)
+    #
+    # for liability in economy.client.liability_names:
+    #     collector.set_collect_data(PRIVATE_SECTOR_BS, liability, True)
 
 
 def init_bank_balance():
@@ -273,6 +281,24 @@ def run_low_growth_no_save_no_profit(param_initialization):
     dump_data("low_growth_no_save_no_profit")
 
 
+def run_low_growth_no_save_no_profit_no_inflation(param_initialization):
+    param_initialization()
+
+    simulator.economy.growth_rate = 0.01
+    simulator.economy.inflation = 0.0
+    simulator.economy.bank.spending_mode = SpendingMode.PROFIT
+    simulator.economy.bank.retain_profit = False
+    simulator.economy.bank.profit_spending = 1.0
+    simulator.economy.client.savings_rate = 0.0
+
+    economy.central_bank.clear()
+    init_bank_balance()
+    init_collector()
+    simulator.run_simulation(YEARS * Period.YEAR_DAYS)
+
+    dump_data("low_growth_no_save_no_profit_no_inflation")
+
+
 def run_low_growth(param_initialization):
     param_initialization()
 
@@ -332,6 +358,23 @@ def run_high_growth_no_save_no_profit(param_initialization):
     dump_data("high_growth_no_save_no_profit")
 
 
+def run_high_growth_no_save_no_profit_no_inflation(param_initialization):
+    param_initialization()
+
+    simulator.economy.inflation = 0.0
+    simulator.economy.bank.spending_mode = SpendingMode.PROFIT
+    simulator.economy.bank.retain_profit = False
+    simulator.economy.bank.profit_spending = 1.0
+    simulator.economy.client.savings_rate = 0.0
+
+    economy.central_bank.clear()
+    init_bank_balance()
+    init_collector()
+    simulator.run_simulation(YEARS * Period.YEAR_DAYS)
+
+    dump_data("high_growth_no_save_no_profit_no_inflation")
+
+
 def run_high_growth(param_initialization):
     param_initialization()
 
@@ -376,16 +419,18 @@ def run_batch(param_initialization):
     run_no_growth_no_save_no_profit(param_initialization)
     run_no_growth_no_inflation_no_save_no_profit(param_initialization)
     run_no_growth(param_initialization)
-    run_no_growth_low_inflation()
+    run_no_growth_low_inflation(param_initialization)
     run_no_growth_no_inflation(param_initialization)
     run_no_growth_no_profit(param_initialization)
 
     run_low_growth_no_save_no_profit(param_initialization)
+    run_low_growth_no_save_no_profit_no_inflation(param_initialization)
     run_low_growth(param_initialization)
     run_low_growth_no_inflation(param_initialization)
     run_low_growth_no_profit(param_initialization)
 
     run_high_growth_no_save_no_profit(param_initialization)
+    run_high_growth_no_save_no_profit_no_inflation(param_initialization)
     run_high_growth(param_initialization)
     run_high_growth_no_inflation(param_initialization)
     run_high_growth_no_profit(param_initialization)
