@@ -15,6 +15,9 @@ class BalanceEntries:
     RESERVES = "Reserves"
     INTEREST = "Interest"
 
+    ALL = [QE, LOANS, MBS, SECURITIES, DEPOSITS, DEBT, UNRESOLVED_DEBT, SAVINGS, EQUITY, MBS_EQUITY,
+           HELICOPTER_MONEY, RESERVES, INTEREST]
+
     @staticmethod
     def equity_type(asset: str) -> str:
         if asset == BalanceEntries.MBS:
