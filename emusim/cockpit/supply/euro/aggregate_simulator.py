@@ -31,12 +31,7 @@ LENDING_RATE = "Lending rate"
 DEBT_RATIO = "Debt ratio"
 SECURITIES_RATIO = "Securities ratio"
 
-SYSTEM_OBLIGATORY_DATA_FIELDS = [CYCLE,
-                                 GROWTH_TARGET,
-                                 INFLATION,
-                                 REAL_GROWTH,
-                                 REQUIRED_LENDING_RATE,
-                                 LENDING_RATE]
+SYSTEM_OBLIGATORY_DATA_FIELDS = [CYCLE, REAL_GROWTH]
 
 SYSTEM_DATA_FIELDS = [CYCLE,
                       IM,
@@ -309,11 +304,6 @@ class AggregateSimulator(Simulator):
             self.__required_lending = Decimal(max(self.__target_im - self.economy.im, 0.0))
             self.__lending = self.__required_lending * self.economy.lending_satisfaction_rate
 
-            self.economy.process_borrowing(self.__lending)
-
-            # Calculate real total lending
-            self.__lending = self.economy.client.borrowed_money
-
             # multiplier to extrapolate to % per year
             multiplier: Decimal = Decimal(Period.YEAR_DAYS / self.economy.bank.client_interaction_interval.days)
 
@@ -324,6 +314,11 @@ class AggregateSimulator(Simulator):
             else:
                 self.__required_lending_rate = Decimal('Infinity')
                 self.__lending_rate = Decimal('Infinity')
+
+            self.economy.process_borrowing(self.__lending)
+
+            # Calculate real total lending
+            self.__lending = self.economy.client.borrowed_money
 
             self.__nominal_growth = round((self.economy.im - self.__start_im) / self.__start_im * multiplier, 8)
 
