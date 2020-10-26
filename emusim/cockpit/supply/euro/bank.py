@@ -118,7 +118,6 @@ class Bank(EconomicActor):
 
         self.no_loss: bool = True
         self.__income_from_interest: Decimal = Decimal(0.8)
-        self.retain_profit: bool = True
         self.__retain_profit_percentage: Decimal = Decimal(0.2)
 
         self.spending_mode: SpendingMode = SpendingMode.PROFIT
@@ -478,8 +477,7 @@ class Bank(EconomicActor):
                     self.book_liability(BalanceEntries.MBS_EQUITY, -mbs_to_sell)
                     self.book_liability(BalanceEntries.EQUITY, mbs_to_sell)
 
-            if self.retain_profit:
-                bank_spending = min(bank_spending, max(Decimal(0.0), profit - profit * self.retain_profit_percentage))
+            bank_spending = min(bank_spending, max(Decimal(0.0), profit - profit * self.retain_profit_percentage))
 
             if self.no_loss and profit - bank_spending < 0:
                 bank_spending = min(bank_spending, profit)

@@ -57,7 +57,6 @@ def set_no_sec_parameters():
     economy.bank.loan_duration = Period(20, Interval.YEAR)
     economy.bank.no_loss = True
     economy.bank.income_from_interest = 0.2
-    economy.bank.retain_profit = True
     economy.bank.retain_profit_percentage = 0.2
     economy.bank.spending_mode = SpendingMode.PROFIT
     economy.bank.profit_spending = 0.8
