@@ -1,0 +1,33 @@
+{% extends "lorecosim_base.html" %}
+
+{% block content %}
+{% from "flask_user/_macros.html" import render_field, render_checkbox_field, render_submit_field %}
+<h1>{%trans%}Platform users{%endtrans%}</h1>
+{% if users %}
+<table class="table table-sm table-striped">
+    <thead>
+    <tr>
+        <th scope="col">ID</th>
+        <th scope="col">First name</th>
+        <th scope="col">Last name</th>
+        <th scope="col">E-mail</th>
+    </tr>
+  </thead>
+    <tbody>
+
+    {% for user in users %}
+    <tr>
+        <td>{{ user.id }}</td>
+        <td>{{ user.first_name }}</td>
+        <td>{{ user.last_name }}</td>
+        <td>{{ user.email }}</td>
+
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<h6>{%trans%}There are no platform users yet.{%endtrans%}</h6>
+{% endif %}
+{% endblock %}
+

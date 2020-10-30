@@ -1,4 +1,6 @@
 from flask import Blueprint, render_template, request
+from flask_login import current_user
+
 from emusim.cockpit.abm.forms.abm_forms_d import ParameterForm
 from emusim.cockpit.abm.mesa.MoneyModel import *
 import pygal
@@ -81,7 +83,6 @@ def moneymodel(parameter_form=None):
         parameter_form = ParameterForm(request.form)
     render_graphs = False
     graph_data = None
-
     if parameter_form.validate():
         graph_data = moneymodel_run(parameter_form.num_agents.data, parameter_form.initial_wealth.data,
                                     parameter_form.wealth_transfer.data, parameter_form.iterations.data)

@@ -36,7 +36,7 @@ def create_users():
     # Add users
     user = find_or_create_user(u'Admin', u'Example', u'admin@example.com', 'Password1', admin_role)
     user = find_or_create_user(u'Member', u'Example', u'member@example.com', 'Password1')
-    user = find_or_create_user(u'Lansen', u'Puttemans', u'lansen.puttemans@howest.be', 'Password1')
+    user = find_or_create_user(u'Lansen', u'Puttemans', u'lansen.puttemans@howest.be', 'Password1', admin_role)
     user = find_or_create_user(u'Jonas', u'Van Lancker', u'jonas.van.lancker@howest.be', 'Password1')
     user = find_or_create_user(u'Geert', u'Hofman', u'geert.hofman@howest.be', 'Password1')
     user = find_or_create_user(u'Stef', u'Kuypers', u'stef@happonomy.org', 'Password1')

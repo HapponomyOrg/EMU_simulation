@@ -1,7 +1,3 @@
-# Copyright 2014 SolidBuilds.com. All rights reserved
-#
-# Authors: Ling Thio <ling.thio@gmail.com>
-
 
 from flask import Blueprint, redirect, render_template, flash
 from flask import request, url_for
@@ -98,7 +94,7 @@ def models_run(modelID):
 @user_blueprint.route('/admin')
 @roles_required('admin')  # Limits access to users with the 'admin' role
 def admin_page():
-    return render_template('main/admin_page.html')
+    return render_template('main/platformusers.html')
 
 
 @user_blueprint.route('/main/profile', methods=['GET', 'POST'])

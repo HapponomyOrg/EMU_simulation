@@ -18,6 +18,8 @@ from emusim.cockpit.overshoot.views.overshoot_d import overshoot_d
 from emusim.cockpit.supply.views.home_d import home_d
 from emusim.cockpit.abm.views.abm_d import abm_in_flask
 
+
+
 from emusim.config import Config
 
 # Instantiate Flask extensions
@@ -68,9 +70,12 @@ def create_app():
     app.register_blueprint(sumsy_supply_d)
     app.register_blueprint(overshoot_d)
     app.register_blueprint(abm_in_flask)
+
     app.register_blueprint(home_d)
     from emusim.cockpit.abm.views.user_views import user_blueprint
     app.register_blueprint(user_blueprint)
+    from emusim.cockpit.abm.views.admin_views import admin_blueprint
+    app.register_blueprint(admin_blueprint)
 
     return app
 
