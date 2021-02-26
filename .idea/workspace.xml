@@ -22,12 +22,16 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="79ae4c6e-6885-4f9a-98ae-2ed692ecd8f6" name="Default Changelist" comment="implementation of user management (including mailing), and user's model management">
+    <list default="true" id="79ae4c6e-6885-4f9a-98ae-2ed692ecd8f6" name="Default Changelist" comment="implementation of postgresql">
+      <change afterPath="$PROJECT_DIR$/emusim/cockpit/abm/templates/admin/platformusers.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/emusim/cockpit/abm/views/admin_views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/emusim/__dbinit__.py" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/__dbinit__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/emusim/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emusim/local_settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/local_settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/emusim/cockpit/abm/templates/main/admin_page.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/emusim/cockpit/abm/views/abm_d.py" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/cockpit/abm/views/abm_d.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/emusim/cockpit/abm/views/user_views.py" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/cockpit/abm/views/user_views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/emusim/templates/lorecosim_base.html" beforeDir="false" afterPath="$PROJECT_DIR$/emusim/templates/lorecosim_base.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,7 +78,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="ignore.virus.scanning.warn.message" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/emusim/cockpit/abm/templates/main" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/emusim/cockpit/abm/templates/admin" />
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
@@ -90,93 +94,22 @@
     </option>
   </component>
   <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\loreco\EMU_simulation\emusim\cockpit\abm\templates\main" />
-      <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\loreco\EMU_simulation\emusim\templates" />
-      <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\loreco\EMU_simulation\emusim\cockpit\abm\templates\flask_user" />
-      <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\loreco\EMU_simulation\emusim" />
-      <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\loreco\EMU_simulation\emusim\cockpit\abm\templates" />
-    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\LoREco\EMU_simulation\emusim\cockpit\abm\templates\admin" />
       <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\loreco\EMU_simulation\emusim\templates" />
       <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\loreco\EMU_simulation\emusim\cockpit\abm\templates\flask_user" />
       <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\loreco\EMU_simulation\emusim" />
       <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\loreco\EMU_simulation" />
-      <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\loreco\EMU_simulation\emusim\cockpit" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\LoREco\EMU_simulation\emusim\cockpit\abm\templates\admin" />
+      <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\loreco\EMU_simulation\emusim\cockpit\abm\templates\main" />
+      <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\loreco\EMU_simulation\emusim\templates" />
+      <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\loreco\EMU_simulation\emusim\cockpit\abm\templates\flask_user" />
+      <recent name="C:\Users\lansen.puttemans\OneDrive - Hogeschool West-Vlaanderen\loreco\EMU_simulation\emusim" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.__dbinit__remote">
-    <configuration name="__dbinit__" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="Money System Simulations" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-        <env name="SENDGRID_API_KEY" value="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" />
-        <env name="DATABASE_URL" value="postgresql://lorecouser:lorecopassword@localhost:5432/loreco" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/emusim" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/emusim/__dbinit__.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="true" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="__dbinit__remote" type="PythonConfigurationType" factoryName="Python">
-      <module name="Money System Simulations" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="SENDGRID_API_KEY" value="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" />
-        <env name="DATABASE_URL" value="postgres://syuktitgmfxbjd:3b1dd06bbdc9a7d3215c05e4ac41fc95301431644a1c95ee72b5b3527737a5bd@ec2-18-203-7-163.eu-west-1.compute.amazonaws.com:5432/df3ovvj3rlju6v" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/emusim" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/emusim/__dbinit__.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="true" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="__main__" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="Money System Simulations" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-        <env name="SENDGRID_API_KEY" value="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" />
-        <env name="DATABASE_URL" value="postgresql://lorecouser:lorecopassword@localhost:5432/loreco" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/emusim" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/emusim/__main__.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="Python.local app run - local db">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="Money System Simulations" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -199,12 +132,14 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="initdb" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="init local db" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Money System Simulations" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="SENDGRID_API_KEY" value="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" />
+        <env name="DATABASE_URL" value="postgresql://lorecouser:lorecopassword@localhost:5432/loreco" />
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/emusim" />
@@ -212,9 +147,57 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/emusim/initdb.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/emusim/__dbinit__.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="init remote db" type="PythonConfigurationType" factoryName="Python">
+      <module name="Money System Simulations" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="SENDGRID_API_KEY" value="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" />
+        <env name="DATABASE_URL" value="postgres://syuktitgmfxbjd:3b1dd06bbdc9a7d3215c05e4ac41fc95301431644a1c95ee72b5b3527737a5bd@ec2-18-203-7-163.eu-west-1.compute.amazonaws.com:5432/df3ovvj3rlju6v" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/emusim" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/emusim/__dbinit__.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="local app run - local db" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="Money System Simulations" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="SENDGRID_API_KEY" value="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" />
+        <env name="DATABASE_URL" value="postgresql://lorecouser:lorecopassword@localhost:5432/loreco" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/emusim" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/emusim/__main__.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
       <option name="REDIRECT_INPUT" value="false" />
@@ -244,17 +227,15 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.__dbinit__remote" />
-      <item itemvalue="Python.__dbinit__" />
-      <item itemvalue="Python.__main__" />
-      <item itemvalue="Python.initdb" />
+      <item itemvalue="Python.init remote db" />
+      <item itemvalue="Python.init local db" />
+      <item itemvalue="Python.local app run - local db" />
       <item itemvalue="Python.serverViz" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.__main__" />
-        <item itemvalue="Python.__dbinit__" />
-        <item itemvalue="Python.initdb" />
+        <item itemvalue="Python.local app run - local db" />
+        <item itemvalue="Python.init local db" />
         <item itemvalue="Python.serverViz" />
       </list>
     </recent_temporary>
@@ -301,21 +282,16 @@
       <workItem from="1600069088427" duration="1692000" />
       <workItem from="1600072441329" duration="2401000" />
       <workItem from="1600859037960" duration="10553000" />
-      <workItem from="1601028187731" duration="1461000" />
-    </task>
-    <task id="LOCAL-00034" summary="Changed default of % of IM spent by banks to 5%">
-      <created>1554124554188</created>
-      <option name="number" value="00034" />
-      <option name="presentableId" value="LOCAL-00034" />
-      <option name="project" value="LOCAL" />
-      <updated>1554124554188</updated>
-    </task>
-    <task id="LOCAL-00035" summary="Fixed bug in created bank reserve">
-      <created>1554130075414</created>
-      <option name="number" value="00035" />
-      <option name="presentableId" value="LOCAL-00035" />
-      <option name="project" value="LOCAL" />
-      <updated>1554130075414</updated>
+      <workItem from="1601028187731" duration="2428000" />
+      <workItem from="1601213348934" duration="3784000" />
+      <workItem from="1602165463210" duration="207000" />
+      <workItem from="1602424313935" duration="603000" />
+      <workItem from="1602749927264" duration="1798000" />
+      <workItem from="1603185854934" duration="4834000" />
+      <workItem from="1603374188098" duration="567000" />
+      <workItem from="1603440207360" duration="1702000" />
+      <workItem from="1603800565663" duration="600000" />
+      <workItem from="1604049196820" duration="392000" />
     </task>
     <task id="LOCAL-00036" summary="Fixed divide by zero bugs">
       <created>1554133487366</created>
@@ -646,17 +622,22 @@
       <option name="project" value="LOCAL" />
       <updated>1600950425675</updated>
     </task>
-    <option name="localTasksCounter" value="83" />
+    <task id="LOCAL-00083" summary="implementation of postgresql">
+      <created>1601030272122</created>
+      <option name="number" value="00083" />
+      <option name="presentableId" value="LOCAL-00083" />
+      <option name="project" value="LOCAL" />
+      <updated>1601030272122</updated>
+    </task>
+    <task id="LOCAL-00084" summary="implementation of postgresql">
+      <created>1601285383768</created>
+      <option name="number" value="00084" />
+      <option name="presentableId" value="LOCAL-00084" />
+      <option name="project" value="LOCAL" />
+      <updated>1601285383769</updated>
+    </task>
+    <option name="localTasksCounter" value="85" />
     <servers />
-  </component>
-  <component name="TodoView">
-    <todo-panel id="selected-file">
-      <is-autoscroll-to-source value="true" />
-    </todo-panel>
-    <todo-panel id="all">
-      <are-packages-shown value="true" />
-      <is-autoscroll-to-source value="true" />
-    </todo-panel>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="2" />
@@ -701,7 +682,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
-    <MESSAGE value="Adjusted defaults for Euro sim" />
     <MESSAGE value="Fixed QE Fixed bug" />
     <MESSAGE value="Updated Python version to new release 3.7.3" />
     <MESSAGE value="QE_trickle is now added to created IM instead of created bank reserve" />
@@ -726,22 +706,15 @@
     <MESSAGE value="initial commit" />
     <MESSAGE value="delete import matplotlib" />
     <MESSAGE value="implementation of user management (including mailing), and user's model management" />
-    <option name="LAST_COMMIT_MESSAGE" value="implementation of user management (including mailing), and user's model management" />
+    <MESSAGE value="implementation of postgresql" />
+    <option name="LAST_COMMIT_MESSAGE" value="implementation of postgresql" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="249" y="0" key="#Project_Structure" timestamp="1593010740163">
-      <screen x="0" y="0" width="1536" height="834" />
-    </state>
-    <state x="249" y="0" key="#Project_Structure/0.0.1536.834@0.0.1536.834" timestamp="1593010740163" />
-    <state x="484" y="12" key="#__main__" timestamp="1593159681490">
-      <screen x="0" y="0" width="1536" height="834" />
-    </state>
-    <state x="484" y="12" key="#__main__/0.0.1536.834@0.0.1536.834" timestamp="1593159681490" />
-    <state x="113" y="55" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1601028998238">
+    <state x="113" y="55" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1603187142455">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
     <state x="2371" y="94" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.802/1920.0.1920.1050@1920.0.1920.1050" timestamp="1600953536022" />
-    <state x="113" y="55" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.802@0.0.1536.802" timestamp="1601028998238" />
+    <state x="113" y="55" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.802@0.0.1536.802" timestamp="1603187142455" />
     <state x="361" y="75" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.834@0.0.1536.834" timestamp="1597653418346" />
     <state x="517" y="219" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1597655650196">
       <screen x="0" y="0" width="1536" height="834" />
@@ -753,10 +726,6 @@
     <state x="3028" y="50" key="#xdebugger.evaluate/0.0.1536.802/1920.0.1920.1050@1920.0.1920.1050" timestamp="1600936536128" />
     <state x="886" y="40" width="528" height="594" key="#xdebugger.evaluate/0.0.1536.834@0.0.1536.834" timestamp="1597691865096" />
     <state x="927" y="41" key="#xdebugger.evaluate/96.0.1440.864@96.0.1440.864" timestamp="1598968162778" />
-    <state x="222" y="0" key="CommitChangelistDialog2" timestamp="1593159292079">
-      <screen x="0" y="0" width="1536" height="834" />
-    </state>
-    <state x="222" y="0" key="CommitChangelistDialog2/0.0.1536.834@0.0.1536.834" timestamp="1593159292079" />
     <state width="905" height="466" key="DebuggerActiveHint" timestamp="1597659839251">
       <screen x="0" y="0" width="1536" height="834" />
     </state>
@@ -770,39 +739,35 @@
       <screen x="0" y="0" width="1536" height="834" />
     </state>
     <state x="549" y="172" key="FileChooserDialogImpl/0.0.1536.834@0.0.1536.834" timestamp="1597658245104" />
-    <state width="1493" height="268" key="GridCell.Tab.0.bottom" timestamp="1601028688277">
+    <state width="1493" height="274" key="GridCell.Tab.0.bottom" timestamp="1603478215000">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
     <state width="1293" height="285" key="GridCell.Tab.0.bottom/0.0.1536.802/1920.0.1920.1050@1920.0.1920.1050" timestamp="1600953965450" />
-    <state width="1493" height="268" key="GridCell.Tab.0.bottom/0.0.1536.802@0.0.1536.802" timestamp="1601028688277" />
-    <state width="1493" height="196" key="GridCell.Tab.0.bottom/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593255064133" />
+    <state width="1493" height="274" key="GridCell.Tab.0.bottom/0.0.1536.802@0.0.1536.802" timestamp="1603478215000" />
     <state width="1493" height="320" key="GridCell.Tab.0.bottom/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="1877" height="267" key="GridCell.Tab.0.bottom/0.0.1920.1016@0.0.1920.1016" timestamp="1600075481954" />
     <state width="1397" height="253" key="GridCell.Tab.0.bottom/96.0.1440.864@96.0.1440.864" timestamp="1598968191644" />
-    <state width="1493" height="268" key="GridCell.Tab.0.center" timestamp="1601028688277">
+    <state width="1493" height="274" key="GridCell.Tab.0.center" timestamp="1603478215000">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
     <state width="1293" height="285" key="GridCell.Tab.0.center/0.0.1536.802/1920.0.1920.1050@1920.0.1920.1050" timestamp="1600953965450" />
-    <state width="1493" height="268" key="GridCell.Tab.0.center/0.0.1536.802@0.0.1536.802" timestamp="1601028688277" />
-    <state width="1493" height="196" key="GridCell.Tab.0.center/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593255064133" />
+    <state width="1493" height="274" key="GridCell.Tab.0.center/0.0.1536.802@0.0.1536.802" timestamp="1603478215000" />
     <state width="1493" height="320" key="GridCell.Tab.0.center/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="1877" height="267" key="GridCell.Tab.0.center/0.0.1920.1016@0.0.1920.1016" timestamp="1600075481954" />
     <state width="1397" height="253" key="GridCell.Tab.0.center/96.0.1440.864@96.0.1440.864" timestamp="1598968191644" />
-    <state width="1493" height="268" key="GridCell.Tab.0.left" timestamp="1601028688277">
+    <state width="1493" height="274" key="GridCell.Tab.0.left" timestamp="1603478215000">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
     <state width="1293" height="285" key="GridCell.Tab.0.left/0.0.1536.802/1920.0.1920.1050@1920.0.1920.1050" timestamp="1600953965449" />
-    <state width="1493" height="268" key="GridCell.Tab.0.left/0.0.1536.802@0.0.1536.802" timestamp="1601028688277" />
-    <state width="1493" height="196" key="GridCell.Tab.0.left/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593255064132" />
+    <state width="1493" height="274" key="GridCell.Tab.0.left/0.0.1536.802@0.0.1536.802" timestamp="1603478215000" />
     <state width="1493" height="320" key="GridCell.Tab.0.left/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="1877" height="267" key="GridCell.Tab.0.left/0.0.1920.1016@0.0.1920.1016" timestamp="1600075481954" />
     <state width="1397" height="253" key="GridCell.Tab.0.left/96.0.1440.864@96.0.1440.864" timestamp="1598968191644" />
-    <state width="1493" height="268" key="GridCell.Tab.0.right" timestamp="1601028688277">
+    <state width="1493" height="274" key="GridCell.Tab.0.right" timestamp="1603478215000">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
     <state width="1293" height="285" key="GridCell.Tab.0.right/0.0.1536.802/1920.0.1920.1050@1920.0.1920.1050" timestamp="1600953965450" />
-    <state width="1493" height="268" key="GridCell.Tab.0.right/0.0.1536.802@0.0.1536.802" timestamp="1601028688277" />
-    <state width="1493" height="196" key="GridCell.Tab.0.right/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593255064133" />
+    <state width="1493" height="274" key="GridCell.Tab.0.right/0.0.1536.802@0.0.1536.802" timestamp="1603478215000" />
     <state width="1493" height="320" key="GridCell.Tab.0.right/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="1877" height="267" key="GridCell.Tab.0.right/0.0.1920.1016@0.0.1920.1016" timestamp="1600075481954" />
     <state width="1397" height="253" key="GridCell.Tab.0.right/96.0.1440.864@96.0.1440.864" timestamp="1598968191644" />
@@ -811,7 +776,6 @@
     </state>
     <state width="939" height="301" key="GridCell.Tab.1.bottom/0.0.1536.802/1920.0.1920.1050@1920.0.1920.1050" timestamp="1600937655719" />
     <state width="939" height="301" key="GridCell.Tab.1.bottom/0.0.1536.802@0.0.1536.802" timestamp="1601027524713" />
-    <state width="1493" height="367" key="GridCell.Tab.1.bottom/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593254730762" />
     <state width="1493" height="320" key="GridCell.Tab.1.bottom/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="939" height="267" key="GridCell.Tab.1.bottom/0.0.1920.1016@0.0.1920.1016" timestamp="1600070781825" />
     <state width="1397" height="253" key="GridCell.Tab.1.bottom/96.0.1440.864@96.0.1440.864" timestamp="1598968176644" />
@@ -820,7 +784,6 @@
     </state>
     <state width="939" height="301" key="GridCell.Tab.1.center/0.0.1536.802/1920.0.1920.1050@1920.0.1920.1050" timestamp="1600937655719" />
     <state width="939" height="301" key="GridCell.Tab.1.center/0.0.1536.802@0.0.1536.802" timestamp="1601027524713" />
-    <state width="1493" height="367" key="GridCell.Tab.1.center/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593254730762" />
     <state width="1493" height="320" key="GridCell.Tab.1.center/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="939" height="267" key="GridCell.Tab.1.center/0.0.1920.1016@0.0.1920.1016" timestamp="1600070781825" />
     <state width="1397" height="253" key="GridCell.Tab.1.center/96.0.1440.864@96.0.1440.864" timestamp="1598968176644" />
@@ -829,7 +792,6 @@
     </state>
     <state width="939" height="301" key="GridCell.Tab.1.left/0.0.1536.802/1920.0.1920.1050@1920.0.1920.1050" timestamp="1600937655719" />
     <state width="939" height="301" key="GridCell.Tab.1.left/0.0.1536.802@0.0.1536.802" timestamp="1601027524713" />
-    <state width="1493" height="367" key="GridCell.Tab.1.left/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593254730762" />
     <state width="1493" height="320" key="GridCell.Tab.1.left/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="939" height="267" key="GridCell.Tab.1.left/0.0.1920.1016@0.0.1920.1016" timestamp="1600070781824" />
     <state width="1397" height="253" key="GridCell.Tab.1.left/96.0.1440.864@96.0.1440.864" timestamp="1598968176644" />
@@ -838,7 +800,6 @@
     </state>
     <state width="939" height="301" key="GridCell.Tab.1.right/0.0.1536.802/1920.0.1920.1050@1920.0.1920.1050" timestamp="1600937655719" />
     <state width="939" height="301" key="GridCell.Tab.1.right/0.0.1536.802@0.0.1536.802" timestamp="1601027524713" />
-    <state width="1493" height="367" key="GridCell.Tab.1.right/0.0.1536.834/1920.0.1920.1170@0.0.1536.834" timestamp="1593254730762" />
     <state width="1493" height="320" key="GridCell.Tab.1.right/0.0.1536.834@0.0.1536.834" timestamp="1597907564869" />
     <state width="939" height="267" key="GridCell.Tab.1.right/0.0.1920.1016@0.0.1920.1016" timestamp="1600070781825" />
     <state width="1397" height="253" key="GridCell.Tab.1.right/96.0.1440.864@96.0.1440.864" timestamp="1598968176644" />
@@ -846,44 +807,25 @@
       <screen x="1920" y="0" width="1920" height="1050" />
     </state>
     <state width="206" height="471" key="HiddenNamespacesPopup/0.0.1536.802/1920.0.1920.1050@1920.0.1920.1050" timestamp="1600953799556" />
-    <state x="349" y="152" key="IDE.errors.dialog" timestamp="1593507104149">
-      <screen x="0" y="0" width="1536" height="834" />
-    </state>
-    <state x="349" y="152" key="IDE.errors.dialog/0.0.1536.834@0.0.1536.834" timestamp="1593507104149" />
     <state x="184" y="80" key="MergeDialog" timestamp="1600073025386">
       <screen x="0" y="0" width="1920" height="1016" />
     </state>
     <state x="147" y="63" key="MergeDialog/0.0.1536.802@0.0.1536.802" timestamp="1599202619974" />
     <state x="184" y="80" key="MergeDialog/0.0.1920.1016@0.0.1920.1016" timestamp="1600073025386" />
-    <state x="359" y="119" key="RollbackChangesDialog" timestamp="1593159248232">
-      <screen x="0" y="0" width="1536" height="834" />
-    </state>
-    <state x="359" y="119" key="RollbackChangesDialog/0.0.1536.834@0.0.1536.834" timestamp="1593159248232" />
     <state x="249" y="0" key="SettingsEditor" timestamp="1600859090037">
       <screen x="0" y="0" width="1536" height="802" />
     </state>
     <state x="249" y="0" key="SettingsEditor/0.0.1536.802@0.0.1536.802" timestamp="1600859090037" />
-    <state x="249" y="0" key="SettingsEditor/0.0.1536.834@0.0.1536.834" timestamp="1593446560983" />
-    <state x="2076" y="335" key="Vcs.Push.Dialog.v2" timestamp="1600950428995">
-      <screen x="1920" y="0" width="1920" height="1050" />
+    <state x="125" y="256" key="Vcs.Push.Dialog.v2" timestamp="1601285385875">
+      <screen x="0" y="0" width="1536" height="802" />
     </state>
     <state x="2076" y="335" key="Vcs.Push.Dialog.v2/0.0.1536.802/1920.0.1920.1050@1920.0.1920.1050" timestamp="1600950428995" />
-    <state x="125" y="256" key="Vcs.Push.Dialog.v2/0.0.1536.802@0.0.1536.802" timestamp="1599214113055" />
-    <state x="125" y="266" key="Vcs.Push.Dialog.v2/0.0.1536.834@0.0.1536.834" timestamp="1593164523055" />
-    <state x="93" y="93" width="1350" height="648" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1593163345927">
-      <screen x="0" y="0" width="1536" height="834" />
-    </state>
-    <state x="93" y="93" width="1350" height="648" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.0.1536.834@0.0.1536.834" timestamp="1593163345927" />
-    <state x="375" y="151" key="com.intellij.openapi.vcs.changes.SpecificFilesViewDialog" timestamp="1593164033760">
-      <screen x="0" y="0" width="1536" height="834" />
-    </state>
-    <state x="375" y="151" key="com.intellij.openapi.vcs.changes.SpecificFilesViewDialog/0.0.1536.834@0.0.1536.834" timestamp="1593164033760" />
-    <state x="2644" y="416" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1600950399742">
-      <screen x="1920" y="0" width="1920" height="1050" />
+    <state x="125" y="256" key="Vcs.Push.Dialog.v2/0.0.1536.802@0.0.1536.802" timestamp="1601285385875" />
+    <state x="579" y="318" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1603186473245">
+      <screen x="0" y="0" width="1536" height="802" />
     </state>
     <state x="2644" y="416" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1536.802/1920.0.1920.1050@1920.0.1920.1050" timestamp="1600950399742" />
-    <state x="579" y="318" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1536.802@0.0.1536.802" timestamp="1600933167639" />
-    <state x="579" y="331" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1536.834@0.0.1536.834" timestamp="1593163345916" />
+    <state x="579" y="318" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1536.802@0.0.1536.802" timestamp="1603186473245" />
     <state x="724" y="403" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1920.1016@0.0.1920.1016" timestamp="1600072987557" />
     <state x="2516" y="20" width="727" height="1009" key="find.popup" timestamp="1600937409790">
       <screen x="1920" y="0" width="1920" height="1050" />
@@ -891,14 +833,6 @@
     <state x="2516" y="20" width="727" height="1009" key="find.popup/0.0.1536.802/1920.0.1920.1050@1920.0.1920.1050" timestamp="1600937409790" />
     <state x="477" y="16" width="581" height="801" key="find.popup/0.0.1536.834@0.0.1536.834" timestamp="1597689119516" />
     <state x="596" y="19" width="727" height="976" key="find.popup/0.0.1920.1016@0.0.1920.1016" timestamp="1600070532179" />
-    <state x="544" y="318" key="git4idea.remote.GitConfigureRemotesDialog" timestamp="1593162870596">
-      <screen x="0" y="0" width="1536" height="834" />
-    </state>
-    <state x="544" y="318" key="git4idea.remote.GitConfigureRemotesDialog/0.0.1536.834@0.0.1536.834" timestamp="1593162870596" />
-    <state x="425" y="189" key="run.anything.popup" timestamp="1593013874567">
-      <screen x="0" y="0" width="1536" height="834" />
-    </state>
-    <state x="425" y="189" key="run.anything.popup/0.0.1536.834@0.0.1536.834" timestamp="1593013874567" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -922,6 +856,7 @@
     </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Money_System_Simulations$__main__.coverage" NAME="__main__ Coverage Results" MODIFIED="1601028614930" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/emusim" />
+    <SUITE FILE_PATH="coverage/Money_System_Simulations$__main__.coverage" NAME="__main__ Coverage Results" MODIFIED="1601286778581" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/emusim" />
+    <SUITE FILE_PATH="coverage/Money_System_Simulations$local_app_run___local_db.coverage" NAME="local app run - local db Coverage Results" MODIFIED="1603440244839" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/emusim" />
   </component>
 </project>

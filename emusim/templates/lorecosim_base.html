@@ -74,10 +74,17 @@
                         {{ current_user.first_name or current_user.username or
                         current_user.email }}
                         <hr>
+                        {% if current_user.has_roles('admin') %}
                         <a class="dropdown-item nav-link waves-effect text-dark"
-                           href="{{ url_for('main.models_page') }}">Models</a>
+                           href="{{ url_for('admin.platformusers_page') }}">Platform users</a>
                         <a class="dropdown-item nav-link waves-effect text-dark"
-                           href="{{ url_for('main.user_profile_page') }}">User profile</a>
+                           href="{{ url_for('admin.platformmodels_page') }}">Platform models</a>
+                        <hr>
+                        {% endif %}
+                        <a class="dropdown-item nav-link waves-effect text-dark"
+                           href="{{ url_for('main.models_page') }}">My models</a>
+                        <a class="dropdown-item nav-link waves-effect text-dark"
+                           href="{{ url_for('main.user_profile_page') }}">My profile</a>
                         <a class="dropdown-item nav-link waves-effect text-dark"
                            href="{{ url_for('user.logout') }}">Sign out</a>
 
