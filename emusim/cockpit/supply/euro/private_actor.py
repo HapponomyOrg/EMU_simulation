@@ -142,14 +142,14 @@ class PrivateActor(EconomicActor):
     def inflate(self, inflation: Decimal):
         pass
 
-    def start_transactions(self):
-        super().start_transactions()
+    def start_transactions(self, cycle):
+        super().start_transactions(cycle)
 
         self.__installment = Decimal(0.0)
         self.__borrowed_money = Decimal(0.0)
 
-        if len(self.__installments) > 0:
-            self.__installment = self.__installments.pop(0)
+        if self.bank.client_interaction_interval.period_complete(cycle) and len(self.__installments) > 0:
+                self.__installment = self.__installments.pop(0)
 
     def process_savings(self):
         total_dep_sav: Decimal = self.asset(BalanceEntries.DEPOSITS) + self.asset(BalanceEntries.SAVINGS)

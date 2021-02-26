@@ -76,7 +76,10 @@ class CentralBank(EconomicActor):
 
     @property
     def mbs_relative_reserve(self) -> Decimal:
-        return self.__mbs_reserve / self.min_reserve
+        if self.min_reserve != Decimal(0):
+            return self.__mbs_reserve / self.min_reserve
+        else:
+            return Decimal(0)
 
     @mbs_relative_reserve.setter
     def mbs_relative_reserve(self, percentage: Decimal):
@@ -88,7 +91,10 @@ class CentralBank(EconomicActor):
 
     @property
     def securities_relative_reserve(self) -> Decimal:
-        return self.__securities_reserve / self.min_reserve
+        if self.min_reserve != Decimal(0):
+            return self.__securities_reserve / self.min_reserve
+        else:
+            return Decimal(0)
 
     @securities_relative_reserve.setter
     def securities_relative_reserve(self, percentage: Decimal):
@@ -166,8 +172,8 @@ class CentralBank(EconomicActor):
     def loan_installments(self) -> int:
         return int(self.loan_duration.days / self.loan_interval.days)
 
-    def start_transactions(self):
-        super().start_transactions()
+    def start_transactions(self, cycle):
+        super().start_transactions(cycle)
 
         self.__inflation_processed: bool = False
         self.__mbs_growth_processed: bool = False
@@ -177,7 +183,7 @@ class CentralBank(EconomicActor):
         self.__qe_processed: bool = False
         self.__helicopter_money_processed: bool = False
 
-        self.bank.start_transactions()
+        self.bank.start_transactions(cycle)
 
     def end_transactions(self) -> bool:
         # if there are interest assets on the books, spend them to the economy

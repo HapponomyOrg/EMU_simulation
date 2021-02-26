@@ -77,8 +77,8 @@ class EuroEconomy():
     def client_interval_inflation_rate(self) -> Decimal:
         return self.inflation * self.bank.client_interaction_interval.days / Period.YEAR_DAYS
 
-    def start_transactions(self):
-        self.central_bank.start_transactions()
+    def start_transactions(self, cycle: int):
+        self.central_bank.start_transactions(cycle)
 
     def end_transactions(self) -> bool:
         return self.central_bank.end_transactions()

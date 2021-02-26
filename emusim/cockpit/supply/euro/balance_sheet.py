@@ -65,7 +65,8 @@ class BalanceSheet:
             self.__liabilities[liability_name] = Decimal(amount)
 
     def validate(self) -> bool:
-        return round(self.__value(self.assets), 4) == round(self.__value(self.liabilities), 4)
+        return self.__value(self.assets) - self.__value(self.liabilities), 2 < Decimal(0.0001) * self.__value(
+            self.assets)
 
     def asset(self, name: str) -> Decimal:
         if name in self.assets:

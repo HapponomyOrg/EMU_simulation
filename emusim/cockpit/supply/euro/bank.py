@@ -333,8 +333,8 @@ class Bank(EconomicActor):
         transactions are ended. Results during transactions are not accurate."""
         return Decimal(1.0) # TODO
 
-    def start_transactions(self):
-        super().start_transactions()
+    def start_transactions(self, cycle):
+        super().start_transactions(cycle)
         self.__client_installment: Decimal = Decimal(0.0)
         self.__client_installment_shortage: Decimal = Decimal(0.0)
         self.__expected_income = Decimal(0.0)
@@ -347,7 +347,7 @@ class Bank(EconomicActor):
         self.__debt_paid = False
         self.__reserves_updated = False
 
-        self.client.start_transactions()
+        self.client.start_transactions(cycle)
 
     def end_transactions(self) -> bool:
         return super().end_transactions() and self.client.end_transactions()

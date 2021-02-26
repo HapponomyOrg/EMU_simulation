@@ -100,8 +100,10 @@ class EconomicActor(ABC):
     def inflate(self, inflation: Decimal):
         pass
 
-    def start_transactions(self):
-        """Call before performing any transactions on the economic actor."""
+    def start_transactions(self, cycle: int):
+        """Call before performing any transactions on the economic actor.
+        :param cycle:
+        """
 
         self.__transactions_started = True
         self.__security_growth_processed = False

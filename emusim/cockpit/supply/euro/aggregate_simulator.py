@@ -261,9 +261,9 @@ class AggregateSimulator(Simulator):
         :param cycle The current cycle number.
 
         :return True if all balance sheets validate, IM > 0 and required lending rate < 100%."""
-        self.economy.start_transactions()
+        self.economy.start_transactions(cycle)
 
-        if cycle == 0 :
+        if cycle == 0:
             self.__start_im = self.economy.im
             self.__desired_im = self.__start_im
 
@@ -277,8 +277,6 @@ class AggregateSimulator(Simulator):
 
             # process inflation
             self.economy.inflate()
-            self.__desired_im += self.__desired_im * self.economy.client_interval_inflation_rate
-            self.__target_im += self.__target_im * self.economy.client_interval_inflation_rate
 
             # There is a possibility that target_im > desired_im due to banks buying securities at the start of the sim
             self.__target_im = min(self.__desired_im, self.__target_im)
@@ -336,8 +334,7 @@ class AggregateSimulator(Simulator):
                                       / self.economy.client.balance.assets_value
 
         return self.economy.end_transactions()\
-               and self.economy.im > 0\
-               and self.__required_lending_rate <= Decimal(1)
+               and self.economy.im > 0
 
     # only call after initial_inflation_rate has been applied in a cycle
     def deflate(self, amount: Decimal, skip_one: bool = False) -> Decimal:
