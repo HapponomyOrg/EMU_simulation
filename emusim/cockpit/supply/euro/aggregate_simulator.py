@@ -305,6 +305,11 @@ class AggregateSimulator(Simulator):
             # multiplier to extrapolate to % per year
             multiplier: Decimal = Decimal(Period.YEAR_DAYS / self.economy.bank.client_interaction_interval.days)
 
+            self.economy.process_borrowing(self.__lending)
+
+            # Calculate real total lending
+            self.__lending = self.economy.client.borrowed_money
+
             # calculate required and real lending percentages.
             if self.economy.im > 0.0:
                 self.__required_lending_rate = self.__required_lending / self.economy.im * multiplier
@@ -312,11 +317,6 @@ class AggregateSimulator(Simulator):
             else:
                 self.__required_lending_rate = Decimal('Infinity')
                 self.__lending_rate = Decimal('Infinity')
-
-            self.economy.process_borrowing(self.__lending)
-
-            # Calculate real total lending
-            self.__lending = self.economy.client.borrowed_money
 
             self.__nominal_growth = round((self.economy.im - self.__start_im) / self.__start_im * multiplier, 8)
 
