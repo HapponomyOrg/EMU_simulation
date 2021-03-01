@@ -313,6 +313,8 @@ def run_no_growth(param_initialization, debt):
     economy.bank.spending_mode = SpendingMode.PROFIT
     economy.bank.profit_spending = 0.0
 
+    economy.lending_satisfaction_rate = 1
+
     economy.central_bank.clear()
     init_bank_balance(debt)
     init_collector()
@@ -321,33 +323,7 @@ def run_no_growth(param_initialization, debt):
     dump_data("no_growth")
 
 
-def run_no_growth_no_profit(param_initialization, debt):
-    param_initialization()
-
-    simulator.economy.growth_rate = 0.0
-
-    # central bank
-    economy.central_bank.min_reserve = 0.0
-    economy.central_bank.surplus_reserve_ir = 0.0
-    economy.central_bank.loan_ir = 0.0
-
-    # bank
-    economy.bank.min_reserve = 0.0
-    economy.bank.loan_ir = 0.025
-    economy.bank.income_from_interest = 1.0
-    economy.bank.retain_profit_percentage = 0.0
-    economy.bank.spending_mode = SpendingMode.PROFIT
-    economy.bank.profit_spending = 1.0
-
-    economy.central_bank.clear()
-    init_bank_balance(debt)
-    init_collector()
-    simulator.run_simulation(YEARS * Period.YEAR_DAYS)
-
-    dump_data("no_growth_no_profit")
-
-
-def run_low_growth(param_initialization, debt):
+def run_equal_growth_interest(param_initialization, debt):
     param_initialization()
 
     simulator.economy.growth_rate = 0.025
@@ -358,7 +334,6 @@ def run_low_growth(param_initialization, debt):
     economy.central_bank.loan_ir = 0.0
 
     # bank
-    economy.lending_satisfaction_rate = 0.95
     economy.bank.min_reserve = 0.0
     economy.bank.loan_ir = 0.025
     economy.bank.income_from_interest = 1.0
@@ -366,28 +341,14 @@ def run_low_growth(param_initialization, debt):
     economy.bank.spending_mode = SpendingMode.PROFIT
     economy.bank.profit_spending = 0.0
 
-    economy.central_bank.clear()
-    init_bank_balance(debt)
-    init_collector()
-    simulator.run_simulation(YEARS * Period.YEAR_DAYS)
-
-    dump_data("low_growth")
-
-
-def run_low_growth_no_profit(param_initialization, debt):
-    param_initialization()
-
-    simulator.economy.growth_rate = 0.03
-    simulator.economy.bank.spending_mode = SpendingMode.PROFIT
-    simulator.economy.bank.retain_profit = False
-    simulator.economy.bank.profit_spending = 1.0
+    economy.lending_satisfaction_rate = 0.95
 
     economy.central_bank.clear()
     init_bank_balance(debt)
     init_collector()
     simulator.run_simulation(YEARS * Period.YEAR_DAYS)
 
-    dump_data("low_growth_no_profit")
+    dump_data("equal_growth_interest - 95%")
 
 
 def run_high_growth(param_initialization, debt):
@@ -417,36 +378,17 @@ def run_high_growth(param_initialization, debt):
     dump_data("high_growth")
 
 
-def run_high_growth_no_profit(param_initialization, debt):
-    param_initialization()
-
-    simulator.economy.growth_rate = 0.1
-    simulator.economy.bank.spending_mode = SpendingMode.PROFIT
-    simulator.economy.bank.retain_profit = False
-    simulator.economy.bank.profit_spending = 1.0
-
-    economy.central_bank.clear()
-    init_bank_balance(debt)
-    init_collector()
-    simulator.run_simulation(YEARS * Period.YEAR_DAYS)
-
-    dump_data("high_growth_no_profit")
-
-
 def run_batch(param_initialization, initial_debt):
     # run_base_no_growth(param_initialization, initial_debt)
     # run_no_growth(param_initialization, initial_debt)
-    # run_no_growth_no_profit(param_initialization, initial_debt)
-
+    #
     # run_base_low_growth(param_initialization, initial_debt)
     # run_long_base_low_growth(param_initialization, initial_debt)
-    run_low_growth(param_initialization, initial_debt)
-    # run_low_growth_no_profit(param_initialization, initial_debt)
-
+    #
     # run_base_high_growth(param_initialization, initial_debt)
     # run_high_growth(param_initialization, initial_debt)
-    # run_high_growth_no_profit(param_initialization, initial_debt)
 
+    run_equal_growth_interest(param_initialization, initial_debt)
 
 now = datetime.now()
 print("Starting")
