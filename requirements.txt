@@ -39,7 +39,7 @@ passlib==1.7.2
 pipenv==2020.8.13
 pluggy==0.13.1
 poyo==0.5.0
-py==1.9.0
+py==1.10.0
 pycparser==2.20
 pygal==2.4.0
 pyparsing==2.4.7
