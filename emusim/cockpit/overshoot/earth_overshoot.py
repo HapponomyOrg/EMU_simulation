@@ -8,7 +8,7 @@ class Earth_Overshoot:
     START_DATE = date(1969, 12, 31)
 
     FIRST_YEAR = 1970
-    LAST_YEAR = 2018
+    LAST_YEAR = 2022
 
     overshoot_dates = {
         1970: date(1970, 12, 29),
